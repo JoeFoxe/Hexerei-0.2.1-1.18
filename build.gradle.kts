@@ -62,6 +62,8 @@ minecraft {
 
 	copyIdeResources.set(true)
 
+	accessTransformer("src/main/resources/META-INF/accesstransformer.cfg")
+
 	// Default run configurations.
 	// These can be tweaked, removed, or duplicated as needed.
 	runs {
