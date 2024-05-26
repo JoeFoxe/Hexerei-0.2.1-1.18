@@ -10,6 +10,7 @@ import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -32,10 +33,12 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CandleItem extends BlockItem implements DyeableLeatherItem {
@@ -269,10 +272,13 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         if(tag == null) return null;
         if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
             if(tag.contains("layer")) {
-                BlockState blockState = Registry.BLOCK.get(new ResourceLocation(tag.getString("layer"))).defaultBlockState();
-                List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                if(list.size() > 0);
-                return list.get(0).getSprite().getName().getNamespace() + ":textures/" + list.get(0).getSprite().getName().getPath() + ".png";
+                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
+                if (holder.isPresent()) {
+                    BlockState blockState = holder.get().get().defaultBlockState();
+                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
+                    if (list.size() > 0)
+                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
+                }
             }
             return null;
         }
@@ -284,10 +290,13 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         if(tag == null) return null;
         if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
             if(tag.contains("layer")) {
-                BlockState blockState = Registry.BLOCK.get(new ResourceLocation(tag.getString("layer"))).defaultBlockState();
-                List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                if(!list.isEmpty())
-                    return list.get(0).getSprite().getName().getNamespace() + ":textures/" + list.get(0).getSprite().getName().getPath() + ".png";
+                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
+                if (holder.isPresent()) {
+                    BlockState blockState = holder.get().get().defaultBlockState();
+                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
+                    if (list.size() > 0)
+                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
+                }
             }
             return null;
         }
@@ -299,10 +308,13 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         if(tag == null) return null;
         if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
             if(tag.contains("layer")) {
-                BlockState blockState = Registry.BLOCK.get(new ResourceLocation(tag.getString("layer"))).defaultBlockState();
-                List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                if(list.size() > 0);
-                return list.get(0).getSprite().getName().getNamespace() + ":textures/" + list.get(0).getSprite().getName().getPath() + ".png";
+                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
+                if (holder.isPresent()) {
+                    BlockState blockState = holder.get().get().defaultBlockState();
+                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
+                    if (list.size() > 0)
+                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
+                }
             }
             return null;
         }
@@ -314,10 +326,13 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         if(tag == null) return null;
         if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
             if(tag.contains("layer")) {
-                BlockState blockState = Registry.BLOCK.get(new ResourceLocation(tag.getString("layer"))).defaultBlockState();
-                List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                if(list.size() > 0);
-                return list.get(0).getSprite().getName().getNamespace() + ":textures/" + list.get(0).getSprite().getName().getPath() + ".png";
+                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
+                if (holder.isPresent()) {
+                    BlockState blockState = holder.get().get().defaultBlockState();
+                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
+                    if (list.size() > 0)
+                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
+                }
             }
             return null;
         }

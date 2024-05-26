@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -42,21 +42,21 @@ public abstract class LivingEntityRendererMixin {
             }
             if (i == 0) {
                 matrixStack.translate(0f, entity.getBbHeight() / 2.5f, 0f);
-                matrixStack.mulPose(Vector3f.YP.rotationDegrees(-deltaRotation * 2));
-                matrixStack.mulPose(Vector3f.ZP.rotationDegrees(deltaMovementY * 25f));
+                matrixStack.mulPose(Axis.YP.rotationDegrees(-deltaRotation * 2));
+                matrixStack.mulPose(Axis.ZP.rotationDegrees(deltaMovementY * 25f));
                 matrixStack.translate(0f, -entity.getBbHeight() / 2.5f, 0f);
             } else if(i == 1) {
                 matrixStack.translate(0f, entity.getBbHeight() / 2.5f, 0f);
-                matrixStack.mulPose(Vector3f.YP.rotationDegrees(-deltaRotation * 2));
-                matrixStack.mulPose(Vector3f.XP.rotationDegrees(deltaMovementY * 25f));
+                matrixStack.mulPose(Axis.YP.rotationDegrees(-deltaRotation * 2));
+                matrixStack.mulPose(Axis.XP.rotationDegrees(deltaMovementY * 25f));
                 matrixStack.translate(0f, -entity.getBbHeight() / 2.5f, 0f);
             } else {
                 matrixStack.translate(0f, entity.getBbHeight() / 2.5f, 0f);
-                matrixStack.mulPose(Vector3f.YP.rotationDegrees(-deltaRotation * 2));
+                matrixStack.mulPose(Axis.YP.rotationDegrees(-deltaRotation * 2));
                 if(hasSeat)
-                    matrixStack.mulPose(Vector3f.XP.rotationDegrees(deltaMovementY * 25f));
+                    matrixStack.mulPose(Axis.XP.rotationDegrees(deltaMovementY * 25f));
                 else
-                    matrixStack.mulPose(Vector3f.ZP.rotationDegrees(deltaMovementY * 25f));
+                    matrixStack.mulPose(Axis.ZP.rotationDegrees(deltaMovementY * 25f));
                 matrixStack.translate(0f, -entity.getBbHeight() / 2.5f, 0f);
             }
 

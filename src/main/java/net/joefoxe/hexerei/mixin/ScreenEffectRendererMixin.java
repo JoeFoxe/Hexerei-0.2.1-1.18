@@ -28,8 +28,8 @@ public abstract class ScreenEffectRendererMixin {
         Camera camera = pMinecraft.gameRenderer.getMainCamera();
 
         double d0 = camera.getPosition().y() - (double) 0.11111111F;
-        BlockPos blockpos = new BlockPos(camera.getPosition().x(), d0, camera.getPosition().z());
-        if(player.level.getBlockEntity(blockpos) instanceof MixingCauldronTile tile){
+        BlockPos blockpos = new BlockPos((int)camera.getPosition().x(), (int)d0, (int)camera.getPosition().z());
+        if(player.level().getBlockEntity(blockpos) instanceof MixingCauldronTile tile){
             if(tile.renderedFluid != null) {
                 double d1 = (float) blockpos.getY() + tile.renderedFluid.getAmount() / 2000f;
                 if (d1 > d0) {

@@ -73,10 +73,12 @@ public class DowsingRodParticle extends TextureSheetParticle {
             new Vec3(0, 0, 0.5),
     };
 
+    public final static ResourceLocation TEXTURE_BLANK =
+            new ResourceLocation(Hexerei.MOD_ID, "textures/block/blank.png");
     private static final ParticleRenderType renderType = new ParticleRenderType() {
         @Override
         public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
-            RenderSystem.disableTexture();
+            RenderSystem.setShaderTexture(0, TEXTURE_BLANK);
 
             RenderSystem.depthMask(false);
             RenderSystem.enableBlend();

@@ -81,9 +81,9 @@ public class MoonBroomParticle extends TextureSheetParticle {
             MoonBroomParticle broomParticle = new MoonBroomParticle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed);
             broomParticle.pickSprite(this.spriteSet);
             broomParticle.setColor(0.6f + colorOffset, 0.6f + colorOffset, 0.6f + colorOffset);
-            if (this.spriteSet.get(0, 1).getName().getPath().matches("particle/moon_brush_2") ||
-                this.spriteSet.get(0, 1).getName().getPath().matches("particle/moon_brush_3") ||
-                this.spriteSet.get(0, 1).getName().getPath().matches("particle/moon_brush_4")) {
+            if (this.spriteSet.get(0, 1).atlasLocation().getPath().matches("particle/moon_brush_2") ||
+                this.spriteSet.get(0, 1).atlasLocation().getPath().matches("particle/moon_brush_3") ||
+                this.spriteSet.get(0, 1).atlasLocation().getPath().matches("particle/moon_brush_4")) {
                 broomParticle.lifetime += broomParticle.lifetime * 3 + 30;
             }
 

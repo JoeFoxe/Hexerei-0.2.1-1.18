@@ -2,7 +2,6 @@ package net.joefoxe.hexerei.mixin;
 
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.math.Vector3f;
 import net.joefoxe.hexerei.fluid.PotionFluidType;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
 import net.joefoxe.hexerei.util.HexereiUtil;
@@ -35,6 +34,7 @@ import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -66,7 +66,7 @@ public abstract class FogRendererMixin {
         BlockEntity be = level.getBlockEntity(cameraPos);
         if(be instanceof MixingCauldronTile tile){
             double d0 = pCamera.getPosition().y() - (double) 0.11111111F;
-            BlockPos blockpos = new BlockPos(pCamera.getPosition().x(), d0, pCamera.getPosition().z());
+            BlockPos blockpos = new BlockPos((int)pCamera.getPosition().x(), (int)d0, (int)pCamera.getPosition().z());
             if (tile.renderedFluid != null) {
                 double d1 = (float) blockpos.getY() + tile.renderedFluid.getAmount() / 2000f;
                 if (d1 > d0) {
@@ -74,7 +74,7 @@ public abstract class FogRendererMixin {
                     Entity entity = pCamera.getEntity();
                     if (fogtype == FogType.WATER) {
                         long i = Util.getMillis();
-                        int j = pLevel.getBiome(new BlockPos(pCamera.getPosition())).value().getWaterFogColor();
+                        int j = pLevel.getBiome(new BlockPos((int)pCamera.getPosition().x, (int)pCamera.getPosition().y, (int)pCamera.getPosition().z)).value().getWaterFogColor();
                         if (biomeChangedTime < 0L) {
                             targetBiomeFog = j;
                             previousBiomeFog = j;
@@ -237,7 +237,7 @@ public abstract class FogRendererMixin {
         BlockEntity be = level.getBlockEntity(cameraPos);
         if(be instanceof MixingCauldronTile tile){
             double d0 = pCamera.getPosition().y() - (double) 0.11111111F;
-            BlockPos blockpos = new BlockPos(pCamera.getPosition().x(), d0, pCamera.getPosition().z());
+            BlockPos blockpos = new BlockPos((int)pCamera.getPosition().x(), (int)d0, (int)pCamera.getPosition().z());
             if (tile.renderedFluid != null) {
                 double d1 = (float) blockpos.getY() + tile.renderedFluid.getAmount() / 2000f;
                 if (d1 > d0) {
@@ -249,7 +249,7 @@ public abstract class FogRendererMixin {
                     fogrenderer$fogdata.end = 96.0F;
                     if (entity instanceof LocalPlayer localplayer) {
                         fogrenderer$fogdata.end *= Math.max(0.25F, getWaterVision(localplayer));
-                        Holder<Biome> holder = localplayer.level.getBiome(localplayer.blockPosition());
+                        Holder<Biome> holder = localplayer.level().getBiome(localplayer.blockPosition());
                         if (holder.is(BiomeTags.HAS_CLOSER_WATER_FOG)) {
                             fogrenderer$fogdata.end *= 0.85F;
                         }

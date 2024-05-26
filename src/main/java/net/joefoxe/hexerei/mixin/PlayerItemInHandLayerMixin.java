@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.entity.layers.PlayerItemInHandLayer;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,7 +38,7 @@ public abstract class PlayerItemInHandLayerMixin<T extends Player, M extends Ent
 
     @OnlyIn(Dist.CLIENT)
     @Inject(method = "renderArmWithItem", at = @At(value = "HEAD"), cancellable = true)
-    public void poseRightArm(LivingEntity entity, ItemStack stack, ItemTransforms.TransformType transformType,
+    public void poseRightArm(LivingEntity entity, ItemStack stack, ItemDisplayContext transformType,
                              HumanoidArm humanoidArm, PoseStack poseStack, MultiBufferSource bufferSource,
                              int light, CallbackInfo ci) {
 
@@ -61,7 +62,7 @@ public abstract class PlayerItemInHandLayerMixin<T extends Player, M extends Ent
         modelpart.translateAndRotate(p_174521_);
         modelpart.xRot = f;
         CustomHeadLayer.translateToHead(p_174521_, false);
-        Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(p_174518_, p_174519_, ItemTransforms.TransformType.HEAD, false, p_174521_, p_174522_, p_174523_);
+        Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(p_174518_, p_174519_, ItemDisplayContext.HEAD, false, p_174521_, p_174522_, p_174523_);
         p_174521_.popPose();
     }
 

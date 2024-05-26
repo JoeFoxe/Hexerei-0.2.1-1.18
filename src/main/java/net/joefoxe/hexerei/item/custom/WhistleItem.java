@@ -34,7 +34,7 @@ public class WhistleItem extends Item {
         if(itemstack.hasTag()){
             CompoundTag tag = itemstack.getOrCreateTag();
             if(tag.contains("broomUUID")){
-                playerIn.level.playSound(null, playerIn.getX() + playerIn.getLookAngle().x(), playerIn.getY() + playerIn.getEyeHeight(), playerIn.getZ() + playerIn.getLookAngle().z(), ModSounds.BROOM_WHISTLE.get(), SoundSource.PLAYERS, 1.0F, 0.8F + 0.4F * new Random().nextFloat());
+                playerIn.level().playSound(null, playerIn.getX() + playerIn.getLookAngle().x(), playerIn.getY() + playerIn.getEyeHeight(), playerIn.getZ() + playerIn.getLookAngle().z(), ModSounds.BROOM_WHISTLE.get(), SoundSource.PLAYERS, 1.0F, 0.8F + 0.4F * new Random().nextFloat());
                 BroomEntity broomFound = null;
                 UUID broomUUID = tag.getUUID("broomUUID");
                 List<BroomEntity> list = level.getEntitiesOfClass(BroomEntity.class, playerIn.getBoundingBox().inflate(64.0D));

@@ -41,7 +41,7 @@ public class LightManager {
     public static void init() {
 
         register(EntityType.FALLING_BLOCK, (p) -> {
-            return p.getBlockState().getLightEmission(p.level, p.blockPosition());
+            return p.getBlockState().getLightEmission(p.level(), p.blockPosition());
         });
 
         register(EntityType.ENDERMAN, (enderMan -> {
@@ -67,7 +67,7 @@ public class LightManager {
 
     private static int broomLightCheck(BroomEntity broom) {
         if (broom.getModule(BroomEntity.BroomSlot.BRUSH).getItem() instanceof BroomBrushItem brushItem) {
-            if (brushItem.shouldGlow(broom.level, broom.getModule(BroomEntity.BroomSlot.BRUSH)))
+            if (brushItem.shouldGlow(broom.level(), broom.getModule(BroomEntity.BroomSlot.BRUSH)))
                 return 15;
         }
         if (broom.getModule(BroomEntity.BroomSlot.MISC).getItem() instanceof KeychainItem keychainItem) {

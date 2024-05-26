@@ -55,7 +55,7 @@ public abstract class HexereiLightEntityMixin implements LambHexereiDynamicLight
     private ChunkPos chunkPosition;
 
     @Shadow
-    public abstract Level getLevel();
+    public abstract Level level();
 
     @Shadow
     public abstract BlockPos getOnPos();
@@ -111,7 +111,7 @@ public abstract class HexereiLightEntityMixin implements LambHexereiDynamicLight
         if (this.level.isClientSide()) {
             this.setHexereiDynamicLightEnabled(false);
             if (lambdynlights$luminance > 0)
-                EventQueue.getClientQueue().addEvent(new FadeLightTimedEventHexerei(this.getLevel(), this.position(), 8, lambdynlights$luminance));
+                EventQueue.getClientQueue().addEvent(new FadeLightTimedEventHexerei(this.level(), this.position(), 8, lambdynlights$luminance));
         }
     }
 
@@ -184,7 +184,7 @@ public abstract class HexereiLightEntityMixin implements LambHexereiDynamicLight
                 LightManager.updateTrackedChunks(chunkPos, this.lambdynlights$trackedLitChunkPos, newPos);
 
                 var directionX = (this.blockPosition().getX() & 15) >= 8 ? Direction.EAST : Direction.WEST;
-                var directionY = (Mth.fastFloor(this.getEyeY()) & 15) >= 8 ? Direction.UP : Direction.DOWN;
+                var directionY = (Mth.floor(this.getEyeY()) & 15) >= 8 ? Direction.UP : Direction.DOWN;
                 var directionZ = (this.blockPosition().getZ() & 15) >= 8 ? Direction.SOUTH : Direction.NORTH;
 
                 for (int i = 0; i < 7; i++) {

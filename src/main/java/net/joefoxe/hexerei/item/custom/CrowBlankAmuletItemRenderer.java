@@ -1,13 +1,12 @@
 package net.joefoxe.hexerei.item.custom;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.nbt.CompoundTag;
@@ -77,7 +76,7 @@ public class CrowBlankAmuletItemRenderer extends CustomItemRenderer {
 
 		matrixStackIn.pushPose();
 		matrixStackIn.translate(45 / 64f, 13 / 32f, 7 / 16f);
-		matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+		matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
 		ItemStack otherItem = ItemStack.EMPTY;
 
 
@@ -97,7 +96,7 @@ public class CrowBlankAmuletItemRenderer extends CustomItemRenderer {
 			matrixStackIn.pushPose();
 			matrixStackIn.translate(-1 / 2f, -1 / 2f, 0);
 			matrixStackIn.scale(1F / 128F, 1F / 128F, 1);
-			matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180f));
+			matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180f));
 			matrixStackIn.translate(-128F, -128F, 0);
 			matrixStackIn.scale(0.8695f, 0.8695f, 1);
 			matrixStackIn.translate(9.5F, 9.5F, 1F / 128F);

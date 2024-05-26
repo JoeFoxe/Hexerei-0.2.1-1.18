@@ -2,7 +2,7 @@ package net.joefoxe.hexerei.item.custom;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.Candle;
 import net.joefoxe.hexerei.client.renderer.entity.model.CandleModel;
@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
@@ -33,7 +32,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
@@ -137,7 +135,7 @@ public class CandleItemRenderer extends CustomItemRenderer {
         matrixStackIn.pushPose();
         matrixStackIn.translate(0.2, -0.1, -0.10);
         matrixStackIn.translate(8 / 16f, 28f / 16f, 8 / 16f);
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
         CandleData candleData = tileEntityIn.candles.get(0);
         boolean hasBase = candleData.base.layer != null;

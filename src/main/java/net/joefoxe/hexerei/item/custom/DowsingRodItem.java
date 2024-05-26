@@ -8,9 +8,7 @@ import net.joefoxe.hexerei.util.message.DowsingRodUpdatePositionPacket;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -128,7 +126,7 @@ public class DowsingRodItem extends Item {
     public void findSwamp(Level worldIn, Entity entity)
     {
         if(worldIn instanceof ServerLevel serverLevel){
-            Predicate<Holder<Biome>> SWAMP = (p_211672_) ->  ForgeRegistries.BIOME.getOrCreateTag(BT_SWAMP).contains(p_211672_);
+            Predicate<Holder<Biome>> SWAMP = (p_211672_) -> ForgeRegistries.BIOMES.getHolder(BT_SWAMP.location()).isPresent();
             Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(SWAMP, entity.blockPosition(), 6400, 32, 64);
             if(pair != null)
                 this.nearestPos = pair.getFirst();
@@ -140,7 +138,7 @@ public class DowsingRodItem extends Item {
     public void findJungle(Level worldIn, Entity entity)
     {
         if(worldIn instanceof ServerLevel serverLevel){
-            Predicate<Holder<Biome>> JUNGLE = (p_211672_) ->  BuiltinRegistries.BIOME.getOrCreateTag(BiomeTags.IS_JUNGLE).contains(p_211672_);
+            Predicate<Holder<Biome>> JUNGLE = (p_211672_) ->  ForgeRegistries.BIOMES.getHolder(BiomeTags.IS_JUNGLE.location()).isPresent();
             Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(JUNGLE, entity.blockPosition(), 6400, 32, 64);
             if(pair != null)
                 this.nearestPos = pair.getFirst();
