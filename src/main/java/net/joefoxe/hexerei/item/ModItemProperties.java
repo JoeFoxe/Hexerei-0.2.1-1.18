@@ -36,8 +36,8 @@ public class ModItemProperties {
                 if (!(entity instanceof Player) || ((DowsingRodItem)itemStack.getItem()).nearestPos == null) {
                     return 0.3F;
                 }
-                if (level == null && entity.level instanceof ClientLevel) {
-                    level = (ClientLevel)entity.level;
+                if (level == null && entity.level() instanceof ClientLevel) {
+                    level = (ClientLevel)entity.level();
                 }
 
                 float viewRot = Mth.wrapDegrees(entity.getViewYRot(1.0f));

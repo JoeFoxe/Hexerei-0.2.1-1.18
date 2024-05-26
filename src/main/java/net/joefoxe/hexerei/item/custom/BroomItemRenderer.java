@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public class BroomItemRenderer extends CustomItemRenderer {
@@ -15,7 +16,7 @@ public class BroomItemRenderer extends CustomItemRenderer {
     private static final Minecraft minecraft = Minecraft.getInstance();
 
     @Override
-    public void renderByItem(ItemStack itemStack, ItemTransforms.TransformType transformType, PoseStack stack, MultiBufferSource source, int light, int overlay) {
+    public void renderByItem(ItemStack itemStack, ItemDisplayContext displayContext, PoseStack stack, MultiBufferSource source, int light, int overlay) {
         if (renderer == null) {
             renderer = new BroomRenderer(new EntityRendererProvider.Context(minecraft.getEntityRenderDispatcher(), minecraft.getItemRenderer(), minecraft.getBlockRenderer(), minecraft.gameRenderer.itemInHandRenderer, minecraft.getResourceManager(), minecraft.getEntityModels(), minecraft.font));
         }

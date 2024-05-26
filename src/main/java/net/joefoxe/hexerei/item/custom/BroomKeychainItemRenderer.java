@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,7 +21,7 @@ import net.minecraftforge.client.model.data.ModelData;
 public class BroomKeychainItemRenderer extends CustomItemRenderer {
 
     @Override
-    public void renderByItem(ItemStack stack, ItemTransforms.TransformType transformType, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void renderByItem(ItemStack stack, ItemDisplayContext displayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
 
 //        matrixStackIn.pushPose();
 //        matrixStackIn.translate(0.2, -0.1, -0.10);
@@ -29,7 +30,7 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
 //        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModelData.EMPTY, null);
 //        matrixStackIn.popPose();
 
-        this.renderTileStuff(stack.getOrCreateTag(), stack, transformType, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+        this.renderTileStuff(stack.getOrCreateTag(), stack, displayContext, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
     }
 
     public static int getCustomColor(CompoundTag tag) {
@@ -39,17 +40,17 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
 
 
 
-    private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, ItemDisplayContext displayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.GUI, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, displayContext, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, Minecraft.getInstance().level, 1);
     }
 
     private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, BlockState state) {
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
     }
 
-    public void renderTileStuff(CompoundTag tag, ItemStack stack, ItemTransforms.TransformType transformType, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void renderTileStuff(CompoundTag tag, ItemStack stack, ItemDisplayContext displayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
 
 
 
@@ -61,7 +62,7 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
         matrixStackIn.translate(0.2, -0.1, -0.10);
         matrixStackIn.translate(0.5, 0.5, 0.5);
 //        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
-        renderItem(new ItemStack(ModItems.BROOM_KEYCHAIN_BASE.get(), 1), matrixStackIn, bufferIn, combinedLightIn);
+        renderItem(new ItemStack(ModItems.BROOM_KEYCHAIN_BASE.get(), 1), displayContext, matrixStackIn, bufferIn, combinedLightIn);
 
 
         CompoundTag tag2 = stack.getOrCreateTag();
@@ -79,7 +80,7 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
 
                 //0.4 scale
 
-                renderItem(other, matrixStackIn, bufferIn, combinedLightIn);
+                renderItem(other, displayContext, matrixStackIn, bufferIn, combinedLightIn);
 
                 matrixStackIn.popPose();
             }
