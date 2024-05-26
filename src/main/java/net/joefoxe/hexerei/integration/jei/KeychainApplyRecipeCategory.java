@@ -3,8 +3,7 @@ package net.joefoxe.hexerei.integration.jei;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -18,7 +17,8 @@ import net.joefoxe.hexerei.data.recipes.KeychainRecipe;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.KeychainItem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -36,17 +36,24 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainRecipe> {
     public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "keychain_apply");
@@ -81,7 +88,10 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
     public KeychainApplyRecipeCategory(IGuiHelper helper) {
         this.background = helper.createDrawable(TEXTURE, 0, 0, 144, 86);
         this.icon = new ExtraKeychainIcon(() -> new ItemStack(ModItems.CANDLE.get()));
-        this.itemShown = new ItemStack(Registry.ITEM.getRandom(RandomSource.create()).map(Holder::get).orElse(Items.AIR));
+        Collection<Item> col = ForgeRegistries.ITEMS.getValues();
+        Random rand = new Random();
+        if (col.toArray()[(int)(col.size() * rand.nextFloat())] instanceof Item item)
+            this.itemShown = new ItemStack(item);
     }
 
     @Override
@@ -118,7 +128,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
 
 
     @Override
-    public void draw(KeychainRecipe recipe, IRecipeSlotsView view, PoseStack matrixStack, double mouseX, double mouseY) {
+    public void draw(KeychainRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
         float newHeatSource = (Hexerei.getClientTicks()) % 200 / 200f;
         float craftPercent = (Hexerei.getClientTicks()) % 100 / 100f;
@@ -126,7 +136,10 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
         if ((newHeatSource <= 0.05f && this.findNewHeatSource) || this.itemShown == null) {
             this.findNewHeatSource = false;
             if (Minecraft.getInstance().level != null) {
-                this.itemShown = new ItemStack(Registry.ITEM.getRandom(RandomSource.create()).map(Holder::get).orElse(Items.AIR));
+                Collection<Item> col = ForgeRegistries.ITEMS.getValues();
+                Random rand = new Random();
+                if (col.toArray()[(int)(col.size() * rand.nextFloat())] instanceof Item item)
+                    this.itemShown = new ItemStack(item);
             }
         }
         if (newHeatSource > 0.05f)
@@ -139,7 +152,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
         RenderSystem.enableDepthTest();
 
         if(isHovering(mouseX, mouseY, 33, 19, 16, 16))
-            GuiComponent.fill(matrixStack, 41 - 8, 27 - 8, 41 + 16 - 8, 27 + 16 - 8, 0x66FFFFFF);
+            guiGraphics.fill(41 - 8, 27 - 8, 41 + 16 - 8, 27 + 16 - 8, 0x66FFFFFF);
 
         if(!renderer.getModel(this.itemShown, null, null, 0).usesBlockLight())
             Lighting.setupForFlatItems();
@@ -168,26 +181,26 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
             keychain.setTag(tag);
         }
 
-        matrixStack.pushPose();
-        matrixStack.translate(41, 27, 0);
-        matrixStack.mulPoseMatrix(Matrix4f.createScaleMatrix(1, -1, 1));
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(41, 27, 0);
+        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
 
-        matrixStack.translate(0, 0, 100);
-        matrixStack.scale(16, 16, 16);
-        matrixStack.last().normal().mul(Vector3f.YP.rotationDegrees((float) -45));
-        renderItem(this.itemShown, matrixStack, buffer, LightTexture.FULL_BRIGHT);
-        matrixStack.popPose();
+        guiGraphics.pose().translate(0, 0, 100);
+        guiGraphics.pose().scale(16, 16, 16);
+        guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));
+        renderItem(this.itemShown, minecraft.level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+        guiGraphics.pose().popPose();
 
 
-        matrixStack.pushPose();
-        matrixStack.translate(117, 45, 0);
-        matrixStack.mulPoseMatrix(Matrix4f.createScaleMatrix(1, -1, 1));
-        matrixStack.translate(0, 0, 100);
-        matrixStack.scale(16, 16, 16);
-        matrixStack.last().normal().mul(Vector3f.YP.rotationDegrees((float) -45));
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(117, 45, 0);
+        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+        guiGraphics.pose().translate(0, 0, 100);
+        guiGraphics.pose().scale(16, 16, 16);
+        guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));
 
-        renderItem(keychain, matrixStack, buffer, LightTexture.FULL_BRIGHT);
-        matrixStack.popPose();
+        renderItem(keychain, minecraft.level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+        guiGraphics.pose().popPose();
 
 
 
@@ -199,21 +212,21 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
         float lineHeight = minecraft.font.lineHeight / 2f;
         if(width > 131){
             float percent = width/131f;
-            matrixStack.pushPose();
-            matrixStack.scale(1/percent, 1/percent, 1/percent);
-            minecraft.font.draw(matrixStack, outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040);
-            matrixStack.popPose();
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().scale(1/percent, 1/percent, 1/percent);
+            minecraft.font.drawInBatch(outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+            guiGraphics.pose().popPose();
 
         }else {
-            minecraft.font.draw(matrixStack, outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040);
+            minecraft.font.drawInBatch(outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         }
 
     }
 
-    private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.GUI, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -239,7 +252,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
                     poseStack.translate(0.2, -0.1, -0.1);
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, poseStack, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, poseStack, p_110915_, p_110916_, p_110917_);
                 }
             }
 

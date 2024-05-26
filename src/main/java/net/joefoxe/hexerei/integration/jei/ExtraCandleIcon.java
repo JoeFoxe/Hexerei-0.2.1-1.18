@@ -4,23 +4,24 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import mezz.jei.api.gui.drawable.IDrawable;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.recipes.AddToCandleRecipe;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -28,6 +29,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
+import org.joml.Matrix4f;
 
 import java.util.List;
 import java.util.Random;
@@ -81,7 +83,7 @@ public class ExtraCandleIcon implements IDrawable {
 
 
     @Override
-    public void draw(PoseStack matrixStack, int xOffset, int yOffset) {
+    public void draw(GuiGraphics guiGraphics, int xOffset, int yOffset) {
         if (extraStack == null) {
             extraStack = extraSupplier.get();
         }
@@ -108,22 +110,22 @@ public class ExtraCandleIcon implements IDrawable {
 
 
         RenderSystem.enableDepthTest();
-        matrixStack.pushPose();
-        matrixStack.translate(xOffset, yOffset, 0);
-        matrixStack.mulPoseMatrix(Matrix4f.createScaleMatrix(1, -1, 1));
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(xOffset, yOffset, 0);
+        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
 
-        matrixStack.pushPose();
-        matrixStack.translate(9, -9, 9);
-        matrixStack.scale(20, 20, 20);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(9, -9, 9);
+        guiGraphics.pose().scale(20, 20, 20);
         Vec3 rotationOffset = new Vec3(0, 0, 0);
         float zRot = 0;
         float xRot = 20;
         float yRot = 30;
-        matrixStack.translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(zRot));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(xRot));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(yRot));
-        matrixStack.translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+        guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
+        guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
+        guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
+        guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
+        guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
 
         MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
         RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
@@ -135,41 +137,41 @@ public class ExtraCandleIcon implements IDrawable {
         ItemStack recipe_stack = recipeShown.getIngredients().get(0).getItems()[0];
         if(recipeShown instanceof AddToCandleRecipe recipe){
             ItemStack output_stack = recipe.getOutput();
-            renderItemFixed(output_stack, matrixStack, buffer, LightTexture.FULL_BRIGHT);
+            renderItemFixed(output_stack, Minecraft.getInstance().level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
         }else {
-            ItemStack output_stack = recipeShown.getResultItem();
-            renderItemFixed(output_stack, matrixStack, buffer, LightTexture.FULL_BRIGHT);
+            ItemStack output_stack = recipeShown.getResultItem(Minecraft.getInstance().level.registryAccess());
+            renderItemFixed(output_stack, Minecraft.getInstance().level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
         }
 
-        matrixStack.popPose();
+        guiGraphics.pose().popPose();
 
 
 
-        matrixStack.pushPose();
-        matrixStack.translate(14, -14, 100);
-        matrixStack.scale(.5f, .5f, .5f);
-        matrixStack.scale(16, 16, 16);
-        matrixStack.last().normal().mul(Vector3f.YP.rotationDegrees((float) -45));
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(14, -14, 100);
+        guiGraphics.pose().scale(.5f, .5f, .5f);
+        guiGraphics.pose().scale(16, 16, 16);
+        guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));
         if (!recipe_stack.isEmpty())
-            renderItem(recipe_stack, matrixStack, buffer, LightTexture.FULL_BRIGHT);
-        matrixStack.popPose();
+            renderItem(recipe_stack, Minecraft.getInstance().level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+        guiGraphics.pose().popPose();
 
-        matrixStack.popPose();
+        guiGraphics.pose().popPose();
         buffer.endBatch();
         RenderSystem.enableDepthTest();
         Lighting.setupFor3DItems();
     }
 
 
-    private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.GUI, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GUI, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
-    private void renderItemFixed(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
-                            int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+    private void renderItemFixed(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+                                 int combinedLightIn) {
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -195,7 +197,7 @@ public class ExtraCandleIcon implements IDrawable {
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
                     poseStack.translate(0.2, -0.1, -0.1);
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, poseStack, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, poseStack, p_110915_, p_110916_, p_110917_);
                 }
             }
 

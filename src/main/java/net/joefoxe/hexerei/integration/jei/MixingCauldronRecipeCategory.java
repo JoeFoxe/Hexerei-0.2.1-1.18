@@ -4,8 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -23,6 +22,8 @@ import net.joefoxe.hexerei.data.recipes.MoonPhases;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
 import net.joefoxe.hexerei.util.HexereiTags;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
@@ -40,8 +41,10 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -53,6 +56,7 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidStack;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -250,9 +254,8 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
     }
 
 
-
     @Override
-    public void draw(MixingCauldronRecipe recipe, IRecipeSlotsView view, PoseStack matrixStack, double mouseX, double mouseY) {
+    public void draw(MixingCauldronRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
 
         FluidStack input = recipe.getLiquid();
@@ -261,28 +264,28 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
         float wholeScale = 1f;
         if(phase != MoonPhases.MoonCondition.NONE){
             wholeScale = 0.75f;
-            matrixStack.pushPose();
+            guiGraphics.pose().pushPose();
             float scale = 1.75f;
-            matrixStack.scale(scale, scale, scale);
-            matrixStack.translate(84 / scale, 38 / scale, 10);
+            guiGraphics.pose().scale(scale, scale, scale);
+            guiGraphics.pose().translate(84 / scale, 38 / scale, 10);
             if(phase == MoonPhases.MoonCondition.FULL_MOON)
-                moonPhases_0.draw(matrixStack);
+                moonPhases_0.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.WANING_GIBBOUS)
-                moonPhases_1.draw(matrixStack);
+                moonPhases_1.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.LAST_QUARTER)
-                moonPhases_2.draw(matrixStack);
+                moonPhases_2.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.WANING_CRESCENT)
-                moonPhases_3.draw(matrixStack);
+                moonPhases_3.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.NEW_MOON)
-                moonPhases_4.draw(matrixStack);
+                moonPhases_4.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.WAXING_CRESCENT)
-                moonPhases_5.draw(matrixStack);
+                moonPhases_5.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.FIRST_QUARTER)
-                moonPhases_6.draw(matrixStack);
+                moonPhases_6.draw(guiGraphics);
             if(phase == MoonPhases.MoonCondition.WAXING_GIBBOUS)
-                moonPhases_7.draw(matrixStack);
+                moonPhases_7.draw(guiGraphics);
 
-            matrixStack.popPose();
+            guiGraphics.pose().popPose();
         }
         if(recipe.getHeatCondition() == FluidMixingRecipe.HeatCondition.HEATED || recipe.getHeatCondition() == FluidMixingRecipe.HeatCondition.SUPERHEATED){
 
@@ -314,12 +317,12 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             float lineHeight = minecraft.font.lineHeight / 2f;
             if(width > 131){
                 float percent = width/131f;
-                matrixStack.pushPose();
-                matrixStack.scale(1/percent, 1/percent, 1/percent);
-                minecraft.font.draw(matrixStack, outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040);
-                matrixStack.popPose();
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().scale(1/percent, 1/percent, 1/percent);
+                minecraft.font.drawInBatch(outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+                guiGraphics.pose().popPose();
             } else
-                minecraft.font.draw(matrixStack, outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040);
+                minecraft.font.drawInBatch(outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
             BlockState blockState = ModBlocks.MIXING_CAULDRON.get().defaultBlockState().setValue(MixingCauldron.GUI_RENDER, true);
 
@@ -332,47 +335,47 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            matrixStack.pushPose();
-            matrixStack.translate(75f, 67, 100.0F + renderer.blitOffset);
-            matrixStack.translate(8.0F / wholeScale, -8.0F / wholeScale, 0.0F);
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(75f, 67, 100.0F);
+            guiGraphics.pose().translate(8.0F / wholeScale, -8.0F / wholeScale, 0.0F);
             if(wholeScale != 1.0f)
-                matrixStack.translate(0, 4 / wholeScale, 0.0F);
-            matrixStack.scale(16.0F * wholeScale, 16.0F * wholeScale, 16.0F * wholeScale);
-            matrixStack.mulPoseMatrix(Matrix4f.createScaleMatrix(1, -1, 1));
+                guiGraphics.pose().translate(0, 4 / wholeScale, 0.0F);
+            guiGraphics.pose().scale(16.0F * wholeScale, 16.0F * wholeScale, 16.0F * wholeScale);
+            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
 
             Vec3 rotationOffset = new Vec3(0.5f, 0, 0.5f);
             float zRot = 0;
             float xRot = 20;
             float yRot = 30;
 
-            matrixStack.translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
-            matrixStack.mulPose(Vector3f.ZP.rotationDegrees(zRot));
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(xRot));
-            matrixStack.mulPose(Vector3f.YP.rotationDegrees(yRot));
-            matrixStack.translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+            guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
+            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
+            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
+            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
+            guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
 
             MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
             Lighting.setupFor3DItems();
-            matrixStack.last().normal().mul(Vector3f.YP.rotationDegrees((float) -45));
-            renderBlock(matrixStack, buffer, LightTexture.FULL_BRIGHT, blockState, 0xFFFFFFFF);
+            guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));
+            renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, blockState, 0xFFFFFFFF);
 
-            matrixStack.pushPose();
-            matrixStack.translate(0F, -1.0F, 0.0F);
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(0F, -1.0F, 0.0F);
             BlockState state = this.heatSource.defaultBlockState();
             if (state.getBlock() instanceof LiquidBlock liquidBlock) {
                 state = liquidBlock.getFluidState(liquidBlock.defaultBlockState()).createLegacyBlock().setValue(LiquidBlock.LEVEL, 7);
-                MixingCauldronRenderer.renderFluidBlockGUI(matrixStack, buffer, new FluidStack(liquidBlock.getFluid(), 2000), 1, OverlayTexture.NO_OVERLAY);
+                MixingCauldronRenderer.renderFluidBlockGUI(guiGraphics.pose(), buffer, new FluidStack(liquidBlock.getFluid(), 2000), 1, OverlayTexture.NO_OVERLAY);
             }
-            renderBlock(matrixStack, buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
-            matrixStack.popPose();
+            renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
+            guiGraphics.pose().popPose();
 
             float fillPercentage = 1;
             if (!showOutput) {
                 if (input.getFluid().is(Tags.Fluids.GASEOUS))
-                    MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
+                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
                 else
-                    MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
+                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
                 float height = MixingCauldronRenderer.MIN_Y + (MixingCauldronRenderer.MAX_Y - MixingCauldronRenderer.MIN_Y) * fillPercentage;
 
 
@@ -380,23 +383,23 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                     ItemStack[] items = recipe.getIngredients().get(i).getItems();
                     if (items.length > 0) {
                         if (!items[((int)Hexerei.getClientTicksWithoutPartial() / 40) % items.length].isEmpty()) {
-                            matrixStack.pushPose();
-                            matrixStack.translate(0.5D, height + 1f / 256f, 0.5D);
+                            guiGraphics.pose().pushPose();
+                            guiGraphics.pose().translate(0.5D, height + 1f / 256f, 0.5D);
 
                             //rotation offset when crafting
                             double itemRotationOffset = 0.8 * i + (craftPercent * (20f * craftPercent));
-                            matrixStack.translate(
+                            guiGraphics.pose().translate(
                                     0D + Math.sin(itemRotationOffset) / (3.5f + ((craftPercent * craftPercent) * 10.0f)),
                                     (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 30 + (i * 20)) / 10) * 0.2D,
                                     0D + Math.cos(itemRotationOffset) / (3.5f + ((craftPercent * craftPercent) * 10.0f)));
-                            matrixStack.mulPose(Vector3f.YP.rotationDegrees((float) ((45 * i) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + i * 20) / 40)))));
-                            matrixStack.mulPose(Vector3f.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 22) / 40)))));
-                            matrixStack.mulPose(Vector3f.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 24) / 40)))));
-                            matrixStack.scale(1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f));
+                            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees((float) ((45 * i) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + i * 20) / 40)))));
+                            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 22) / 40)))));
+                            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 24) / 40)))));
+                            guiGraphics.pose().scale(1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f));
 
-                            matrixStack.scale(0.4f, 0.4f, 0.4f);
-                            renderItem(items[((int)Hexerei.getClientTicksWithoutPartial() / 40) % items.length], matrixStack, buffer, LightTexture.FULL_BRIGHT);
-                            matrixStack.popPose();
+                            guiGraphics.pose().scale(0.4f, 0.4f, 0.4f);
+                            renderItem(items[((int)Hexerei.getClientTicksWithoutPartial() / 40) % items.length], minecraft.level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+                            guiGraphics.pose().popPose();
                         }
                     }
                 }
@@ -407,54 +410,56 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                     fillPercentage = 1 - percentChanged;
                     if (output.isEmpty()) {
                         if (input.getFluid().is(Tags.Fluids.GASEOUS))
-                            MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
+                            MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
                         else
-                            MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
+                            MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
                     } else {
                         if (output.getFluid().is(Tags.Fluids.GASEOUS))
-                            MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, output, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
+                            MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, output, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
                         else
-                            MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, output, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
+                            MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, output, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
                     }
 
                     // output item
                     ItemStack item2 = recipe.getResultItem();
                     if (!item2.isEmpty()) {
 
-                        matrixStack.pushPose();
+                        guiGraphics.pose().pushPose();
                         float height = MIN_Y + (MAX_Y - MIN_Y) * fillPercentage;
-                        matrixStack.translate(0.5D, height + 1f / 256f, 0.5D);
+                        guiGraphics.pose().translate(0.5D, height + 1f / 256f, 0.5D);
 
 
                         if (fillPercentage > 0) {
-                            matrixStack.translate(0D, (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D, 0D);
-                            matrixStack.mulPose(Vector3f.YP.rotationDegrees((float) ((45) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40))) - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
-                            matrixStack.mulPose(Vector3f.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
-                            matrixStack.mulPose(Vector3f.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
+                            guiGraphics.pose().translate(0D, (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D, 0D);
+                            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees((float) ((45) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40))) - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
+                            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
+                            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
                         } else {
-                            matrixStack.mulPose(Vector3f.YP.rotationDegrees(45 - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
-                            matrixStack.mulPose(Vector3f.XP.rotationDegrees(85f));
-                            matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-2.5f));
+                            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(45 - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
+                            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(85f));
+                            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(-2.5f));
                         }
 
-                        matrixStack.scale(0.4f, 0.4f, 0.4f);
-                        renderItem(item2, matrixStack, buffer, LightTexture.FULL_BRIGHT);
-                        matrixStack.popPose();
+                        guiGraphics.pose().scale(0.4f, 0.4f, 0.4f);
+                        renderItem(item2, minecraft.level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+                        guiGraphics.pose().popPose();
                     }
                 }
             }
-            matrixStack.popPose();
+            guiGraphics.pose().popPose();
 
             Lighting.setupFor3DItems();
             buffer.endBatch();
             RenderSystem.enableDepthTest();
 
             if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (flag && recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
-                output2.draw(matrixStack, 138, 16);
-                matrixStack.scale(0.6f, 0.6f, 0.6f);
-                minecraft.font.draw(matrixStack, Component.translatable("gui.jei.category.mixing_cauldron.convert_fluid"), 139 * 1.666f, 58 * 1.666f, 0xFF404040);
+                output2.draw(guiGraphics, 138, 16);
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
+                minecraft.font.drawInBatch(Component.translatable("gui.jei.category.mixing_cauldron.convert_fluid"), 139 * 1.666f, 58 * 1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+                guiGraphics.pose().popPose();
             } else
-                output1.draw(matrixStack, 138, 16);
+                output1.draw(guiGraphics, 138, 16);
 
         } else { // else not heated
 
@@ -497,12 +502,12 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             float lineHeight = minecraft.font.lineHeight / 2f;
             if(width > 131){
                 float percent = width/131f;
-                matrixStack.pushPose();
-                matrixStack.scale(1/percent, 1/percent, 1/percent);
-                minecraft.font.draw(matrixStack, outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040);
-                matrixStack.popPose();
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().scale(1/percent, 1/percent, 1/percent);
+                minecraft.font.drawInBatch(outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+                guiGraphics.pose().popPose();
             } else
-                minecraft.font.draw(matrixStack, outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040);
+                minecraft.font.drawInBatch(outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
             BlockState blockState = ModBlocks.MIXING_CAULDRON.get().defaultBlockState().setValue(MixingCauldron.GUI_RENDER, true);
 
@@ -515,63 +520,63 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            matrixStack.pushPose();
-            matrixStack.translate(70f, 73, 100.0F + renderer.blitOffset);
-            matrixStack.translate(8.0F / wholeScale, -8.0F / wholeScale, 0.0F);
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(70f, 73, 100.0F);
+            guiGraphics.pose().translate(8.0F / wholeScale, -8.0F / wholeScale, 0.0F);
             if(wholeScale != 1.0f)
-                matrixStack.translate(0, 4 / wholeScale, 0.0F);
-            matrixStack.scale(20.0F * wholeScale, 20.0F * wholeScale, 20.0F * wholeScale);
-            matrixStack.mulPoseMatrix(Matrix4f.createScaleMatrix(1, -1, 1));
+                guiGraphics.pose().translate(0, 4 / wholeScale, 0.0F);
+            guiGraphics.pose().scale(20.0F * wholeScale, 20.0F * wholeScale, 20.0F * wholeScale);
+            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
 
             Vec3 rotationOffset = new Vec3(0, 0, 0);
             float zRot = 0;
             float xRot = 20;
             float yRot = 30;
 
-            matrixStack.translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
-            matrixStack.mulPose(Vector3f.ZP.rotationDegrees(zRot));
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(xRot));
-            matrixStack.mulPose(Vector3f.YP.rotationDegrees(yRot));
-            matrixStack.translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+            guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
+            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
+            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
+            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
+            guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
 
             MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
             boolean flatLighting = !bakedModel.usesBlockLight();
             if (flatLighting) {
                 Lighting.setupForFlatItems();
             }
-            renderBlock(matrixStack, buffer, LightTexture.FULL_BRIGHT, blockState, 0xFF404040);
+            renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, blockState, 0xFF404040);
 
             float percentNeeded = recipe.getFluidLevelsConsumed() / 2000f;
             float percentChanged = percentNeeded * craftPercent;
             float fillPercentage = 1;
             if (!showOutput) {
                 if (input.getFluid().is(Tags.Fluids.GASEOUS))
-                    MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
+                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
                 else
-                    MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
+                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
                 float height = MIN_Y + (MAX_Y - MIN_Y) * fillPercentage;
 
                 for (int i = 0; i < recipe.getIngredients().size(); i++) {
                     ItemStack[] items = recipe.getIngredients().get(i).getItems();
                     if (items.length > 0) {
                         if (!items[((int) Hexerei.getClientTicksWithoutPartial() / 40) % items.length].isEmpty()) {
-                            matrixStack.pushPose();
-                            matrixStack.translate(0.5D, height + 1f / 256f, 0.5D);
+                            guiGraphics.pose().pushPose();
+                            guiGraphics.pose().translate(0.5D, height + 1f / 256f, 0.5D);
 
                             //rotation offset when crafting
                             double itemRotationOffset = 0.8 * i + (craftPercent * (20f * craftPercent));
-                            matrixStack.translate(
+                            guiGraphics.pose().translate(
                                     0D + Math.sin(itemRotationOffset) / (3.5f + ((craftPercent * craftPercent) * 10.0f)),
                                     (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 30 + (i * 20)) / 10) * 0.2D,
                                     0D + Math.cos(itemRotationOffset) / (3.5f + ((craftPercent * craftPercent) * 10.0f)));
-                            matrixStack.mulPose(Vector3f.YP.rotationDegrees((float) ((45 * i) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + i * 20) / 40)))));
-                            matrixStack.mulPose(Vector3f.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 22) / 40)))));
-                            matrixStack.mulPose(Vector3f.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 24) / 40)))));
-                            matrixStack.scale(1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f));
+                            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees((float) ((45 * i) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + i * 20) / 40)))));
+                            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 22) / 40)))));
+                            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + i * 24) / 40)))));
+                            guiGraphics.pose().scale(1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f));
 
-                            matrixStack.scale(0.4f, 0.4f, 0.4f);
-                            renderItem(items[((int) Hexerei.getClientTicksWithoutPartial() / 40) % items.length], matrixStack, buffer, LightTexture.FULL_BRIGHT);
-                            matrixStack.popPose();
+                            guiGraphics.pose().scale(0.4f, 0.4f, 0.4f);
+                            renderItem(items[((int) Hexerei.getClientTicksWithoutPartial() / 40) % items.length], minecraft.level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+                            guiGraphics.pose().popPose();
                         }
                     }
 
@@ -581,46 +586,46 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                 fillPercentage = 1 - percentChanged;
                 if (output.isEmpty()) {
                     if (input.getFluid().is(Tags.Fluids.GASEOUS))
-                        MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
+                        MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
                     else
-                        MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
+                        MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, input, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
                 } else {
                     if (output.getFluid().is(Tags.Fluids.GASEOUS))
-                        MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, output, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
+                        MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, output, fillPercentage, 1, OverlayTexture.NO_OVERLAY);
                     else
-                        MixingCauldronRenderer.renderFluidGUI(matrixStack, buffer, output, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
+                        MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, output, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
                 }
 
                 // output item
                 ItemStack item2 = recipe.getResultItem();
                 if (!item2.isEmpty()) {
 
-                    matrixStack.pushPose();
+                    guiGraphics.pose().pushPose();
                     float height = MIN_Y + (MAX_Y - MIN_Y) * fillPercentage;
-                    matrixStack.translate(0.5D, height + 1f / 256f, 0.5D);
+                    guiGraphics.pose().translate(0.5D, height + 1f / 256f, 0.5D);
 
 
                     if (fillPercentage > 0) {
-                        matrixStack.translate(0D, (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D, 0D);
-                        matrixStack.mulPose(Vector3f.YP.rotationDegrees((float) ((45) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40))) - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
-                        matrixStack.mulPose(Vector3f.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
-                        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
+                        guiGraphics.pose().translate(0D, (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D, 0D);
+                        guiGraphics.pose().mulPose(Axis.YP.rotationDegrees((float) ((45) - 1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40))) - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
+                        guiGraphics.pose().mulPose(Axis.XP.rotationDegrees((float) (82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
+                        guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees((float) (-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
                     } else {
-                        matrixStack.mulPose(Vector3f.YP.rotationDegrees(45 - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
-                        matrixStack.mulPose(Vector3f.XP.rotationDegrees(85f));
-                        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-2.5f));
+                        guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(45 - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
+                        guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(85f));
+                        guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(-2.5f));
                     }
 
 
-//                matrixStack.translate(0D,(Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D,0D);
-//                matrixStack.mulPose(Vector3f.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40))) - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
-//                matrixStack.mulPose(Vector3f.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40)))));
-//                matrixStack.mulPose(Vector3f.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
-//                matrixStack.mulPose(Vector3f.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
+//                guiGraphics.pose().translate(0D,(Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D,0D);
+//                guiGraphics.pose().mulPose(Vector3f.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40))) - (((1 - craftPercent) * (1 - craftPercent)) * 720f)));
+//                guiGraphics.pose().mulPose(Vector3f.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40)))));
+//                guiGraphics.pose().mulPose(Vector3f.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
+//                guiGraphics.pose().mulPose(Vector3f.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
 
-                    matrixStack.scale(0.4f, 0.4f, 0.4f);
-                    renderItem(item2, matrixStack, buffer, LightTexture.FULL_BRIGHT);
-                    matrixStack.popPose();
+                    guiGraphics.pose().scale(0.4f, 0.4f, 0.4f);
+                    renderItem(item2, minecraft.level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
+                    guiGraphics.pose().popPose();
 
 
                 }
@@ -659,28 +664,28 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                 Lighting.setupFor3DItems();
             }
 
-            matrixStack.popPose();
+            guiGraphics.pose().popPose();
 
 
             if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (flag && recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
 
-                output2.draw(matrixStack, 138, 16);
+                output2.draw(guiGraphics, 138, 16);
 
-
-                matrixStack.scale(0.6f, 0.6f, 0.6f);
-                minecraft.font.draw(matrixStack, Component.translatable("gui.jei.category.mixing_cauldron.convert_fluid"), 139 * 1.666f, 58 * 1.666f, 0xFF404040);
-
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
+                minecraft.font.drawInBatch(Component.translatable("gui.jei.category.mixing_cauldron.convert_fluid"), 139 * 1.666f, 58 * 1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+                guiGraphics.pose().popPose();
             } else {
 
-                output1.draw(matrixStack, 138, 16);
+                output1.draw(guiGraphics, 138, 16);
             }
         }
     }
 
-    private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -706,7 +711,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
                     poseStack.translate(0.2, -0.1, -0.1);
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, poseStack, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, poseStack, p_110915_, p_110916_, p_110917_);
                 }
             }
 

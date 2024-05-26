@@ -12,11 +12,17 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.WoodcutterRecipe;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 
 public class WoodcutterRecipeCategory implements IRecipeCategory<WoodcutterRecipe> {
     public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "woodcutter");
@@ -61,26 +67,30 @@ public class WoodcutterRecipeCategory implements IRecipeCategory<WoodcutterRecip
             stack.setCount(count);
         }
         builder.addSlot(RecipeIngredientRole.INPUT, 14, 16).addIngredients(ingredient);
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 70, 16).addItemStack(recipe.getResultItem());
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 70, 16).addItemStack(getResultItem(recipe));
     }
 
     @Override
-    public void draw(WoodcutterRecipe recipe, IRecipeSlotsView recipeSlotsView, PoseStack matrixStack, double mouseX, double mouseY) {
+    public void draw(WoodcutterRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
 //        int dryingTime = recipe.getDryingTime();
         Minecraft minecraft = Minecraft.getInstance();
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
 
-        matrixStack.scale(0.6f, 0.6f, 0.6f);
-//        String dryingTimeString = dryingTime < Integer.MAX_VALUE ? dryingTime / 20 + (dryingTime % 20 == 0 ? "" : ("." + Integer.toString(dryingTime % 20))) : "?";
-//        if(dryingTimeString.charAt(dryingTimeString.length()-1) == '0' && dryingTime != 0 && dryingTime % 20 != 0)
-//            dryingTimeString = dryingTimeString.substring(0, dryingTimeString.length()-1);
-//        MutableComponent dip_time_1 = Component.translatable("gui.jei.category.dipper.dry_time_1");
-//        MutableComponent dip_time_3 = Component.translatable("gui.jei.category.dipper.resultSeconds", dryingTimeString);
-//        minecraft.font.draw(matrixStack, dip_time_1, 6*1.666f, 41*1.666f, 0xFF808080);
-//        minecraft.font.draw(matrixStack, dip_time_3, 55*1.666f, 41*1.666f, 0xFF808080);
+        String outputName = recipe.getResultItem(Minecraft.getInstance().level.registryAccess()).getHoverName().getString();
+        minecraft.font.drawInBatch(outputName, 5*1.666f, 4*1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
-        String outputName = recipe.getResultItem().getHoverName().getString();
-        minecraft.font.draw(matrixStack, outputName, 5*1.666f, 4*1.666f, 0xFF404040);
+        guiGraphics.pose().popPose();
+    }
 
+    public static ItemStack getResultItem(Recipe<?> recipe) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        if (level == null) {
+            throw new NullPointerException("level must not be null.");
+        }
+        RegistryAccess registryAccess = level.registryAccess();
+        return recipe.getResultItem(registryAccess);
     }
 }

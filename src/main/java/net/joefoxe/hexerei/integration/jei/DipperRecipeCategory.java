@@ -15,6 +15,8 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.DipperRecipe;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -85,19 +87,20 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
     }
 
     @Override
-    public void draw(DipperRecipe recipe, IRecipeSlotsView recipeSlotsView, PoseStack matrixStack, double mouseX, double mouseY) {
+    public void draw(DipperRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
         int numberOfDips = recipe.getNumberOfDips();
         int dippingTime = recipe.getDippingTime();
         int dryingTime = recipe.getDryingTime();
         Minecraft minecraft = Minecraft.getInstance();
 
-        matrixStack.scale(0.6f, 0.6f, 0.6f);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
         String numberOfDipsString = numberOfDips < Integer.MAX_VALUE ? Integer.toString(numberOfDips) : "?";
         MutableComponent times_dipped_1 = Component.translatable("gui.jei.category.dipper.times_dipped_1");
         MutableComponent times_dipped_3 = Component.translatable("gui.jei.category.dipper.result", numberOfDipsString);
-        minecraft.font.draw(matrixStack, times_dipped_1, 6*1.666f, 56*1.666f, 0xFF808080);
-        minecraft.font.draw(matrixStack, times_dipped_3, 65*1.666f, 56*1.666f, 0xFF808080);
+        minecraft.font.drawInBatch(times_dipped_1, 6*1.666f, 56*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+        minecraft.font.drawInBatch(times_dipped_3, 65*1.666f, 56*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 //
         String dippingTimeString = dippingTime < Integer.MAX_VALUE ? dippingTime / 20 + (dippingTime % 20 == 0 ? "" : ("." + dippingTime % 20)) : "?";
         if(dippingTimeString.charAt(dippingTimeString.length()-1) == '0' && dippingTime != 0 && dippingTime % 20 != 0)
@@ -106,8 +109,8 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
 //        minecraft.font.draw(matrixStack, dip_time, 42*1.666f, 27*1.666f, 0xFF808080);
         MutableComponent dip_time_1 = Component.translatable("gui.jei.category.dipper.dip_time_1");
         MutableComponent dip_time_3 = Component.translatable("gui.jei.category.dipper.resultSeconds", dippingTimeString);
-        minecraft.font.draw(matrixStack, dip_time_1, 6*1.666f, 68*1.666f, 0xFF808080);
-        minecraft.font.draw(matrixStack, dip_time_3, 65*1.666f, 68*1.666f, 0xFF808080);
+        minecraft.font.drawInBatch(dip_time_1, 6*1.666f, 68*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+        minecraft.font.drawInBatch(dip_time_3, 65*1.666f, 68*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
         String dryingTimeString = dryingTime < Integer.MAX_VALUE ? dryingTime / 20 + (dryingTime % 20 == 0 ? "" : ("." + dryingTime % 20)) : "?";
         if(dryingTimeString.charAt(dryingTimeString.length()-1) == '0' && dryingTime != 0 && dryingTime % 20 != 0)
@@ -116,11 +119,12 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
 //        minecraft.font.draw(matrixStack, dry_time, 42*1.666f, 42*1.666f, 0xFF808080);
         MutableComponent dry_time_1 = Component.translatable("gui.jei.category.dipper.dry_time_1");
         MutableComponent dry_time_3 = Component.translatable("gui.jei.category.dipper.resultSeconds", dryingTimeString);
-        minecraft.font.draw(matrixStack, dry_time_1, 6*1.666f, 80*1.666f, 0xFF808080);
-        minecraft.font.draw(matrixStack, dry_time_3, 65*1.666f, 80*1.666f, 0xFF808080);
+        minecraft.font.drawInBatch(dry_time_1, 6*1.666f, 80*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+        minecraft.font.drawInBatch(dry_time_3, 65*1.666f, 80*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
         String outputName = recipe.getResultItem().getHoverName().getString();
-        minecraft.font.draw(matrixStack, outputName, 5*1.666f, 4*1.666f, 0xFF404040);
+        minecraft.font.drawInBatch(outputName, 5*1.666f, 4*1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+        guiGraphics.pose().popPose();
 
     }
 }

@@ -13,6 +13,8 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.recipes.BookOfShadowsRecipe;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -25,7 +27,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
@@ -83,13 +87,6 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
         this.icon = new ExtraBookOfShadowsIcon(() -> new ItemStack(ModItems.BOOK_OF_SHADOWS.get()));
     }
 
-    public static Block getTagStack(TagKey<Block> key){
-        Optional<Block> optional = Registry.BLOCK.getTag(key).flatMap(tag -> tag.getRandomElement(RandomSource.create())).map(Holder::value);
-
-        return optional.orElse(Blocks.AIR);
-        //        return Registry.ITEM.getTag(TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(loc))).flatMap(tag -> tag.getRandomElement(new Random())).map(Holder::value);
-    }
-
     @Override
     public RecipeType<BookOfShadowsRecipe> getRecipeType() {
         return new RecipeType<>(new ResourceLocation(Hexerei.MOD_ID, "book_of_shadows_dye"), BookOfShadowsRecipe.class);
@@ -139,7 +136,7 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
     }
 
     @Override
-    public void draw(BookOfShadowsRecipe recipe, IRecipeSlotsView view, PoseStack matrixStack, double mouseX, double mouseY) {
+    public void draw(BookOfShadowsRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
         float newHeatSource = (Hexerei.getClientTicks()) % 200 / 200f;
         float craftPercent = (Hexerei.getClientTicks()) % 100 / 100f;
@@ -153,13 +150,13 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
         float lineHeight = minecraft.font.lineHeight / 2f;
         if(width > 131){
             float percent = width/131f;
-            matrixStack.pushPose();
-            matrixStack.scale(1/percent, 1/percent, 1/percent);
-            minecraft.font.draw(matrixStack, outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040);
-            matrixStack.popPose();
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().scale(1/percent, 1/percent, 1/percent);
+            minecraft.font.drawInBatch(outputName, 7 * percent, (5f + lineHeight) * percent - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+            guiGraphics.pose().popPose();
 
         }else {
-            minecraft.font.draw(matrixStack, outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040);
+            minecraft.font.drawInBatch(outputName, 7, 5f + lineHeight - 4.5f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         }
 
 //        BlockState blockState = ModBlocks.MIXING_CAULDRON.get().defaultBlockState().setValue(MixingCauldron.GUI_RENDER, true);
@@ -208,10 +205,10 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
 
     }
 
-    private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -237,7 +234,7 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
                     poseStack.translate(0.2, -0.1, -0.1);
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, poseStack, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, poseStack, p_110915_, p_110916_, p_110917_);
                 }
             }
 

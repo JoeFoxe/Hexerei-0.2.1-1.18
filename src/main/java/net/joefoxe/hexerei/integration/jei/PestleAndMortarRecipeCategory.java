@@ -13,6 +13,8 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.PestleAndMortarRecipe;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -91,25 +93,25 @@ public class PestleAndMortarRecipeCategory implements IRecipeCategory<PestleAndM
 //    }
 
     @Override
-    public void draw(PestleAndMortarRecipe recipe, IRecipeSlotsView recipeSlotsView, PoseStack matrixStack, double mouseX, double mouseY) {
+    public void draw(PestleAndMortarRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
         int grindingTime = recipe.getGrindingTime();
         Minecraft minecraft = Minecraft.getInstance();
 
-        matrixStack.scale(0.6f, 0.6f, 0.6f);
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
         String grindingTimeString = grindingTime < Integer.MAX_VALUE ? grindingTime / 20 + (grindingTime % 20 == 0 ? "" : ("." + grindingTime % 20)) : "?";
         if(grindingTimeString.charAt(grindingTimeString.length()-1) == '0' && grindingTime != 0 && grindingTime % 20 != 0)
             grindingTimeString = grindingTimeString.substring(0, grindingTimeString.length()-1);
         MutableComponent dip_time_1 = Component.translatable("gui.jei.category.pestle_and_mortar.grind_time_1");
         MutableComponent dip_time_3 = Component.translatable("gui.jei.category.dipper.resultSeconds", grindingTimeString);
 
-
-        minecraft.font.draw(matrixStack, dip_time_1, 6*1.666f, 68.5f*1.666f, 0xFF808080);
-        minecraft.font.draw(matrixStack, dip_time_3, (58*1.666f), 68.5f*1.666f, 0xFF808080);
+        minecraft.font.drawInBatch(dip_time_1, 6*1.666f, 68.5f*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+        minecraft.font.drawInBatch(dip_time_3, (58*1.666f), 68.5f*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
         String outputName = recipe.getResultItem().getHoverName().getString();
-        minecraft.font.draw(matrixStack, outputName, 5*1.666f, 4*1.666f, 0xFF404040);
+        minecraft.font.drawInBatch(outputName, 5*1.666f, 4*1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
-
+        guiGraphics.pose().popPose();
     }
 }

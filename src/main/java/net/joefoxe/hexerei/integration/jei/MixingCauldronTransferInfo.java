@@ -14,7 +14,7 @@ import net.joefoxe.hexerei.data.recipes.MixingCauldronRecipe;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.RecipeToServer;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -110,7 +110,7 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
 
 
                 @Override
-                public void showError(PoseStack poseStack, int mouseX, int mouseY, IRecipeSlotsView recipeSlotsView, int recipeX, int recipeY) {
+                public void showError(GuiGraphics guiGraphics, int mouseX, int mouseY, IRecipeSlotsView recipeSlotsView, int recipeX, int recipeY) {
 
                     for(int i = 0; i < itemMatchesSlot.size(); i++){
 
@@ -119,16 +119,16 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
 
                             Slot slot = container.slots.get(i + 37);
 
-                            poseStack.pushPose();
+                            guiGraphics.pose().pushPose();
 
-                            poseStack.translate(0,0,1000);
-                            GuiComponent.fill(poseStack, recipeX + slot.x - 22, recipeY + slot.y + 1, recipeX + slot.x + 16 - 22, recipeY + slot.y + 1 + 16, 0x66FF0000);
+                            guiGraphics.pose().translate(0,0,1000);
+                            guiGraphics.fill(recipeX + slot.x - 22, recipeY + slot.y + 1, recipeX + slot.x + 16 - 22, recipeY + slot.y + 1 + 16, 0x66FF0000);
 
-                            poseStack.popPose();
+                            guiGraphics.pose().popPose();
                         }
                     }
 
-                    IRecipeTransferError.super.showError(poseStack, mouseX, mouseY, recipeSlotsView, recipeX, recipeY);
+                    IRecipeTransferError.super.showError(guiGraphics, mouseX, mouseY, recipeSlotsView, recipeX, recipeY);
                 }
             };
         }
@@ -140,7 +140,7 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
                 }
 
                 @Override
-                public void showError(PoseStack poseStack, int mouseX, int mouseY, IRecipeSlotsView recipeSlotsView, int recipeX, int recipeY) {
+                public void showError(GuiGraphics guiGraphics, int mouseX, int mouseY, IRecipeSlotsView recipeSlotsView, int recipeX, int recipeY) {
 
                     for(int i = 0; i < itemMatchesSlot.size(); i++){
 
@@ -150,16 +150,16 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
 
                             Slot slot = container.slots.get(i + 37);
 
-                            poseStack.pushPose();
+                            guiGraphics.pose().pushPose();
 
-                            poseStack.translate(0,0,1000);
-                            GuiComponent.fill(poseStack, recipeX + slot.x - 22, recipeY + slot.y + 1, recipeX + slot.x + 16 - 22, recipeY + slot.y + 1 + 16, 0x66FF0000);
+                            guiGraphics.pose().translate(0,0,1000);
+                            guiGraphics.fill(recipeX + slot.x - 22, recipeY + slot.y + 1, recipeX + slot.x + 16 - 22, recipeY + slot.y + 1 + 16, 0x66FF0000);
 
-                            poseStack.popPose();
+                            guiGraphics.pose().popPose();
                         }
                     }
 
-                    IRecipeTransferError.super.showError(poseStack, mouseX, mouseY, recipeSlotsView, recipeX, recipeY);
+                    IRecipeTransferError.super.showError(guiGraphics, mouseX, mouseY, recipeSlotsView, recipeX, recipeY);
                 }
             };
         }
@@ -201,7 +201,8 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
             for(int i = 0; i < 7; i++){
                 if(itemMatchesSlot.get(i))
                     continue;
-                if(stack.sameItemStackIgnoreDurability(items.get(i))) {
+
+                if(ItemStack.isSameItem(stack, items.get(i))) {
                     itemMatchesSlot.set(i, true);
                     matchesAtleastOne = true;
                 }
@@ -247,7 +248,8 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
             if(matchesItems)
                 break;
             for(ItemStack stack2 : items){
-                if(stack.sameItemStackIgnoreDurability(stack2)) {
+
+                if(ItemStack.isSameItem(stack, stack2)) {
                     matchesItems = true;
                     break;
                 }
