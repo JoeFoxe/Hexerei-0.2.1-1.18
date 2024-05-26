@@ -28,7 +28,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
-public class GlassesItem extends Item implements IThirdPersonItemAnimation, Wearable {
+public class GlassesItem extends Item implements IThirdPersonItemAnimation {
 
     public GlassesItem(Properties builder) {
         super(builder);

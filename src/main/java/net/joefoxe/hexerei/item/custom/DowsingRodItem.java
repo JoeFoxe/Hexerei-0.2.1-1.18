@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -29,6 +30,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -126,7 +128,7 @@ public class DowsingRodItem extends Item {
     public void findSwamp(Level worldIn, Entity entity)
     {
         if(worldIn instanceof ServerLevel serverLevel){
-            Predicate<Holder<Biome>> SWAMP = (p_211672_) ->  BuiltinRegistries.BIOME.getOrCreateTag(BT_SWAMP).contains(p_211672_);
+            Predicate<Holder<Biome>> SWAMP = (p_211672_) ->  ForgeRegistries.BIOME.getOrCreateTag(BT_SWAMP).contains(p_211672_);
             Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(SWAMP, entity.blockPosition(), 6400, 32, 64);
             if(pair != null)
                 this.nearestPos = pair.getFirst();
@@ -146,7 +148,7 @@ public class DowsingRodItem extends Item {
     }
 
     private static TagKey<Biome> createBiomeTag(String name) {
-        return TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(Hexerei.MOD_ID, name));
+        return TagKey.create(Registries.BIOME, new ResourceLocation(Hexerei.MOD_ID, name));
     }
 
     @Override

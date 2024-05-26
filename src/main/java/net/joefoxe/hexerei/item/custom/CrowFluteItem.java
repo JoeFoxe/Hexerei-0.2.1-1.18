@@ -137,7 +137,7 @@ public class CrowFluteItem extends Item implements Container, IThirdPersonItemAn
                 ListTag id = itemstack.getOrCreateTag().getList("crowList", Tag.TAG_COMPOUND);
                 if(id.size() < 1)
                     return InteractionResult.FAIL;
-                if(!player.level.isClientSide){
+                if(!player.level().isClientSide){
                     for (int i = 0; i < id.size(); i++) {
                         CompoundTag tag = id.getCompound(i);
 
@@ -161,7 +161,7 @@ public class CrowFluteItem extends Item implements Container, IThirdPersonItemAn
                     }
 
                     if (crows.size() > 0) {
-                        player.level.playSound(null, player.getX() + player.getLookAngle().x(), player.getY() + player.getEyeHeight(), player.getZ() + player.getLookAngle().z(), ModSounds.CROW_FLUTE.get(), SoundSource.PLAYERS, 1.0F, 0.8F + 0.4F * new Random().nextFloat());
+                        player.level().playSound(null, player.getX() + player.getLookAngle().x(), player.getY() + player.getEyeHeight(), player.getZ() + player.getLookAngle().z(), ModSounds.CROW_FLUTE.get(), SoundSource.PLAYERS, 1.0F, 0.8F + 0.4F * new Random().nextFloat());
                         player.getCooldowns().addCooldown(this, 20);
                     }
                 }
@@ -353,8 +353,8 @@ public class CrowFluteItem extends Item implements Container, IThirdPersonItemAn
                     CompoundTag tag = id.getCompound(i);
 
                     UUID crowId = tag.getUUID("UUID");
-                    tag.putInt("ID", ((ServerLevel) playerIn.level).getEntity(crowId).getId());
-                    crows.add((CrowEntity) ((ServerLevel) playerIn.level).getEntity(crowId));
+                    tag.putInt("ID", ((ServerLevel) playerIn.level()).getEntity(crowId).getId());
+                    crows.add((CrowEntity) ((ServerLevel) playerIn.level()).getEntity(crowId));
                 }
                 if(crows.size() < 1) {
                     crows = level.getEntitiesOfClass(CrowEntity.class, this.getTargetableArea(64, playerIn), this.targetEntitySelector);
@@ -561,35 +561,35 @@ public class CrowFluteItem extends Item implements Container, IThirdPersonItemAn
 
     public void setCommand(int command, ItemStack stack, Player player, InteractionHand hand) {
 
-        if (player.level.isClientSide)
+        if (player.level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowFluteCommandSyncToServer(stack, command, player.getUUID(), hand == InteractionHand.MAIN_HAND ? 0 : 1));
 
     }
 
     public void setHelpCommand(int helpCommand, ItemStack stack, Player player, InteractionHand hand) {
 
-        if (player.level.isClientSide)
+        if (player.level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowFluteHelpCommandSyncToServer(stack, helpCommand, player.getUUID(), hand == InteractionHand.MAIN_HAND ? 0 : 1));
 
     }
 
     public void setCommandMode(int mode, ItemStack stack, Player player, InteractionHand hand) {
 
-        if (player.level.isClientSide)
+        if (player.level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowFluteCommandModeSyncToServer(stack, mode, player.getUUID(), hand == InteractionHand.MAIN_HAND ? 0 : 1));
 
     }
 
     public void clearCrowList(ItemStack stack, Player player, InteractionHand hand) {
 
-        if (player.level.isClientSide)
+        if (player.level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowFluteClearCrowListToServer(stack, player.getUUID(), hand == InteractionHand.MAIN_HAND ? 0 : 1));
 
     }
 
     public void clearCrowPerch(ItemStack stack, Player player, InteractionHand hand) {
 
-        if (player.level.isClientSide)
+        if (player.level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowFluteClearCrowPerchToServer(stack, player.getUUID(), hand == InteractionHand.MAIN_HAND ? 0 : 1));
 
     }
