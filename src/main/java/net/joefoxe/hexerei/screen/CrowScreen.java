@@ -5,8 +5,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.PickableDoubleFlower;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
@@ -16,7 +15,7 @@ import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -25,7 +24,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
@@ -40,6 +38,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -50,6 +49,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 
 import static net.joefoxe.hexerei.container.CofferContainer.OFFSET;
 
@@ -91,7 +92,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
         int i = this.leftPos;
         int j = this.topPos - OFFSET;
@@ -106,10 +107,10 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             leftPanelOffset = HexereiUtil.moveTo(leftPanelOffset, 0, Math.abs(2 * ((-1 - leftPanelOffset) / 31)));
         }
 
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
-        this.renderButtonTooltip(matrixStack, mouseX, mouseY);
+        this.renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+        this.renderButtonTooltip(guiGraphics, mouseX, mouseY);
     }
 
     public static boolean isMouseOver(double mouseX, double mouseY, int x, int y, int sizeX, int sizeY) {
@@ -127,7 +128,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
     }
 
 
-    public void renderButtonTooltip(PoseStack matrixStack, int mouseX, int mouseY){
+    public void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
 
         List<Component> components = new ArrayList<>();
         if(whitelistOffset > 21){
@@ -140,22 +141,22 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                 } else {
                     components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 }
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             }
             if (isHovering(mouseX, (double) mouseY, 184 - 28 + 19 + (int) whitelistOffset, 19 + 29, 7, 7)) {
                 if (crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 1) {
                     components.add(Component.translatable("tooltip.hexerei.crow_whitelist_remove"));
-                    this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
                 }
             } else if (isHovering(mouseX, (double) mouseY, 184 - 28 + 19 + (int) whitelistOffset, 19 + 29 + 18, 7, 7)) {
                 if (crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 2) {
                     components.add(Component.translatable("tooltip.hexerei.crow_whitelist_remove"));
-                    this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
                 }
             } else if (isHovering(mouseX, (double) mouseY, 184 - 28 + 19 + (int) whitelistOffset, 19 + 29 + 18 + 18, 7, 7)) {
                 if (crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 3) {
                     components.add(Component.translatable("tooltip.hexerei.crow_whitelist_remove"));
-                    this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
                 }
             } else {
                 if (isHovering(mouseX, (double) mouseY, 184 - 28 + 19 + (int) whitelistOffset - 12, 19 + 29 + 4, 16, 16)) {
@@ -163,38 +164,38 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                     if (crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 1) {
                         components.add(crowEntity.harvestWhitelist.get(whitelistPage * 3).getName());
                         components.add(crowEntity.harvestWhitelist.get(whitelistPage * 3).getName());
-                        this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                        guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
                     }
                 } else if (isHovering(mouseX, (double) mouseY, 184 - 28 + 19 + (int) whitelistOffset - 12, 19 + 29 + 18 + 4, 16, 16)) {
 
                     if (crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 2) {
                         components.add(crowEntity.harvestWhitelist.get(whitelistPage * 3 + 1).getName());
-                        this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                        guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
                     }
                 } else if (isHovering(mouseX, (double) mouseY, 184 - 28 + 19 + (int) whitelistOffset - 12, 19 + 29 + 18 + 18 + 4, 16, 16)) {
 
                     if (crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 3) {
                         components.add(crowEntity.harvestWhitelist.get(whitelistPage * 3 + 2).getName());
-                        this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                        guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
                     }
                 }
             }
             if (isHovering(mouseX, (double) mouseY, 184 + 21 - 28 + (int) whitelistOffset, 19 + 88, 7, 10)) {
                 components.add(Component.translatable("tooltip.hexerei.crow_whitelist_next"));
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             }
             if (isHovering(mouseX, (double) mouseY, 187 - 28 + (int) whitelistOffset, 19 + 88, 7, 10)) {
                 components.add(Component.translatable("tooltip.hexerei.crow_whitelist_back"));
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             }
         }
         if(leftPanelOffset > 21){
             if (isHovering(mouseX, (double) mouseY, 5 - (int) leftPanelOffset, 107, 7, 10)) {
                 components.add(Component.translatable("tooltip.hexerei.crow_range_decrease"));
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             } else if (isHovering(mouseX, (double) mouseY, 5 + 18 - (int) leftPanelOffset, 107, 7, 10)) {
                 components.add(Component.translatable("tooltip.hexerei.crow_range_increase"));
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             } else if (isHovering(mouseX, (double) mouseY, 6 - (int) leftPanelOffset, 107 - 13, 22, 15)) {
                 components.add(Component.translatable("tooltip.hexerei.crow_range_interaction"));
                 if (Screen.hasShiftDown()) {
@@ -204,7 +205,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                 } else {
                     components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 }
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             } else if (isHovering(mouseX, (double) mouseY, 4 - (int) leftPanelOffset, 107 - 13 - 64, 18, 18)) {
                 components.add(Component.translatable("tooltip.hexerei.crow_attack_toggle"));
                 if (Screen.hasShiftDown()) {
@@ -215,7 +216,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                 } else {
                     components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 }
-                this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
             }
         }
         if (isHovering(mouseX, mouseY, 23D, 92D, 18D, 18D)) {
@@ -228,7 +229,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
 
@@ -241,7 +242,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
 
@@ -254,7 +255,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
 
@@ -268,7 +269,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
 
@@ -282,7 +283,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
 
@@ -295,7 +296,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
 
@@ -310,13 +311,20 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
 
     }
 
+    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int color){
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(x, y, 1);
+        guiGraphics.drawString(minecraft.font, component, 0, 0, color, true);
+        guiGraphics.pose().popPose();
+    }
+
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int x, int y) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int x, int y) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUI);
@@ -324,124 +332,124 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
         int j = this.topPos - OFFSET;
         inventoryLabelY = 134 - OFFSET;
         inventoryLabelX = 9;
-        GuiComponent.blit(matrixStack, i + 184 - 28 + (int)whitelistOffset, j + 19, 0, 0, 156, 37, 100, 256, 256);
-        GuiComponent.blit(matrixStack, i - 5 - (int)leftPanelOffset, j + 19, 0, 74, 156, 37, 100, 256, 256);
+        guiGraphics.blit(GUI, i + 184 - 28 + (int)whitelistOffset, j + 19, 0, 0, 156, 37, 100, 256, 256);
+        guiGraphics.blit(GUI, i - 5 - (int)leftPanelOffset, j + 19, 0, 74, 156, 37, 100, 256, 256);
 
         if(CrowWhitelistEvent.whiteListingCrow != null && CrowWhitelistEvent.whiteListingCrow == crowEntity){
-            GuiComponent.blit(matrixStack, i + 184 - 28 + 6 + (int)whitelistOffset, j + 19 + 8, 1, 238, 178, 18, 18, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 6 + (int)whitelistOffset, j + 19 + 8, 1, 238, 178, 18, 18, 256, 256);
         }
-        GuiComponent.blit(matrixStack, i + 184 - 28 + (int)whitelistOffset, j + 19 + 100 - 12, 1, 37, 244, 37, 12, 256, 256);
-        GuiComponent.blit(matrixStack, i + 2 - (int)leftPanelOffset, j + 19 + 100 - 12, 1, 37, 244, 37, 12, 256, 256);
+        guiGraphics.blit(GUI, i + 184 - 28 + (int)whitelistOffset, j + 19 + 100 - 12, 1, 37, 244, 37, 12, 256, 256);
+        guiGraphics.blit(GUI, i + 2 - (int)leftPanelOffset, j + 19 + 100 - 12, 1, 37, 244, 37, 12, 256, 256);
         //(leftPanelOffset > 21 && x > this.leftPos + 8 - (int)leftPanelOffset && x < this.leftPos + 8 - (int)leftPanelOffset + 18 && y > this.topPos + 30 && y < this.topPos + 30 + 18)
         if(!crowEntity.canAttack)
-            GuiComponent.blit(matrixStack, i + 8 - (int)leftPanelOffset, j + 30, 2, 238, 196, 18, 18, 256, 256);
+            guiGraphics.blit(GUI, i + 8 - (int)leftPanelOffset, j + 30, 2, 238, 196, 18, 18, 256, 256);
 
         //range slider
         if(rangeSliderClicked)
-            GuiComponent.blit(matrixStack, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24), 1, 40, 232, 16, 5, 256, 256);
+            guiGraphics.blit(GUI, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24), 1, 40, 232, 16, 5, 256, 256);
         else
-            GuiComponent.blit(matrixStack, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - crowEntity.interactionRange, 1, 40, 238, 16, 5, 256, 256);
+            guiGraphics.blit(GUI, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - crowEntity.interactionRange, 1, 40, 238, 16, 5, 256, 256);
 
         MutableComponent component = Component.literal(String.valueOf(crowEntity.interactionRange));
         if(rangeSliderClicked)
             component = Component.literal(String.valueOf(Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24)));
         if(minecraft != null)
-            minecraft.font.draw(matrixStack, component, i - 5 + 22.5f - (int)leftPanelOffset - (float)(font.width(component.getVisualOrderText()) / 2), j + 102 - font.lineHeight / 2f, 0xFF303030);
+            drawFont(guiGraphics, component, i - 5 + 22.5f - (int)leftPanelOffset - (float)(font.width(component.getVisualOrderText()) / 2), j + 102 - font.lineHeight / 2f, 0xFF303030);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUI);
         if(crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 1)
-            GuiComponent.blit(matrixStack, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29, 2, 231, 117, 7, 7, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29, 2, 231, 117, 7, 7, 256, 256);
 
         if(crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 2)
-            GuiComponent.blit(matrixStack, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18, 2, 231, 117, 7, 7, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18, 2, 231, 117, 7, 7, 256, 256);
 
         if(crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 3)
-            GuiComponent.blit(matrixStack, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18 + 18, 2, 231, 117, 7, 7, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18 + 18, 2, 231, 117, 7, 7, 256, 256);
 
         if(this.menu.crowEntity.harvestWhitelist.size() > 3 + 3 * whitelistPage) {
-            GuiComponent.blit(matrixStack, i + 184 + 21 - 28 + (int)whitelistOffset, j + 19 + 88, 3, 217, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 184 + 21 - 28 + (int)whitelistOffset, j + 19 + 88, 3, 217, 107, 7, 10, 256, 256);
         }
         if(whitelistPage > 0){
-            GuiComponent.blit(matrixStack, i + 184 + 3 - 28 + (int)whitelistOffset, j + 19 + 88, 3, 210, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 184 + 3 - 28 + (int)whitelistOffset, j + 19 + 88, 3, 210, 107, 7, 10, 256, 256);
         }
 
         if(this.menu.crowEntity.interactionRange < 24) {
-            GuiComponent.blit(matrixStack, i + 5 - (int)leftPanelOffset + 18, j + 19 + 100 - 12, 3, 217, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 5 - (int)leftPanelOffset + 18, j + 19 + 100 - 12, 3, 217, 107, 7, 10, 256, 256);
         }
         if(this.menu.crowEntity.interactionRange > 0){
-            GuiComponent.blit(matrixStack, i + 5 - (int)leftPanelOffset, j + 19 + 100 - 12, 3, 210, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 5 - (int)leftPanelOffset, j + 19 + 100 - 12, 3, 210, 107, 7, 10, 256, 256);
         }
 
-        this.blit(matrixStack, i, j, 0, 0, 188, 153);
+        guiGraphics.blit(GUI, i, j, 0, 0, 188, 153);
 
         if(this.menu.getCommand() == 0)
         {
-            this.blit(matrixStack, i + 23, j + 92, 238, 52, 18, 18);
+            guiGraphics.blit(GUI, i + 23, j + 92, 238, 52, 18, 18);
         }else if(this.menu.getCommand() == 1)
         {
-            this.blit(matrixStack, i + 43, j + 92, 238, 70, 18, 18);
+            guiGraphics.blit(GUI, i + 43, j + 92, 238, 70, 18, 18);
         }else if(this.menu.getCommand() == 2)
         {
-            this.blit(matrixStack, i + 63, j + 92, 238, 88, 18, 18);
+            guiGraphics.blit(GUI, i + 63, j + 92, 238, 88, 18, 18);
         }else if(this.menu.getCommand() == 3)
         {
-            this.blit(matrixStack, i + 83, j + 92, 238, 106, 18, 18);
+            guiGraphics.blit(GUI, i + 83, j + 92, 238, 106, 18, 18);
         }
 
         if (this.menu.getCommand() == 3) {
             if (this.menu.getHelpCommand() == 0) {
-                this.blit(matrixStack, i + 107, j + 92, 238, 124, 18, 18);
+                guiGraphics.blit(GUI, i + 107, j + 92, 238, 124, 18, 18);
             }
             if (this.menu.getHelpCommand() == 1) {
-                this.blit(matrixStack, i + 127, j + 92, 238, 142, 18, 18);
+                guiGraphics.blit(GUI, i + 127, j + 92, 238, 142, 18, 18);
             }
             if (this.menu.getHelpCommand() == 2) {
-                this.blit(matrixStack, i + 147, j + 92, 238, 160, 18, 18);
+                guiGraphics.blit(GUI, i + 147, j + 92, 238, 160, 18, 18);
             }
         }
         else
         {
             if (this.menu.getHelpCommand() == 0) {
-                this.blit(matrixStack, i + 107, j + 92, 220, 124, 18, 18);
+                guiGraphics.blit(GUI, i + 107, j + 92, 220, 124, 18, 18);
             }
             else
             {
-                this.blit(matrixStack, i + 107, j + 92, 202, 124, 18, 18);
+                guiGraphics.blit(GUI, i + 107, j + 92, 202, 124, 18, 18);
             }
             if (this.menu.getHelpCommand() == 1) {
-                this.blit(matrixStack, i + 127, j + 92, 220, 142, 18, 18);
+                guiGraphics.blit(GUI, i + 127, j + 92, 220, 142, 18, 18);
             }
             else
             {
-                this.blit(matrixStack, i + 127, j + 92, 202, 142, 18, 18);
+                guiGraphics.blit(GUI, i + 127, j + 92, 202, 142, 18, 18);
             }
             if (this.menu.getHelpCommand() == 2) {
-                this.blit(matrixStack, i + 147, j + 92, 220, 160, 18, 18);
+                guiGraphics.blit(GUI, i + 147, j + 92, 220, 160, 18, 18);
             }
             else
             {
-                this.blit(matrixStack, i + 147, j + 92, 202, 160, 18, 18);
+                guiGraphics.blit(GUI, i + 147, j + 92, 202, 160, 18, 18);
             }
         }
 
         if(!crowEntity.itemHandler.getStackInSlot(0).isEmpty())
-            this.blit(matrixStack, i + 86, j + 50, 235, 31, 16, 16);
+            guiGraphics.blit(GUI, i + 86, j + 50, 235, 31, 16, 16);
         if(!crowEntity.itemHandler.getStackInSlot(1).isEmpty())
-            this.blit(matrixStack, i + 37, j + 50, 235, 31, 16, 16);
+            guiGraphics.blit(GUI, i + 37, j + 50, 235, 31, 16, 16);
         if(!crowEntity.itemHandler.getStackInSlot(2).isEmpty())
-            this.blit(matrixStack, i + 134, j + 50, 235, 31, 16, 16);
+            guiGraphics.blit(GUI, i + 134, j + 50, 235, 31, 16, 16);
 
-        this.blit(matrixStack, i + 81, j - 30, 230, 0, 26, 26);
+        guiGraphics.blit(GUI, i + 81, j - 30, 230, 0, 26, 26);
 
         RenderSystem.setShaderTexture(0, INVENTORY);
-        this.blit(matrixStack, i + 6, j + 129, 0, 0, 176, 100);
+        guiGraphics.blit(GUI, i + 6, j + 129, 0, 0, 176, 100);
         Minecraft minecraft = Minecraft.getInstance();
         RenderSystem.setShaderTexture(0, GUI);
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
 
-        InventoryScreen.renderEntityInInventory(this.leftPos + 94, j - 10, 25, (float)(this.leftPos + 107 - x) , (float)(j + 88 - 30 - y), crowEntity);
+        InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 94, j - 10, 40, (new Quaternionf()).rotationXYZ(0.43633232F, 0.0F, (float)Math.PI), (Quaternionf)null, CrowWhitelistEvent.whiteListingCrow);
 
 
         RenderSystem.disableDepthTest();
@@ -483,13 +491,11 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
 
 
 
-        font.draw(matrixStack, hat, this.leftPos + 45 - (float)(font.width(hat.getVisualOrderText()) / 2), j + 32, 0xFF606060);
-        font.draw(matrixStack, misc1, this.leftPos + 94 - (float)(font.width(misc1.getVisualOrderText()) / 2), j + 32, 0xFF606060);
-        font.draw(matrixStack, misc2, this.leftPos + 142 - (float)(font.width(misc2.getVisualOrderText()) / 2), j + 32, 0xFF606060);
-//        font.draw(matrixStack, command, this.leftPos + 94 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, 0xFF606060);
-
-        font.draw(matrixStack, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, 0xFF606060);
-        font.draw(matrixStack, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), j + 77, 0xFF606060);
+        drawFont(guiGraphics, hat, this.leftPos + 45 - (float)(font.width(hat.getVisualOrderText()) / 2), j + 32, 0xFF606060);
+        drawFont(guiGraphics, misc1, this.leftPos + 94 - (float)(font.width(misc1.getVisualOrderText()) / 2), j + 32, 0xFF606060);
+        drawFont(guiGraphics, misc2, this.leftPos + 142 - (float)(font.width(misc2.getVisualOrderText()) / 2), j + 32, 0xFF606060);
+        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, 0xFF606060);
+        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), j + 77, 0xFF606060);
 
 //        InventoryScreen.renderEntityInInventory(this.leftPos + 107, j + 88, 20, (float)(this.leftPos + 107 - x) , (float)(j + 88 - 30 - y), (LivingEntity) crowEntity);
 //
@@ -529,32 +535,32 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            matrixStack.pushPose();
-            matrixStack.translate(this.leftPos + 186f - 28 + (int) whitelistOffset, j + 73, 100.0F);
-            matrixStack.translate(8.0F, -8.0F, 0.0F);
-            matrixStack.scale(11.0F, 11.0F, 11.0F);
-            matrixStack.mulPoseMatrix(Matrix4f.createScaleMatrix(1, -1, 1));
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(this.leftPos + 186f - 28 + (int) whitelistOffset, j + 73, 100.0F);
+            guiGraphics.pose().translate(8.0F, -8.0F, 0.0F);
+            guiGraphics.pose().scale(11.0F, 11.0F, 11.0F);
+            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
             Vec3 rotationOffset = new Vec3(0.5f, 0, 0.5f);
             float zRot = 0;
             float xRot = 20;
             float yRot = 130 * (whitelistOffset - 21) / 8f;
-            matrixStack.translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
-            matrixStack.mulPose(Vector3f.ZP.rotationDegrees(zRot));
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(xRot));
-            matrixStack.mulPose(Vector3f.YP.rotationDegrees(yRot));
-            matrixStack.translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+            guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
+            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
+            guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
+            guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
+            guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
 
             MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
             Lighting.setupFor3DItems();
-            matrixStack.last().normal().mul(Vector3f.YP.rotationDegrees((float) -90));
+            guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -90));
             int max3 = 0;
             for (int itor = whitelistPage * 3; itor < crowEntity.harvestWhitelist.size(); itor++) {
                 max3++;
                 if (max3 > 3)
                     break;
-                matrixStack.pushPose();
-                matrixStack.translate(0F, -(max3 - 1) * 1.75f, 0.0F);
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(0F, -(max3 - 1) * 1.75f, 0.0F);
                 BlockState state = crowEntity.harvestWhitelist.get(itor).defaultBlockState();
                 if (state.hasProperty(BlockStateProperties.AGE_1))
                     state = state.setValue(BlockStateProperties.AGE_1, 1);
@@ -569,19 +575,19 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                 else if (state.hasProperty(BlockStateProperties.AGE_7))
                     state = state.setValue(BlockStateProperties.AGE_7, 7);
 
-                matrixStack.scale((whitelistOffset - 21) / 8f, (whitelistOffset - 21) / 8f, (whitelistOffset - 21) / 8f);
-                renderBlock(matrixStack, buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
+                guiGraphics.pose().scale((whitelistOffset - 21) / 8f, (whitelistOffset - 21) / 8f, (whitelistOffset - 21) / 8f);
+                renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
                 if(state.hasProperty(PickableDoubleFlower.HALF)){
-                    matrixStack.pushPose();
-                    matrixStack.translate(0F, 1, 0.0F);
+                    guiGraphics.pose().pushPose();
+                    guiGraphics.pose().translate(0F, 1, 0.0F);
                     state = state.setValue(PickableDoubleFlower.HALF, DoubleBlockHalf.UPPER);
-                    renderBlock(matrixStack, buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
-                    matrixStack.popPose();
+                    renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
+                    guiGraphics.pose().popPose();
                 }
-                matrixStack.popPose();
+                guiGraphics.pose().popPose();
             }
             buffer.endBatch();
-            matrixStack.popPose();
+            guiGraphics.pose().popPose();
         }
 
     }
@@ -776,7 +782,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
                     poseStack.translate(0.2, -0.1, -0.1);
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, poseStack, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, poseStack, p_110915_, p_110916_, p_110917_);
                 }
             }
 

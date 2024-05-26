@@ -36,11 +36,11 @@ public class CrowFluteContainer extends AbstractContainerMenu {
 
         for(int i = 0; i < listTag.size(); i++){
             CompoundTag tag = listTag.getCompound(i);
-            if(player.level.isClientSide) {
+            if(player.level().isClientSide) {
 
                 int crowId = tag.getInt("ID");
 
-                this.crowList.add((player.level).getEntity(crowId));
+                this.crowList.add((player.level()).getEntity(crowId));
             }
         }
 
