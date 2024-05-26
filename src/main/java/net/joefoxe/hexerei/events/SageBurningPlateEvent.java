@@ -11,7 +11,7 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.living.MobSpawnEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -23,14 +23,15 @@ import java.util.List;
 public class SageBurningPlateEvent {
 
     @SubscribeEvent
-    public void onEntityJoin(LivingSpawnEvent.CheckSpawn e) {
+    public void onEntityJoin(MobSpawnEvent.FinalizeSpawn e) {
         Level world = e.getLevel().isClientSide() ? null : e.getLevel() instanceof Level ? (Level)e.getLevel() : null;
 
         if (world == null) {
             return;
         }
 
-        if(e.getSpawnReason() != MobSpawnType.NATURAL)
+
+        if(e.getSpawnType() != MobSpawnType.NATURAL)
             return;
 
         if(HexConfig.SAGE_BURNING_PLATE_RANGE.get()==0)

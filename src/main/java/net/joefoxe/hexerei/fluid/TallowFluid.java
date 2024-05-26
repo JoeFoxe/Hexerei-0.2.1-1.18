@@ -42,7 +42,7 @@ public abstract class TallowFluid extends ForgeFlowingFluid {
 	}
 
 	@Override
-	protected boolean canConvertToSource() {
+	protected boolean canConvertToSource(Level level) {
 		return false;
 	}
 

@@ -109,14 +109,14 @@ public class FadeLightTimedEventHexerei implements ITimedEvent, LambHexereiDynam
             var newPos = new LongOpenHashSet();
 
             if (luminance > 0) {
-                var entityChunkPos = new ChunkPos(new BlockPos(targetPos));
+                var entityChunkPos = new ChunkPos(new BlockPos((int)targetPos.x, (int)targetPos.y, (int)targetPos.z));
                 var chunkPos = new BlockPos.MutableBlockPos(entityChunkPos.x, DynamicLightUtil.getSectionCoord(this.targetPos.y), entityChunkPos.z);
 
                 LightManager.scheduleChunkRebuild(renderer, chunkPos);
                 LightManager.updateTrackedChunks(chunkPos, this.lambdynlights$trackedLitChunkPos, newPos);
-                BlockPos blockPos = new BlockPos(targetPos);
+                BlockPos blockPos = new BlockPos((int)targetPos.x, (int)targetPos.y, (int)targetPos.z);
                 var directionX = (blockPos.getX() & 15) >= 8 ? Direction.EAST : Direction.WEST;
-                var directionY = (Mth.fastFloor(blockPos.getY()) & 15) >= 8 ? Direction.UP : Direction.DOWN;
+                var directionY = (Mth.floor(blockPos.getY()) & 15) >= 8 ? Direction.UP : Direction.DOWN;
                 var directionZ = (blockPos.getZ() & 15) >= 8 ? Direction.SOUTH : Direction.NORTH;
 
                 for (int i = 0; i < 7; i++) {
