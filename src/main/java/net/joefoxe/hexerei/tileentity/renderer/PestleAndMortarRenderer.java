@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.tileentity.PestleAndMortarTile;
 import net.minecraft.client.Minecraft;
@@ -11,7 +11,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
@@ -46,12 +48,12 @@ public class PestleAndMortarRenderer implements BlockEntityRenderer<PestleAndMor
                         0D + Math.sin(itemRotationOffset) / (6.5f + ((craftPercent2 * craftPercent2) * 10.0f)),
                         -2/15f * craftPercent,
                         0D + Math.cos(itemRotationOffset) / (6.5f + ((craftPercent2 * craftPercent2) * 10.0f)));
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees((float)itemRotationOffset * 58f - 8));
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(55f - 40f * craftPercent));
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-2.5f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)itemRotationOffset * 58f - 8));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(55f - 40f * craftPercent));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-2.5f));
 
                 matrixStackIn.scale(0.4f, 0.4f, 0.4f);
-                renderItem(item, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+                renderItem(item, tileEntityIn.getLevel(), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
                 matrixStackIn.popPose();
             }
 
@@ -65,26 +67,26 @@ public class PestleAndMortarRenderer implements BlockEntityRenderer<PestleAndMor
             matrixStackIn.translate(0.5D, height + 1f / 256f - 2/16f, 0.5D);
             float currentTime = tileEntityIn.getLevel().getGameTime() + partialTicks;
 
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(75f));
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-2.5f));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(75f));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-2.5f));
 
             matrixStackIn.scale(0.4f, 0.4f, 0.4f);
             if(item2.getCount() >= 8) {
                 matrixStackIn.translate(2.25f/16f, -2/16f, -1.25f/16f);
-                renderItem(item2, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+                renderItem(item2, tileEntityIn.getLevel(), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
                 matrixStackIn.translate(-3.25f/16f, 1/16f, 2.5f/16f);
 
                 matrixStackIn.translate(-2.25f/16f, 0, -1.25f/16f);
-                renderItem(item2, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+                renderItem(item2, tileEntityIn.getLevel(), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
                 matrixStackIn.translate(3.25f/16f, 2/16f, 1.25f/16f);
             }else
             if(item2.getCount() >= 2) {
                 matrixStackIn.translate(2.25f/16f, 0, -1.25f/16f);
-                renderItem(item2, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+                renderItem(item2, tileEntityIn.getLevel(), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
                 matrixStackIn.translate(-3.25f/16f, 2/16f, 1.25f/16f);
             }
-            renderItem(item2, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+            renderItem(item2, tileEntityIn.getLevel(), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
             matrixStackIn.popPose();
 
 
@@ -104,9 +106,9 @@ public class PestleAndMortarRenderer implements BlockEntityRenderer<PestleAndMor
         double itemRotationOffset = 2.512 + tileEntityIn.grindingTime/6f - (Math.pow(Mth.sin( craftPercent2 * 3.14f * 5 - 3.14f), 2));
 
 
-//        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
-//        matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(85f));
-//        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-2.5f));
+//        matrixStackIn.mulPose(Axis.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
+//        matrixStackIn.mulPose(Axis.XP.rotationDegrees(85f));
+//        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-2.5f));
         double pestleYOffset = (Math.pow(Mth.sin( craftPercent2 * 3.14f * 5 - 1.2f), 10))/4f;
         double pestleTwistOffset = (Math.pow(Mth.sin( craftPercent2 * 3.14f * 5 - 3.14f), 10))/4f;
         double pestleTwistOffset2 = (Math.pow(Mth.sin( craftPercent2 * 3.14f * 5 - 3.14f), 10))/4f - (Math.pow(Mth.cos( craftPercent2 * 3.14f * 5 - 3.14f), 10))/4f;
@@ -114,14 +116,14 @@ public class PestleAndMortarRenderer implements BlockEntityRenderer<PestleAndMor
             pestleYOffset = 0;
             pestleTwistOffset = 0;
         }
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rotationOffset + (float)itemRotationOffset/6.28f*360 + 65));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(rotationOffset + (float)itemRotationOffset/6.28f*360 + 65));
         matrixStackIn.translate(0.05D, pestleYOffset, 0D);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(- (float)itemRotationOffset/6.28f*360 - 90 + ((float)pestleTwistOffset * 150) - 30));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(- (float)itemRotationOffset/6.28f*360 - 90 + ((float)pestleTwistOffset * 150) - 30));
         if(!tileEntityIn.crafting)
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-20));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-20));
         else {
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-40 * (float) pestleTwistOffset2));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(40 * (float) pestleTwistOffset));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-40 * (float) pestleTwistOffset2));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(40 * (float) pestleTwistOffset));
         }
 
 //        matrixStackIn.scale(0.4f, 0.4f, 0.4f);
@@ -129,11 +131,9 @@ public class PestleAndMortarRenderer implements BlockEntityRenderer<PestleAndMor
         matrixStackIn.popPose();
     }
 
-    // THIS IS WHAT I WAS LOOKING FOR FOREVER AHHHHH
-    private void renderItem(ItemStack stack, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, BlockState state) {

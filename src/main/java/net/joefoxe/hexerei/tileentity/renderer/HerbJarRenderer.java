@@ -2,7 +2,7 @@ package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.HerbJar;
 import net.joefoxe.hexerei.item.ModItems;
@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
@@ -70,15 +71,15 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
         matrixStackIn.pushPose();
         if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.NORTH) {
             matrixStackIn.translate(1, 0D / 16D, 1);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
         } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH) {
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(0));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(0));
         } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST) {
             matrixStackIn.translate(0D / 16D, 0D / 16D, 1D);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(90));
         } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST) {
             matrixStackIn.translate(1D, 0D / 16D, 0D);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(270));
         }
 //        renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_ORB.get().defaultBlockState(), RenderType.translucent(), tileEntityIn.getDyeColor());
         renderBlock(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModBlocks.HERB_JAR.get().defaultBlockState().setValue(HerbJar.GUI_RENDER, true).setValue(HerbJar.DYED, tileEntityIn.dyeColor != 0x422F1E && tileEntityIn.dyeColor != 0), null, tileEntityIn.getDyeColor());
@@ -127,16 +128,16 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
 
                     if(state != null){
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a, 8D / 16D);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90 * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180 ));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90 * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180 ));
                         renderBlock(matrixStackIn, bufferIn, combinedLightIn, state);
                     } else {
 
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a + 1D/16D, 8D / 16D);
                         matrixStackIn.scale(0.4f,0.4f,0.4f);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rand.nextInt(90) * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180 ));
-                        matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(80 + rand.nextInt(20)));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(rand.nextInt(90) * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180 ));
+                        matrixStackIn.mulPose(Axis.XP.rotationDegrees(80 + rand.nextInt(20)));
                         if(is3dModel)
                             matrixStackIn.scale(1.20f, 1.20f, 1.20f);
                         renderItem(new ItemStack(tileEntityIn.itemHandler.getStackInSlot(0).getItem(), 1), 0, matrixStackIn, bufferIn, combinedLightIn);
@@ -145,16 +146,16 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
                 } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH) {
                     if(state != null){
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a, 8D / 16D);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90 * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(0 ));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90 * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(0 ));
                         renderBlock(matrixStackIn, bufferIn, combinedLightIn, state);
                     } else {
 
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a + 1D/16D, 8D / 16D);
                         matrixStackIn.scale(0.4f,0.4f,0.4f);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rand.nextInt(90) * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(0 ));
-                        matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(80 + rand.nextInt(20)));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(rand.nextInt(90) * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(0 ));
+                        matrixStackIn.mulPose(Axis.XP.rotationDegrees(80 + rand.nextInt(20)));
                         if(is3dModel)
                             matrixStackIn.scale(1.20f, 1.20f, 1.20f);
                         renderItem(new ItemStack(tileEntityIn.itemHandler.getStackInSlot(0).getItem(), 1), 0, matrixStackIn, bufferIn, combinedLightIn);
@@ -162,16 +163,16 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
                 } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST) {
                     if(state != null){
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a, 8D / 16D);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90 * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90 ));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90 * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90 ));
                         renderBlock(matrixStackIn, bufferIn, combinedLightIn, state);
                     } else {
 
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a + 1D/16D, 8D / 16D);
                         matrixStackIn.scale(0.4f,0.4f,0.4f);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rand.nextInt(90) * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90 ));
-                        matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(80 + rand.nextInt(20)));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(rand.nextInt(90) * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90 ));
+                        matrixStackIn.mulPose(Axis.XP.rotationDegrees(80 + rand.nextInt(20)));
                         if(is3dModel)
                             matrixStackIn.scale(1.20f, 1.20f, 1.20f);
                         renderItem(new ItemStack(tileEntityIn.itemHandler.getStackInSlot(0).getItem(), 1), 0, matrixStackIn, bufferIn, combinedLightIn);
@@ -179,16 +180,16 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
                 } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST) {
                     if(state != null){
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a, 8D / 16D);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90 * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270 ));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90 * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(270 ));
                         renderBlock(matrixStackIn, bufferIn, combinedLightIn, state);
                     } else {
 
                         matrixStackIn.translate(8D / 16D, 0.5D / 16D * a + 1D/16D, 8D / 16D);
                         matrixStackIn.scale(0.4f,0.4f,0.4f);
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rand.nextInt(90) * a));
-                        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270 ));
-                        matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(80 + rand.nextInt(20)));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(rand.nextInt(90) * a));
+                        matrixStackIn.mulPose(Axis.YP.rotationDegrees(270 ));
+                        matrixStackIn.mulPose(Axis.XP.rotationDegrees(80 + rand.nextInt(20)));
                         if(is3dModel)
                             matrixStackIn.scale(1.20f, 1.20f, 1.20f);
                         renderItem(new ItemStack(tileEntityIn.itemHandler.getStackInSlot(0).getItem(), 1), 0, matrixStackIn, bufferIn, combinedLightIn);
@@ -200,22 +201,22 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
 
 
         int i = 0x464F56;
-        int j = (int)((double) NativeImage.getR(i) * 0.4D);
-        int k = (int)((double)NativeImage.getG(i) * 0.4D);
-        int l = (int)((double)NativeImage.getB(i) * 0.4D);
-        int i1 = NativeImage.combine(   0, l, k, j);
+        int j = (int)((double) FastColor.ARGB32.red(i) * 0.4D);
+        int k = (int)((double) FastColor.ARGB32.green(i) * 0.4D);
+        int l = (int)((double) FastColor.ARGB32.blue(i) * 0.4D);
+        int i1 = FastColor.ARGB32.color( 0, j, k, l);
 
         if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.NORTH) {
             matrixStackIn.translate(8D / 16D, 8D / 16D, 12.05D / 16D);
         } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH) {
             matrixStackIn.translate(8D / 16D, 8D / 16D, 1 - 12.05D / 16D);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
         } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST) {
             matrixStackIn.translate(1 - 12.05D / 16D, 8D / 16D, 8D / 16);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(270));
         } else if (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST) {
             matrixStackIn.translate(12.05D / 16D, 8D / 16D, 8D / 16);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(90));
         }
 
         matrixStackIn.scale(0.00694445f, -0.00694445f, 0.00694445f);
@@ -268,7 +269,7 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
         matrixStackIn.translate(8D/16D, 4.25D/16D, 12D/16D);
         matrixStackIn.scale(0.30f, 0.30f, 0.30f);
 
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
         renderItem(new ItemStack(tileEntityIn.itemHandler.getContents().get(0).getItem(), 1), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
         matrixStackIn.popPose();
 
@@ -294,11 +295,11 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
 
         matrixStackIn.pushPose();
         matrixStackIn.translate(1, 0, 0);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(270));
         matrixStackIn.translate(8D/16D, 4.25D/16D, 4D/16D);
         matrixStackIn.scale(0.30f, 0.30f, 0.30f);
 
-//        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+//        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
             renderItem(new ItemStack(tileEntityIn.itemHandler.getContents().get(0).getItem(), 1), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
         matrixStackIn.popPose();
 
@@ -310,11 +311,11 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
     {
         matrixStackIn.pushPose();
         matrixStackIn.translate(1, 0, 0);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(270));
         matrixStackIn.translate(8D/16D, 4.25D/16D, 12D/16D);
         matrixStackIn.scale(0.30f, 0.30f, 0.30f);
 
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
         renderItem(new ItemStack(tileEntityIn.itemHandler.getContents().get(0).getItem(), 1), partialTicks, matrixStackIn, bufferIn, combinedLightIn);
         matrixStackIn.popPose();
     }

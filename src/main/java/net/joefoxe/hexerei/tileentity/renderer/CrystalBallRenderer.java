@@ -2,11 +2,9 @@ package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.block.custom.HerbJar;
 import net.joefoxe.hexerei.client.renderer.ModRenderTypes;
 import net.joefoxe.hexerei.data.recipes.MoonPhases;
 import net.joefoxe.hexerei.tileentity.CrystalBallTile;
@@ -20,18 +18,21 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -130,7 +131,7 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
         matrixStackIn.pushPose();
         matrixStackIn.translate(8f / 16f, 9f / 16f, 8f / 16f);
         matrixStackIn.translate(0f/16f , tileEntityIn.orbOffset/16f, 0f/16f);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
 
         renderBlock(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModBlocks.CRYSTAL_BALL_ORB.get().defaultBlockState(), null, 0xFFFFFF);
         matrixStackIn.popPose();
@@ -138,14 +139,14 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
         matrixStackIn.pushPose();
         matrixStackIn.translate(8f/16f , 7f/16f, 8f/16f);
         matrixStackIn.translate(0f/16f , tileEntityIn.largeRingOffset/16f, 0f/16f);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 6));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 6));
         renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_LARGE_RING.get().defaultBlockState());
         matrixStackIn.popPose();
 
         matrixStackIn.pushPose();
         matrixStackIn.translate(8f/16f , 4.5f/16f, 8f/16f);
         matrixStackIn.translate(0f/16f , tileEntityIn.smallRingOffset/16f, 0f/16f);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 6));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 6));
         renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_SMALL_RING.get().defaultBlockState());
         matrixStackIn.popPose();
 
@@ -170,7 +171,7 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
         poseStack.translate(0.5f,9f / 16f,0.5f);
         poseStack.translate(0f/16f , tileEntityIn.orbOffset/16f, 0f/16f);
 
-        poseStack.mulPose(Vector3f.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
         poseStack.scale(0.25f,0.25f,0.25f);
         drawWobblyCube(poseStack, 1f, 0.86f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
         drawWobblyCube(poseStack, 0.85f, 0.5f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
@@ -233,10 +234,10 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
         }
     }
 
-    private void renderItem(ItemStack stack, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
 
@@ -268,7 +269,7 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    net.minecraftforge.client.extensions.common.IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    net.minecraftforge.client.extensions.common.IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 
@@ -289,7 +290,7 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 
@@ -309,7 +310,7 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
                     poseStack.translate(0.2, -0.1, -0.1);
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, poseStack, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, poseStack, p_110915_, p_110916_, p_110917_);
                 }
             }
 

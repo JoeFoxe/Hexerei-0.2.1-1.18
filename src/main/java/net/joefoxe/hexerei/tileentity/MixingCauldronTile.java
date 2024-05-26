@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.tileentity;
 
+import com.hollingsworth.arsnouveau.api.util.DamageUtil;
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.block.custom.MixingCauldron;
 import net.joefoxe.hexerei.container.MixingCauldronContainer;
 import net.joefoxe.hexerei.data.recipes.FluidMixingRecipe;
 import net.joefoxe.hexerei.data.recipes.MixingCauldronRecipe;
@@ -29,15 +29,13 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.*;
-import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -50,6 +48,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -78,8 +77,6 @@ import static net.minecraft.world.level.block.state.properties.BlockStatePropert
 
 public class MixingCauldronTile extends RandomizableContainerBlockEntity implements WorldlyContainer, Clearable, MenuProvider, IFluidHandler {
 
-//    private final ItemStackHandler itemHandler = createHandler();
-//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
     public boolean crafting;
     public int craftDelay;
     public int craftDelayOld;
@@ -195,10 +192,10 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
         for (int i = 0; i < stacks.size(); i++) {
             if(i < 8 || !stacks.get(i).isEmpty()) {
 
-                if(!items.get(i).sameItemStackIgnoreDurability(stacks.get(i))){
-                    int slot = player.inventory.findSlotMatchingItem(stacks.get(i));
-                    ItemStack stack = ContainerHelper.removeItem(player.inventory.items, slot, 1);
-                    player.inventory.placeItemBackInInventory(items.get(i));
+                if(!ItemStack.isSameItemSameTags(items.get(i), stacks.get(i))){
+                    int slot = player.getInventory().findSlotMatchingItem(stacks.get(i));
+                    ItemStack stack = ContainerHelper.removeItem(player.getInventory().items, slot, 1);
+                    player.getInventory().placeItemBackInInventory(items.get(i));
                     items.set(i, stack);
                 }
             }
@@ -488,8 +485,12 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
 
     private void strikeLightning() {
         if(!this.level.isClientSide()) {
-            EntityType.LIGHTNING_BOLT.spawn((ServerLevel)level, null, null,
-                    worldPosition, MobSpawnType.TRIGGERED, true, true);
+            LightningBolt lightningbolt = EntityType.LIGHTNING_BOLT.create(level);
+            if (lightningbolt != null) {
+                lightningbolt.moveTo(Vec3.atBottomCenterOf(worldPosition));
+                level.addFreshEntity(lightningbolt);
+            }
+
         }
     }
 
@@ -506,7 +507,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
             if (Shapes.joinIsNotEmpty(Shapes.create(entity.getBoundingBox().move(-blockpos.getX(), -blockpos.getY(), -blockpos.getZ())), BLOOD_SIGIL_SHAPE, BooleanOp.AND)) {
                 if (this.isColliding <= 1 && this.getItemInSlot(9).asItem() == ModItems.BLOOD_SIGIL.get()) {
                     Random random = new Random();
-                    entity.hurt(DamageSource.MAGIC, 3.0f);
+                    entity.hurt(DamageUtil.source(level, DamageTypes.MAGIC, null), 3.0f);
 
                     if (fluidStack.isEmpty() || (fluidStack.containsFluid(new FluidStack(ModFluids.BLOOD_FLUID.get(), 1)) && this.getFluidStack().getAmount() < this.getTankCapacity(0))) {
 
@@ -520,7 +521,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
                                 this.getFluidStack().grow(1);
                             setChanged();
                         }
-                        entity.getLevel().playSound(null, entity.blockPosition(), SoundEvents.HONEY_DRINK, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        level.playSound(null, entity.blockPosition(), SoundEvents.HONEY_DRINK, SoundSource.BLOCKS, 1.0F, 1.0F);
                         if(!level.isClientSide)
                             HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new EmitParticlesPacket(worldPosition, 2, true));
 
@@ -636,7 +637,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
             FluidStack containerFluid = this.getFluidStack();
 
             boolean fluidEqual = recipeFluid.isFluidEqual(containerFluid);
-            boolean outputClear = (inv.getItem(8) == ItemStack.EMPTY || inv.getItem(8).getCount() == 0) || (inv.getItem(8).sameItem(output) && inv.getItem(8).getCount() + output.getCount() <= inv.getItem(8).getMaxStackSize());
+            boolean outputClear = (inv.getItem(8) == ItemStack.EMPTY || inv.getItem(8).getCount() == 0) || (ItemStack.isSameItem(output, inv.getItem(8)) && inv.getItem(8).getCount() + output.getCount() <= inv.getItem(8).getMaxStackSize());
             boolean hasEnoughFluid = iRecipe.getFluidLevelsConsumed() <= this.getFluidStack().getAmount();
             boolean needsHeat = iRecipe.getHeatCondition() != FluidMixingRecipe.HeatCondition.NONE;
             boolean needsMoonPhase = iRecipe.getMoonCondition() != MoonPhases.MoonCondition.NONE;
@@ -742,7 +743,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
         this.setItem(5, ItemStack.EMPTY);
         this.setItem(6, ItemStack.EMPTY);
         this.setItem(7, ItemStack.EMPTY);
-        if(this.getItem(8).sameItem(output)){
+        if(ItemStack.isSameItem(output, this.getItem(8))){
             this.getItem(8).setCount(this.getItem(8).getCount() + output.getCount());
         } else
             this.setItem(8, output);

@@ -79,6 +79,9 @@ public class HexereiUtil {
     public static ResourceLocation getRegistryName(Item i) {
         return ForgeRegistries.ITEMS.getKey(i);
     }
+    public static ResourceLocation getRegistryName(Fluid i) {
+        return ForgeRegistries.ITEMS.getKey(i);
+    }
 
     public static ResourceLocation getRegistryName(Block b) {
         return ForgeRegistries.BLOCKS.getKey(b);

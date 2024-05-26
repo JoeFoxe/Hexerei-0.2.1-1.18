@@ -2,7 +2,7 @@ package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.model.CandleModel;
 import net.joefoxe.hexerei.data.candle.CandleData;
@@ -20,7 +20,9 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -67,11 +69,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f / 16f, 0f / 16f, 8f / 16f);
             matrixStackIn.translate(tileEntityIn.candles.get(0).x, tileEntityIn.candles.get(0).y, tileEntityIn.candles.get(0).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(0).x == 0 && tileEntityIn.candles.get(0).y == 0 && tileEntityIn.candles.get(0).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -83,7 +85,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 0;
@@ -101,11 +103,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(tileEntityIn.candles.get(1).x , tileEntityIn.candles.get(1).y, tileEntityIn.candles.get(1).z);
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(1).x == 0 && tileEntityIn.candles.get(1).y == 0 && tileEntityIn.candles.get(1).z == 0) {
                 if(tileEntityIn.numberOfCandles == 4)
@@ -117,7 +119,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 1;
@@ -135,11 +137,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(2).x , tileEntityIn.candles.get(2).y, tileEntityIn.candles.get(2).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(2).x == 0 && tileEntityIn.candles.get(2).y == 0 && tileEntityIn.candles.get(2).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -149,7 +151,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 2;
@@ -168,17 +170,17 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f / 16f, 0f / 16f, 8f / 16f);
             matrixStackIn.translate(tileEntityIn.candles.get(3).x, tileEntityIn.candles.get(3).y, tileEntityIn.candles.get(3).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(3).x == 0 && tileEntityIn.candles.get(3).y == 0 && tileEntityIn.candles.get(3).z == 0)
                 matrixStackIn.translate(3f / 16f, 0f / 16f, -2f / 16f);
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 3;
@@ -203,11 +205,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(0).x , tileEntityIn.candles.get(0).y, tileEntityIn.candles.get(0).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(0).x == 0 && tileEntityIn.candles.get(0).y == 0 && tileEntityIn.candles.get(0).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -219,7 +221,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 0;
@@ -247,11 +249,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(tileEntityIn.candles.get(1).x , tileEntityIn.candles.get(1).y, tileEntityIn.candles.get(1).z);
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(1).x == 0 && tileEntityIn.candles.get(1).y == 0 && tileEntityIn.candles.get(1).z == 0) {
                 if(tileEntityIn.numberOfCandles == 4)
@@ -263,7 +265,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 1;
@@ -291,11 +293,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(2).x , tileEntityIn.candles.get(2).y, tileEntityIn.candles.get(2).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(2).x == 0 && tileEntityIn.candles.get(2).y == 0 && tileEntityIn.candles.get(2).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -305,7 +307,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 2;
@@ -333,17 +335,17 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f / 16f, 0f / 16f, 8f / 16f);
             matrixStackIn.translate(tileEntityIn.candles.get(3).x, tileEntityIn.candles.get(3).y, tileEntityIn.candles.get(3).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(3).x == 0 && tileEntityIn.candles.get(3).y == 0 && tileEntityIn.candles.get(3).z == 0)
                 matrixStackIn.translate(3f / 16f, 0f / 16f, -2f / 16f);
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 3;
@@ -376,11 +378,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(0).x , tileEntityIn.candles.get(0).y, tileEntityIn.candles.get(0).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(0).x == 0 && tileEntityIn.candles.get(0).y == 0 && tileEntityIn.candles.get(0).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -392,7 +394,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 0;
@@ -416,11 +418,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(tileEntityIn.candles.get(1).x , tileEntityIn.candles.get(1).y, tileEntityIn.candles.get(1).z);
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(1).x == 0 && tileEntityIn.candles.get(1).y == 0 && tileEntityIn.candles.get(1).z == 0) {
                 if(tileEntityIn.numberOfCandles == 4)
@@ -432,7 +434,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 1;
@@ -454,11 +456,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(2).x , tileEntityIn.candles.get(2).y, tileEntityIn.candles.get(2).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(2).x == 0 && tileEntityIn.candles.get(2).y == 0 && tileEntityIn.candles.get(2).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -468,7 +470,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 2;
@@ -490,17 +492,17 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f / 16f, 0f / 16f, 8f / 16f);
             matrixStackIn.translate(tileEntityIn.candles.get(3).x, tileEntityIn.candles.get(3).y, tileEntityIn.candles.get(3).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(3).x == 0 && tileEntityIn.candles.get(3).y == 0 && tileEntityIn.candles.get(3).z == 0)
                 matrixStackIn.translate(3f / 16f, 0f / 16f, -2f / 16f);
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 3;
@@ -525,11 +527,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(0).x , tileEntityIn.candles.get(0).y, tileEntityIn.candles.get(0).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(0).x == 0 && tileEntityIn.candles.get(0).y == 0 && tileEntityIn.candles.get(0).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -541,7 +543,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 0;
@@ -573,11 +575,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(tileEntityIn.candles.get(1).x , tileEntityIn.candles.get(1).y, tileEntityIn.candles.get(1).z);
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(1).x == 0 && tileEntityIn.candles.get(1).y == 0 && tileEntityIn.candles.get(1).z == 0) {
                 if(tileEntityIn.numberOfCandles == 4)
@@ -589,7 +591,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 1;
@@ -619,11 +621,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(2).x , tileEntityIn.candles.get(2).y, tileEntityIn.candles.get(2).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(2).x == 0 && tileEntityIn.candles.get(2).y == 0 && tileEntityIn.candles.get(2).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -633,7 +635,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 2;
@@ -663,17 +665,17 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(3).x , tileEntityIn.candles.get(3).y, tileEntityIn.candles.get(3).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(3).x == 0 && tileEntityIn.candles.get(3).y == 0 && tileEntityIn.candles.get(3).z == 0)
                 matrixStackIn.translate(3f / 16f, 0f / 16f, -2f / 16f);
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 3;
@@ -706,11 +708,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(0).x , tileEntityIn.candles.get(0).y, tileEntityIn.candles.get(0).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(0).x == 0 && tileEntityIn.candles.get(0).y == 0 && tileEntityIn.candles.get(0).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -722,7 +724,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 0;
@@ -748,11 +750,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(tileEntityIn.candles.get(1).x , tileEntityIn.candles.get(1).y, tileEntityIn.candles.get(1).z);
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(1).x == 0 && tileEntityIn.candles.get(1).y == 0 && tileEntityIn.candles.get(1).z == 0) {
                 if(tileEntityIn.numberOfCandles == 4)
@@ -764,7 +766,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 1;
@@ -790,11 +792,11 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f/16f , 0f/16f, 8f/16f);
             matrixStackIn.translate(tileEntityIn.candles.get(2).x , tileEntityIn.candles.get(2).y, tileEntityIn.candles.get(2).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(2).x == 0 && tileEntityIn.candles.get(2).y == 0 && tileEntityIn.candles.get(2).z == 0) {
                 if (tileEntityIn.numberOfCandles == 4)
@@ -804,7 +806,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             }
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 2;
@@ -830,17 +832,17 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
             matrixStackIn.translate(8f / 16f, 0f / 16f, 8f / 16f);
             matrixStackIn.translate(tileEntityIn.candles.get(3).x, tileEntityIn.candles.get(3).y, tileEntityIn.candles.get(3).z);
             if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(270f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(270f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
             else if(tileEntityIn.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST)
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(90f));
 
             if(tileEntityIn.candles.get(3).x == 0 && tileEntityIn.candles.get(3).y == 0 && tileEntityIn.candles.get(3).z == 0)
                 matrixStackIn.translate(3f / 16f, 0f / 16f, -2f / 16f);
 
             matrixStackIn.translate( 0/16f, 24f/16f, 0/16f);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
 
 
             int candle = 3;
@@ -863,10 +865,10 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
 
     }
 
-    private void renderItem(ItemStack stack, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn,1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
 
@@ -896,7 +898,7 @@ public class CandleRenderer implements BlockEntityRenderer<CandleTile> {
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 

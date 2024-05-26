@@ -2,7 +2,7 @@ package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.BroomStandWall;
 import net.joefoxe.hexerei.data.books.HexereiBookItem;
@@ -22,6 +22,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -72,19 +73,19 @@ public class BroomStandRenderer implements BlockEntityRenderer<BroomStandTile> {
         if(!stack.isEmpty()){
             matrixStackIn.pushPose();
             matrixStackIn.translate(8f / 16f, 10.25f / 16f, 8f / 16f);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(dir.toYRot()));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(dir.toYRot()));
             matrixStackIn.translate(0, offset.y(), 0.25f / 16f + offset.z());
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-16));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-16));
             matrixStackIn.scale(2.25f, 2.25f, 2.25f);
-            renderItem(stack, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+            renderItem(stack, tileEntityIn.getLevel(), matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
             matrixStackIn.popPose();
         }
 
     }
 
-    private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int overlayLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                overlayLightIn, matrixStackIn, bufferIn, 1);
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int overlayLightIn) {
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                overlayLightIn, matrixStackIn, bufferIn, level, 1);
     }
 
 
@@ -113,7 +114,7 @@ public class BroomStandRenderer implements BlockEntityRenderer<BroomStandTile> {
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack.getItem()).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 

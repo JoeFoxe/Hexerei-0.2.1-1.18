@@ -5,10 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import mezz.jei.api.runtime.IRecipesGui;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
@@ -28,9 +25,12 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ConfirmLinkScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTextTooltip;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -44,6 +44,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
@@ -61,10 +62,7 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -88,8 +86,13 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.forgespi.language.IModInfo;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -153,15 +156,20 @@ public class PageDrawing {
 //    private final ResourceLocation TEXT = new ResourceLocation(Hexerei.MOD_ID,
 //            "textures/gui/text.png");
 
-    private static final Quaternion ITEM_LIGHT_ROTATION_3D = Util.make(() -> {
-        Quaternion quaternion = new Quaternion(Vector3f.XP, 65f, true);
-        quaternion.mul(new Quaternion(Vector3f.YP, 50f, true));
+    protected static final Quaternionf ITEM_LIGHT_ROTATION_3D = Util.make(() -> {
+        Quaternionf quaternion = new Quaternionf();
+        quaternion.setAngleAxis(-15 * Math.PI / 180, 1, 0, 1);
+
         return quaternion;
     });
-    private static final Quaternion ITEM_LIGHT_ROTATION_FLAT = new Quaternion(Vector3f.XP, 45f, true);
+    protected static final Quaternionf ITEM_LIGHT_ROTATION_FLAT = Util.make(() -> {
+        Quaternionf quaternion = new Quaternionf();
+        quaternion.setAngleAxis(-45 * Math.PI / 180, 1, 0, 0);
+        return quaternion;
+    });
 
     public static ItemStack getTagStack(TagKey<Item> key) {
-        Optional<Item> optional = Registry.ITEM.getTag(key).flatMap(tag -> tag.getRandomElement(RandomSource.create())).map(Holder::value);
+        Optional<Item> optional = ForgeRegistries.ITEMS.tags().getTag(key).getRandomElement(RandomSource.create());
 
         if (optional.isPresent()) {
             Item item = optional.get();
@@ -169,10 +177,6 @@ public class PageDrawing {
         }
         return ItemStack.EMPTY;
 //        return Registry.ITEM.getTag(TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(loc))).flatMap(tag -> tag.getRandomElement(new Random())).map(Holder::value);
-    }
-
-    public static Optional<Item> getTagStackStatic(TagKey<Item> key) {
-        return Registry.ITEM.getTag(key).flatMap(tag -> tag.getRandomElement(RandomSource.create())).map(Holder::value);
     }
 
 
@@ -207,29 +211,28 @@ public class PageDrawing {
         matrixStackIn.pushPose();
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
 
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90));
         matrixStackIn.translate(-8f / 16f, 5.5f / 16f, -0.021f / 16f);
         matrixStackIn.scale(0.049f, 0.049f, 0.001f);
         matrixStackIn.translate(yIn * 1.259f, -xIn * 1.259f, 0);
-        Matrix3f matrix3f = matrixStackIn.last().normal();
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-90));
 
         matrixStackIn.pushPose();
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180f));
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-180));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180f));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-180));
         matrixStackIn.translate(-4.75f / 8f, -4.5f / 8f, 0);
         matrixStackIn.scale(0.065f, 0.065f, 0.05f);
 
@@ -246,12 +249,12 @@ public class PageDrawing {
             BakedModel itemModel = itemRenderer.getModel(itemStack, null, null, 0);
 
             if (itemModel.isGui3d()) {
-                matrixStackIn.last().normal().mul(ITEM_LIGHT_ROTATION_3D);
+                matrixStackIn.last().normal().rotate(ITEM_LIGHT_ROTATION_3D);
             } else {
-                matrixStackIn.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+                matrixStackIn.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
             }
 
-            itemRenderer.render(itemStack, ItemTransforms.TransformType.GUI, false, matrixStackIn, buffer, combinedLight, combinedOverlay, itemModel);
+            itemRenderer.render(itemStack, ItemDisplayContext.GUI, false, matrixStackIn, buffer, combinedLight, combinedOverlay, itemModel);
         } catch (Exception e) {
             // Shrug
         }
@@ -285,10 +288,10 @@ public class PageDrawing {
             matrixStackIn.translate(0, 0, -7f);
             String s = String.valueOf(itemStack.getCount());
             MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-            font.drawInBatch(s, (xIn + 19 - 2 - font.width(s)) + 1f, (yIn + 6 + 3) + 1f, HexereiUtil.getColorValueAlpha(0.245f, 0.245f, 0.245f, 1), false, matrixStackIn.last().pose(), bufferSource, false, overlay, light);
-
+            font.drawInBatch(s, (xIn + 19 - 2 - font.width(s)) + 1f, (yIn + 6 + 3) + 1f, HexereiUtil.getColorValueAlpha(0.245f, 0.245f, 0.245f, 1), false, matrixStackIn.last().pose(), bufferSource, Font.DisplayMode.NORMAL, overlay, light);
+//              drawInBatch(pText, float pX,                        float pY,           int pColor,                                                  boolean pDropShadow,   Matrix4f pMatrix,   MultiBufferSource pBuffer, Font.DisplayMode pDisplayMode, int pBackgroundColor, int pPackedLightCoords) {
             matrixStackIn.translate(0, 0, -6f);
-            font.drawInBatch(s, (xIn + 19 - 2 - font.width(s)), (yIn + 6 + 3), 16777215, false, matrixStackIn.last().pose(), bufferSource, false, overlay, light);
+            font.drawInBatch(s, (xIn + 19 - 2 - font.width(s)), (yIn + 6 + 3), 16777215, false, matrixStackIn.last().pose(), bufferSource, Font.DisplayMode.NORMAL, overlay, light);
             multibuffersource$buffersource.endBatch();
             matrixStackIn.popPose();
         }
@@ -302,34 +305,23 @@ public class PageDrawing {
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
         matrixStackIn.pushPose();
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(90));
         matrixStackIn.scale(16, 16, 1f);
         matrixStackIn.translate(yIn * 1.25f * 2 / 40 + 0.55f, -xIn * 1.25f * 2 / 40 - 0.55f, -2f);
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(90));
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(180));
 
 
         try {
             BakedModel itemModel = itemRenderer.getModel(itemStack, null, null, 0);
 
-            if (Minecraft.getInstance().cameraEntity != null) {
-                Vec3 vec = Minecraft.getInstance().cameraEntity.getPosition(0);
-                Vector3f vector3f = new Vector3f(2, 1, 3000);
-                Quaternion quat = new Quaternion(vector3f, 0, false);
-                matrixStackIn.last().normal().mul(quat);
-            }
-            if (itemModel.isGui3d()) {
-                matrixStackIn.last().normal().mul(Util.make(() -> {
-                    Quaternion quaternion = new Quaternion(Vector3f.XP, 65f, true);
-                    quaternion.mul(new Quaternion(Vector3f.YP, 50f, true));
-                    return quaternion;
-                }));
-            } else {
-                matrixStackIn.last().normal().mul(new Quaternion(Vector3f.XP, 45f, true));
-            }
+            if (itemModel.isGui3d())
+                matrixStackIn.last().normal().rotate(ITEM_LIGHT_ROTATION_3D);
+            else
+                matrixStackIn.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
 
 
-            itemRenderer.render(itemStack, ItemTransforms.TransformType.GUI, false, matrixStackIn, bufferSource, light, overlay, itemModel);
+            itemRenderer.render(itemStack, ItemDisplayContext.GUI, false, matrixStackIn, bufferSource, light, overlay, itemModel);
         } catch (Exception e) {
             // Shrug
         }
@@ -370,21 +362,21 @@ public class PageDrawing {
 
 
     @OnlyIn(Dist.CLIENT)
-    public static void translateToLeftPageUnder(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemTransforms.TransformType transformType) {
+    public static void translateToLeftPageUnder(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
         float xPos = 0;
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -393,25 +385,25 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
         if (!isItem)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
         else
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-        if (isItem && transformType != ItemTransforms.TransformType.NONE)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-55));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+        if (isItem && transformType != ItemDisplayContext.NONE)
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-55));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
         matrixStack.translate(0, 1f / 32f, 0);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-(80f - tileEntityIn.degreesOpenedRender / 1.12f)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageTwoRotationRender)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageOneRotationRender / 16f)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-180));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-(80f - tileEntityIn.degreesOpenedRender / 1.12f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageTwoRotationRender)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageOneRotationRender / 16f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-180));
         matrixStack.translate(0, -1 / 2f + 1 / 8f - 1 / 128f, 0);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void translateToLeftPage(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemTransforms.TransformType transformType) {
+    public static void translateToLeftPage(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
 
         float yPos = 0;
@@ -419,14 +411,14 @@ public class PageDrawing {
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -435,40 +427,40 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
         if (!isItem)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
         else
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-        if (isItem && transformType != ItemTransforms.TransformType.NONE)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-55));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+        if (isItem && transformType != ItemDisplayContext.NONE)
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-55));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(degreesOpened));
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 33);
         matrixStack.translate(0, 1f / 32f, 0);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-(80f - tileEntityIn.degreesOpenedRender / 1.12f)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageTwoRotationRender)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageOneRotationRender / 16f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-(80f - tileEntityIn.degreesOpenedRender / 1.12f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageTwoRotationRender)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageOneRotationRender / 16f)));
 //        matrixStack.translate(0,1/64f,0);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void translateToRightPageUnder(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemTransforms.TransformType transformType) {
+    public static void translateToRightPageUnder(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
         float xPos = 0;
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -477,40 +469,40 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
         if (!isItem)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
         else
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-        if (isItem && transformType != ItemTransforms.TransformType.NONE)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-55));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+        if (isItem && transformType != ItemDisplayContext.NONE)
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-55));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
         matrixStack.translate(0, 1f / 32f, 0);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((80f - tileEntityIn.degreesOpenedRender / 1.12f)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageOneRotationRender)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageTwoRotationRender / 16f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees((80f - tileEntityIn.degreesOpenedRender / 1.12f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageOneRotationRender)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageTwoRotationRender / 16f)));
 //        matrixStack.translate(0, 1 / 64f, 0);
 
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void translateToRightPage(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemTransforms.TransformType transformType) {
+    public static void translateToRightPage(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
         float xPos = 0;
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -519,40 +511,40 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
         if (!isItem)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
         else
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-        if (isItem && transformType != ItemTransforms.TransformType.NONE)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-55));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+        if (isItem && transformType != ItemDisplayContext.NONE)
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-55));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
         matrixStack.translate(0, 1f / 32f, 0);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees((80f - tileEntityIn.degreesOpenedRender / 1.12f)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageOneRotationRender)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageTwoRotationRender / 16f)));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-180));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees((80f - tileEntityIn.degreesOpenedRender / 1.12f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageOneRotationRender)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (tileEntityIn.pageTwoRotationRender / 16f)));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-180));
         matrixStack.translate(0, -1 / 2f + 1 / 8f - 1 / 128f, 0);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void translateToLeftPagePrevious(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, boolean isItem, ItemTransforms.TransformType transformType) {
+    public static void translateToLeftPagePrevious(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
         float xPos = 0;
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -563,58 +555,58 @@ public class PageDrawing {
             matrixStackIn.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
             matrixStackIn.translate((float) Math.sin((tileEntityIn.degreesSpunRender + 90f) / 57.1f) / 32f, 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender + 90f) / 57.1f) / 32f);
             matrixStackIn.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
             if (!isItem)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
             else
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-            if (isItem && transformType != ItemTransforms.TransformType.NONE)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-55));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(tileEntityIn.degreesOpenedRender));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+            if (isItem && transformType != ItemDisplayContext.NONE)
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-55));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(tileEntityIn.degreesOpenedRender));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, (-0.5f * (tileEntityIn.degreesFloppedRender / 90)) / 16f, (float) Math.sin((tileEntityIn.degreesFloppedRender) / 57.1f) / 32f);
             matrixStackIn.translate(0, 1f / 32f, 0);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-90));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-90));
 //            matrixStackIn.translate(0, 1 / 64f, 0);
         } else {
             matrixStackIn.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
             matrixStackIn.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
             matrixStackIn.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
             if (!isItem)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
             else
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-            if (isItem && transformType != ItemTransforms.TransformType.NONE)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-55));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+            if (isItem && transformType != ItemDisplayContext.NONE)
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-55));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, 1f / 32f, 0);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-(80f - tileEntityIn.degreesOpenedRender / 1.12f)));
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageTwoRotationRender / 16f + 180 / 16f)));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-(80f - tileEntityIn.degreesOpenedRender / 1.12f)));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees((-(80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageTwoRotationRender / 16f + 180 / 16f)));
 //            matrixStackIn.translate(0, 1 / 64f, 0);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static void translateToRightPagePrevious(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, boolean isItem, ItemTransforms.TransformType transformType) {
+    public static void translateToRightPagePrevious(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
         float xPos = 0;
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -625,59 +617,59 @@ public class PageDrawing {
             matrixStackIn.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
             matrixStackIn.translate(-(float) Math.sin((tileEntityIn.degreesSpunRender + 90f) / 57.1f) / 32f, 0f / 16f, -(float) Math.cos((tileEntityIn.degreesSpunRender + 90f) / 57.1f) / 32f);
             matrixStackIn.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
             if (!isItem)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
             else
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-            if (isItem && transformType != ItemTransforms.TransformType.NONE)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-55));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-tileEntityIn.degreesOpenedRender));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(tileEntityIn.degreesFloppedRender));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+            if (isItem && transformType != ItemDisplayContext.NONE)
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-55));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-tileEntityIn.degreesOpenedRender));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, (-0.5f * (tileEntityIn.degreesFloppedRender / 90)) / 16f, -(float) Math.sin((tileEntityIn.degreesFloppedRender) / 57.1f) / 32f);
             matrixStackIn.translate(0, 1f / 32f, 0);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-90));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-90));
             matrixStackIn.translate(0, -0.375f - 1 / 128f, 0);
         } else {
             matrixStackIn.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
             matrixStackIn.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
             matrixStackIn.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
             if (!isItem)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
             else
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
-            if (isItem && transformType != ItemTransforms.TransformType.NONE)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(90));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 10)));
+            if (isItem && transformType != ItemDisplayContext.NONE)
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(90));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, 1f / 32f, 0);
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees((80f - tileEntityIn.degreesOpenedRender / 1.12f)));
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageOneRotationRender / 16f + 180 / 16f)));
-            matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-180));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees((80f - tileEntityIn.degreesOpenedRender / 1.12f)));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(((80f - tileEntityIn.degreesOpenedRender / 1.12f) / 90f) * (-tileEntityIn.pageOneRotationRender / 16f + 180 / 16f)));
+            matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-180));
             matrixStackIn.translate(0, -0.375f - 1 / 128f, 0);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void translateToMiddleButton(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemTransforms.TransformType transformType) {
+    public void translateToMiddleButton(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
         float xPos = 0;
         float zPos = 0;
         float degreesOpened = 0;
 
-        if (transformType == ItemTransforms.TransformType.GUI)
+        if (transformType == ItemDisplayContext.GUI)
             yPos = 3 / 16f;
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -12 / 32f;
         }
-        if (transformType == ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND) {
+        if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             degreesOpened = 90;
             xPos = 4 / 16f;
             zPos = -1 / 32f;
@@ -686,21 +678,21 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f + xPos, 18f / 16f + yPos, 8f / 16f + zPos);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
         if (!isItem)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
         else
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 13)));
-        if (isItem && transformType != ItemTransforms.TransformType.NONE)
-            matrixStack.mulPose(Vector3f.XP.rotationDegrees(-55));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(degreesOpened));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 - 13)));
+        if (isItem && transformType != ItemDisplayContext.NONE)
+            matrixStack.mulPose(Axis.XP.rotationDegrees(-55));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(degreesOpened));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(270));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(270));
         matrixStack.translate(2.95f / 64f, 7.1f / 16f, 11f / 32f);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-180));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-180));
 //        matrixStack.translate(0,0,0);
 //        matrixStack.scale(0.003f,0.003f,0.003f);
 //        matrixStack.translate(-16, -16, -10);
@@ -708,19 +700,19 @@ public class PageDrawing {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawPage(BookPage page, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem, ItemTransforms.TransformType transformType) throws CommandSyntaxException {
+    public void drawPage(BookPage page, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem, ItemDisplayContext transformType) throws CommandSyntaxException {
         drawPage(page, tileEntityIn, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, pageOn, isItem, transformType, -1);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawPage(BookPage page, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem, ItemTransforms.TransformType transformType, int pageNum) throws CommandSyntaxException {
+    public void drawPage(BookPage page, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem, ItemDisplayContext transformType, int pageNum) throws CommandSyntaxException {
 
         if (page != null) {
 
 
             Player playerIn = Hexerei.proxy.getPlayer();
 
-            double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
             Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
             Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
 
@@ -768,7 +760,7 @@ public class PageDrawing {
                 drawItemInSlot(tileEntityIn, bookItemStackInSlot, matrixStackIn, bufferIn, bookItemStackInSlot.x, bookItemStackInSlot.y, 0, combinedLightIn, combinedOverlayIn, pageOn, isItem);
             }
 
-            if (transformType == ItemTransforms.TransformType.NONE) {
+            if (transformType == ItemDisplayContext.NONE) {
                 for (int i = 0; i < page.itemList.size(); i++) {
                     BookItemsAndFluids bookItemStackInSlot = ((BookItemsAndFluids) (page.itemList.toArray()[i]));
 
@@ -779,12 +771,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -828,12 +820,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -883,12 +875,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -944,12 +936,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1010,12 +1002,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1037,12 +1029,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1081,12 +1073,12 @@ public class PageDrawing {
 
                     BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1106,12 +1098,12 @@ public class PageDrawing {
 
                     BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1280,29 +1272,29 @@ public class PageDrawing {
 //        livingEntity.tickCount += 1;
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
 
         matrixStackIn.translate(-1f / 512f, 0, 0);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90));
         matrixStackIn.translate(-8f / 16f, 5.5f / 16f, -0.04f / 16f);
         matrixStackIn.scale(0.049f * scale, 0.049f * scale, 0.003f);
         matrixStackIn.translate(yIn * 1.25f / scale, -xIn * 1.25f / scale, 0);
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(90));
 
         float $$6 = (float) Math.atan(p_98854_ / 40.0F);
         float $$7 = (float) Math.atan(p_98855_ / 40.0F);
-        Quaternion $$10 = Vector3f.ZP.rotationDegrees(180.0F);
-        Quaternion $$11 = Vector3f.XP.rotationDegrees($$7 * 20.0F);
+        Quaternionf $$10 = Axis.ZP.rotationDegrees(180.0F);
+        Quaternionf $$11 = Axis.XP.rotationDegrees($$7 * 20.0F);
         $$10.mul($$11);
         float $$12 = livingEntity.yBodyRot;
         float $$13 = livingEntity.getYRot();
@@ -1313,7 +1305,7 @@ public class PageDrawing {
         livingEntity.yHeadRot = livingEntity.getYRot();
         livingEntity.yHeadRotO = livingEntity.getYRot();
         EntityRenderDispatcher $$17 = Minecraft.getInstance().getEntityRenderDispatcher();
-        $$11.conj();
+        $$11.conjugate();
         $$17.overrideCameraOrientation($$11);
         $$17.setRenderShadow(false);
         MultiBufferSource.BufferSource $$18 = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -1334,32 +1326,32 @@ public class PageDrawing {
         matrixStackIn.pushPose();
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStackIn, isItem, ItemDisplayContext.NONE);
 
         matrixStackIn.translate(-1f / 512f, 0, 0);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(90));
         matrixStackIn.translate(-8f / 16f, 5.5f / 16f, -0.04f / 16f);
         matrixStackIn.scale(0.049f * scale, 0.049f * scale, 0.003f);
         matrixStackIn.translate(yIn * 1.25f / scale, -xIn * 1.25f / scale, 0);
-        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(90));
 
         float $$7 = (float) Math.atan(p_98855_ / 40.0F);
-        Quaternion $$10 = Vector3f.ZP.rotationDegrees(180.0F);
-        Quaternion $$11 = Vector3f.XP.rotationDegrees($$7 * 20.0F);
+        Quaternionf $$10 = Axis.ZP.rotationDegrees(180.0F);
+        Quaternionf $$11 = Axis.XP.rotationDegrees($$7 * 20.0F);
         $$10.mul($$11);
-        matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-(rot * 0.60F + entity.getId())));
+        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-(rot * 0.60F + entity.getId())));
         EntityRenderDispatcher $$17 = Minecraft.getInstance().getEntityRenderDispatcher();
-        $$11.conj();
+        $$11.conjugate();
         $$17.overrideCameraOrientation($$11);
         $$17.setRenderShadow(false);
         MultiBufferSource.BufferSource $$18 = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -1373,11 +1365,11 @@ public class PageDrawing {
 
     @OnlyIn(Dist.CLIENT)
     public void drawPages(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, float partialTicks) throws CommandSyntaxException {
-        drawPages(tileEntityIn, matrixStack, bufferSource, light, overlay, false, ItemTransforms.TransformType.NONE, partialTicks);
+        drawPages(tileEntityIn, matrixStack, bufferSource, light, overlay, false, ItemDisplayContext.NONE, partialTicks);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawPages(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean isItem, ItemTransforms.TransformType transformType, float partialTicks) throws CommandSyntaxException {
+    public void drawPages(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean isItem, ItemDisplayContext transformType, float partialTicks) throws CommandSyntaxException {
         this.tick++;
 
         if (ClientProxy.keys == null)
@@ -1509,7 +1501,7 @@ public class PageDrawing {
 
         }
 //
-        if (transformType != ItemTransforms.TransformType.GUI) {
+        if (transformType != ItemDisplayContext.GUI) {
 
             BookPage page1 = BookManager.getBookPages(new ResourceLocation(Hexerei.MOD_ID, location1));
             BookPage page2 = BookManager.getBookPages(new ResourceLocation(Hexerei.MOD_ID, location2));
@@ -1571,11 +1563,11 @@ public class PageDrawing {
 
     @OnlyIn(Dist.CLIENT)
     public void drawBaseButtons(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean drawNext, boolean drawBack, int chapter, int page, boolean isItem) {
-        drawBaseButtons(tileEntityIn, matrixStack, bufferSource, light, overlay, drawNext, drawBack, chapter, page, isItem, ItemTransforms.TransformType.NONE, false);
+        drawBaseButtons(tileEntityIn, matrixStack, bufferSource, light, overlay, drawNext, drawBack, chapter, page, isItem, ItemDisplayContext.NONE, false);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawBaseButtons(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean drawNext, boolean drawBack, int chapter, int page, boolean isItem, ItemTransforms.TransformType transformType, boolean fullyExtended) {
+    public void drawBaseButtons(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean drawNext, boolean drawBack, int chapter, int page, boolean isItem, ItemDisplayContext transformType, boolean fullyExtended) {
 
         Player playerIn = null;
         if (tileEntityIn.getLevel() != null && tileEntityIn.getLevel().isClientSide)
@@ -1584,7 +1576,7 @@ public class PageDrawing {
 
             boolean drawBookmarkButton = chapter != 0;
 
-            double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
             Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
             Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
             CompoundTag tag = tileEntityIn.itemHandler.getStackInSlot(0).getOrCreateTag();
@@ -1595,10 +1587,10 @@ public class PageDrawing {
                 Vector3f vector3f_1 = new Vector3f(0.35f - -0.5f * 0.064f, 0.5f - -1f * 0.061f, -0.03f);
 
                 BlockPos blockPos = tileEntityIn.getBlockPos();
-                vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                vector3f_1.rotate(Axis.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                 vector3f.add(vector3f_1);
-                vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                 Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                         vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1721,10 +1713,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1781,10 +1773,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1841,10 +1833,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1904,10 +1896,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -1987,10 +1979,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2019,10 +2011,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2050,10 +2042,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2083,10 +2075,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = tileEntityIn.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2124,10 +2116,10 @@ public class PageDrawing {
                 Vector3f vector3f_1 = new Vector3f(0.35f - -0.5f * 0.064f, 0.5f - 7.25f * 0.061f, -0.03f);
 
                 BlockPos blockPos = tileEntityIn.getBlockPos();
-                vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                vector3f_1.rotate(Axis.YP.rotationDegrees((10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                 vector3f.add(vector3f_1);
-                vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                 Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                         vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2180,10 +2172,10 @@ public class PageDrawing {
                 Vector3f vector3f_1 = new Vector3f(0, 0.5f - 7f * 0.061f, -0.03f);
 
                 BlockPos blockPos = tileEntityIn.getBlockPos();
-//                vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+//                vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                 vector3f.add(vector3f_1);
-                vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                 Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                         vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2236,9 +2228,9 @@ public class PageDrawing {
                 vector3f_1 = new Vector3f(0, 0.5f - -1f * 0.061f, -0.03f);
 
                 blockPos = tileEntityIn.getBlockPos();
-                vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
                 vector3f.add(vector3f_1);
-                vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                         vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2278,12 +2270,12 @@ public class PageDrawing {
 
                     blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2394,10 +2386,10 @@ public class PageDrawing {
         BlockPos blockPos = altarTile.getBlockPos();
         Vector3f vector3f = new Vector3f(0, 0, 0);
         Vector3f vector3f_1 = new Vector3f(-0.05f + -5.5f * 0.06f, 0.5f - 7.25f * 0.061f, -0.03f);
-        vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+        vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
         vector3f.add(vector3f_1);
-        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                 vector3f.y() + blockPos.getY() + 18 / 16f,
                 vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
@@ -2412,12 +2404,12 @@ public class PageDrawing {
 
         BlockPos blockPos = altarTile.getBlockPos();
 
-        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
         vector3f.add(vector3f_1);
 
-        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2434,12 +2426,12 @@ public class PageDrawing {
 
         BlockPos blockPos = altarTile.getBlockPos();
 
-        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
         vector3f.add(vector3f_1);
 
-        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2456,10 +2448,10 @@ public class PageDrawing {
         Vector3f vector3f_1 = new Vector3f(0, 0.5f - 7f * 0.061f, -0.03f);
 
         BlockPos blockPos = altarTile.getBlockPos();
-//                vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+//                vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
         vector3f.add(vector3f_1);
-        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2476,10 +2468,10 @@ public class PageDrawing {
         Vector3f vector3f_1 = new Vector3f(0, 0.5f - -1f * 0.061f, -0.03f);
 
         BlockPos blockPos = altarTile.getBlockPos();
-//                vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+//                vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
         vector3f.add(vector3f_1);
-        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2501,7 +2493,7 @@ public class PageDrawing {
         float f5 = Mth.sin(-f * 0.017453292F);
         float f6 = f3 * f4;
         float f7 = f2 * f4;
-        double d0 = player.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+        double d0 = player.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
 
         if (i == 1) {
             vec3 = vec3.subtract(0, 1, 0);
@@ -2537,16 +2529,16 @@ public class PageDrawing {
                 return;
 
 
-            double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
 
 
             for (int j = 0; j < 6; j++) {
-                BlockHitResult raytrace = getPlayerPOVHitResult(j, playerIn.level, playerIn, ClipContext.Fluid.NONE);
+                BlockHitResult raytrace = getPlayerPOVHitResult(j, playerIn.level(), playerIn, ClipContext.Fluid.NONE);
                 if (raytrace.getType() != HitResult.Type.MISS) {
                     BlockPos pos = raytrace.getBlockPos();
 
 
-                    BlockEntity blockEntity = playerIn.level.getBlockEntity(pos);
+                    BlockEntity blockEntity = playerIn.level().getBlockEntity(pos);
 
 
                     if (blockEntity instanceof BookOfShadowsAltarTile altarTile && altarTile.turnPage == 0 && event.getAction() == 1) {
@@ -2685,10 +2677,10 @@ public class PageDrawing {
                                     Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                                     BlockPos blockPos = altarTile.getBlockPos();
-                                    vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-                                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                    vector3f_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+                                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                                     vector3f.add(vector3f_1);
-                                    vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                                    vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2709,10 +2701,10 @@ public class PageDrawing {
                                     Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                                     BlockPos blockPos = altarTile.getBlockPos();
-                                    vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-                                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                    vector3f_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+                                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                                     vector3f.add(vector3f_1);
-                                    vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                                    vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2733,10 +2725,10 @@ public class PageDrawing {
                                     Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                                     BlockPos blockPos = altarTile.getBlockPos();
-                                    vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                                     vector3f.add(vector3f_1);
-                                    vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                                    vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2757,10 +2749,10 @@ public class PageDrawing {
                                     Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                                     BlockPos blockPos = altarTile.getBlockPos();
-                                    vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                                     vector3f.add(vector3f_1);
-                                    vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                                    vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2811,12 +2803,12 @@ public class PageDrawing {
         if (playerIn != null && event.getButton() == 1) {
 
             for (int i = 0; i < 6; i++) {
-                BlockHitResult raytrace = getPlayerPOVHitResult(i, playerIn.level, playerIn, ClipContext.Fluid.NONE);
+                BlockHitResult raytrace = getPlayerPOVHitResult(i, playerIn.level(), playerIn, ClipContext.Fluid.NONE);
                 if (raytrace.getType() != HitResult.Type.MISS) {
                     BlockPos pos = raytrace.getBlockPos();
 
 
-                    BlockEntity blockEntity = playerIn.level.getBlockEntity(pos);
+                    BlockEntity blockEntity = playerIn.level().getBlockEntity(pos);
                 }
             }
 
@@ -2860,17 +2852,17 @@ public class PageDrawing {
                 return;
 
             for (int l = 0; l < 6; l++) {
-                BlockHitResult raytrace = getPlayerPOVHitResult(l, playerIn.level, playerIn, ClipContext.Fluid.NONE);
+                BlockHitResult raytrace = getPlayerPOVHitResult(l, playerIn.level(), playerIn, ClipContext.Fluid.NONE);
                 if (raytrace.getType() != HitResult.Type.MISS) {
                     BlockPos pos = raytrace.getBlockPos();
 
-                    BlockEntity blockEntity = playerIn.level.getBlockEntity(pos);
+                    BlockEntity blockEntity = playerIn.level().getBlockEntity(pos);
                     if (blockEntity instanceof BookOfShadowsAltarTile altarTile && altarTile.turnPage == 0) {
 
                         CompoundTag tag = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
 
                         if (tag.contains("opened") && tag.getBoolean("opened")) {
-                            double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+                            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
                             Vec3 planeNormalRight = planeNormal(altarTile, PageOn.RIGHT_PAGE);
                             Vec3 planeNormalLeft = planeNormal(altarTile, PageOn.LEFT_PAGE);
                             if (tag.contains("chapter")) {
@@ -2909,12 +2901,12 @@ public class PageDrawing {
 
                                             BlockPos blockPos = altarTile.getBlockPos();
 
-                                            vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-                                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                            vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+                                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
                                             vector3f.add(vector3f_1);
 
-                                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -2960,12 +2952,12 @@ public class PageDrawing {
 
                                             BlockPos blockPos = altarTile.getBlockPos();
 
-                                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
                                             vector3f.add(vector3f_1);
 
-                                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3024,10 +3016,10 @@ public class PageDrawing {
             BlockPos blockPos = altarTile.getBlockPos();
             Vector3f vector3f = new Vector3f(0, 0, 0);
             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
-            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
             vector3f.add(vector3f_1);
-            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
             Vec3 planePoint = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f.y() + blockPos.getY() + 18 / 16f,
                     vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
@@ -3042,9 +3034,9 @@ public class PageDrawing {
             Vector3f vector3f = new Vector3f(0, 0, 0);
             Vector3f vector3f_1 = new Vector3f(0f, 0.5f - yIn * 0.061f, -0.03f);
 
-            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
             vector3f.add(vector3f_1);
-            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
             Vec3 planePoint = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f.y() + blockPos.getY() + 18 / 16f,
                     vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
@@ -3059,10 +3051,10 @@ public class PageDrawing {
             Vector3f vector3f = new Vector3f(0, 0, 0);
             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
-            vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
             vector3f.add(vector3f_1);
-            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
             Vec3 planePoint = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f.y() + blockPos.getY() + 18 / 16f,
                     vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
@@ -3106,12 +3098,12 @@ public class PageDrawing {
 
             BlockPos blockPos = altarTile.getBlockPos();
 
-            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
             vector3f.add(vector3f_1);
 
-            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
 
             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
@@ -3121,12 +3113,12 @@ public class PageDrawing {
             Vector3f vector3f_2 = new Vector3f(0, 0, 0);
             Vector3f vector3f_2_1 = new Vector3f(-0.05f - 0 * 0.06f, 0.5f - 0 * 0.061f, -0.03f);
 
-            vector3f_2_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_2_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_2_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_2_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
             vector3f_2.add(vector3f_2_1);
 
-            vector3f_2.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f_2.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
             Vec3 vec_2 = new Vec3(vector3f_2.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f_2.y() + blockPos.getY() + 18 / 16f,
@@ -3135,12 +3127,12 @@ public class PageDrawing {
             Vector3f vector3f_3 = new Vector3f(0, 0, 0);
             Vector3f vector3f_3_1 = new Vector3f(-0.05f - 10 * 0.06f, 0.5f - 10 * 0.061f, -0.03f);
 
-            vector3f_3_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_3_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_3_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_3_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
             vector3f_3.add(vector3f_3_1);
 
-            vector3f_3.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f_3.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
             Vec3 vec_3 = new Vec3(vector3f_3.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f_3.y() + blockPos.getY() + 18 / 16f,
@@ -3158,12 +3150,12 @@ public class PageDrawing {
 
             BlockPos blockPos = altarTile.getBlockPos();
 
-            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
             vector3f.add(vector3f_1);
 
-            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
 
             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
@@ -3173,12 +3165,12 @@ public class PageDrawing {
             Vector3f vector3f_2 = new Vector3f(0, 0, 0);
             Vector3f vector3f_2_1 = new Vector3f(0.35f - 0 * 0.06f, 0.5f - 0 * 0.061f, -0.03f);
 
-            vector3f_2_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_2_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_2_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_2_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
             vector3f_2.add(vector3f_2_1);
 
-            vector3f_2.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f_2.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
             Vec3 vec_2 = new Vec3(vector3f_2.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f_2.y() + blockPos.getY() + 18 / 16f,
@@ -3187,12 +3179,12 @@ public class PageDrawing {
             Vector3f vector3f_3 = new Vector3f(0, 0, 0);
             Vector3f vector3f_3_1 = new Vector3f(0.35f - 10 * 0.06f, 0.5f - 10 * 0.061f, -0.03f);
 
-            vector3f_3_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-            vector3f_3_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+            vector3f_3_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+            vector3f_3_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
             vector3f_3.add(vector3f_3_1);
 
-            vector3f_3.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+            vector3f_3.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
             Vec3 vec_3 = new Vec3(vector3f_3.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                     vector3f_3.y() + blockPos.getY() + 18 / 16f,
@@ -3210,7 +3202,7 @@ public class PageDrawing {
     public int checkClick(Player playerIn, BookOfShadowsAltarTile altarTile) {
         int clicked = 0;
 
-        double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+        double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
         Vec3 planeNormalRight = planeNormal(altarTile, PageOn.RIGHT_PAGE);
         Vec3 planeNormalLeft = planeNormal(altarTile, PageOn.LEFT_PAGE);
         if (!this.isRightPressedOld) {
@@ -3294,10 +3286,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = altarTile.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3320,10 +3312,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = altarTile.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees((10 + altarTile.degreesOpened / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3344,10 +3336,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = altarTile.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3370,10 +3362,10 @@ public class PageDrawing {
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
                             BlockPos blockPos = altarTile.getBlockPos();
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
                             vector3f.add(vector3f_1);
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3438,12 +3430,12 @@ public class PageDrawing {
 
                             BlockPos blockPos = altarTile.getBlockPos();
 
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
                             vector3f.add(vector3f_1);
 
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3474,12 +3466,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = altarTile.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3495,9 +3487,9 @@ public class PageDrawing {
                             String itemRegistryName;
 
                             if (bookItemStackInSlot.item != null)
-                                itemRegistryName = Registry.ITEM.getKey(bookItemStackInSlot.item.getItem()).toString();
+                                itemRegistryName = HexereiUtil.getRegistryName(bookItemStackInSlot.item.getItem()).toString();
                             else
-                                itemRegistryName = Registry.FLUID.getKey(bookItemStackInSlot.fluid.getFluid()).toString();
+                                itemRegistryName = HexereiUtil.getRegistryName(bookItemStackInSlot.fluid.getFluid()).toString();
 
                             boolean flag = false;
                             if (BookManager.getBookItemHyperlinks().containsKey(itemRegistryName)) {
@@ -3535,12 +3527,12 @@ public class PageDrawing {
 
                         BlockPos blockPos = altarTile.getBlockPos();
 
-                        vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpenedRender / 1.12f));
-                        vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
+                        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpenedRender / 1.12f));
+                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
 
                         vector3f.add(vector3f_1);
 
-                        vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpunRender));
+                        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpunRender));
 
                         Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpunRender) / 57.1f) / 32f * (altarTile.degreesOpenedRender / 5f - 12f),
                                 vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3573,12 +3565,12 @@ public class PageDrawing {
 
                             BlockPos blockPos = altarTile.getBlockPos();
 
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + altarTile.degreesOpenedRender / 1.12f));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpenedRender / 1.12f));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
 
                             vector3f.add(vector3f_1);
 
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpunRender) / 57.1f) / 32f * (altarTile.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3611,12 +3603,12 @@ public class PageDrawing {
 
                             BlockPos blockPos = altarTile.getBlockPos();
 
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
                             vector3f.add(vector3f_1);
 
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3647,12 +3639,12 @@ public class PageDrawing {
 
                             BlockPos blockPos = altarTile.getBlockPos();
 
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
                             vector3f.add(vector3f_1);
 
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpun));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3669,9 +3661,9 @@ public class PageDrawing {
                                 String itemRegistryName;
 
                                 if (bookItemStackInSlot.item != null)
-                                    itemRegistryName = Registry.ITEM.getKey(bookItemStackInSlot.item.getItem()).toString();
+                                    itemRegistryName = HexereiUtil.getRegistryName(bookItemStackInSlot.item.getItem()).toString();
                                 else
-                                    itemRegistryName = Registry.FLUID.getKey(bookItemStackInSlot.fluid.getFluid()).toString();
+                                    itemRegistryName = HexereiUtil.getRegistryName(bookItemStackInSlot.fluid.getFluid()).toString();
 
                                 boolean flag = false;
                                 if (BookManager.getBookItemHyperlinks().containsKey(itemRegistryName)) {
@@ -3715,12 +3707,12 @@ public class PageDrawing {
 
                             BlockPos blockPos = altarTile.getBlockPos();
 
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
 
                             vector3f.add(vector3f_1);
 
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpunRender) / 57.1f) / 32f * (altarTile.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3755,12 +3747,12 @@ public class PageDrawing {
 
                             BlockPos blockPos = altarTile.getBlockPos();
 
-                            vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + altarTile.degreesOpenedRender / 1.12f)));
-                            vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
+                            vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpenedRender / 1.12f)));
+                            vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpenedRender / 2f));
 
                             vector3f.add(vector3f_1);
 
-                            vector3f.transform(Vector3f.YP.rotationDegrees(altarTile.degreesSpunRender));
+                            vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpunRender));
 
                             Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpunRender) / 57.1f) / 32f * (altarTile.degreesOpenedRender / 5f - 12f),
                                     vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -3826,34 +3818,34 @@ public class PageDrawing {
         matrixStack.pushPose();
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8f / 16f, 5.5f / 16f, -0.012f / 16f);
         matrixStack.scale(0.5f, 0.5f, 0.5f);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
         matrixStack.translate(-0.03f / 16f, -0.053f / 16f, 0);
         matrixStack.translate(xIn / 8.1f, yIn / 8.1f, 0);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(90));
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/slot.png")));
 
-        matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         int u = 0;
         int v = 0;
@@ -3884,36 +3876,36 @@ public class PageDrawing {
         int capacity = bookItemsAndFluids.capacity;
         boolean showSlot = bookItemsAndFluids.show_slot;
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8f / 16f, 5.5f / 16f, -0.012f / 16f);
         matrixStack.scale(0.5f, 0.5f, 0.5f);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
         matrixStack.translate(-0.03f / 16f, -0.053f / 16f, 0);
         matrixStack.translate(xIn / 8.1f, yIn / 8.1f, 0);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(90));
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
 
         Matrix4f matrix = matrixStack.last().pose();
         if (showSlot) {
             VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/slot.png")));
 
-            matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+            matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
             Matrix3f normal = matrixStack.last().normal();
             int u = 0;
             int v = 0;
@@ -4032,7 +4024,7 @@ public class PageDrawing {
 
         poseStack.pushPose();
         poseStack.translate(0.001f, 0.0485f + (y_offset * 0.005975f), (x_offset * 0.005975f));
-        poseStack.mulPose(Vector3f.XP.rotationDegrees(90));
+        poseStack.mulPose(Axis.XP.rotationDegrees(90));
         Matrix4f matrix = poseStack.last().pose();
         Matrix3f normal = poseStack.last().normal();
         poseStack.popPose();
@@ -4079,17 +4071,17 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f, 18f / 16f, 8f / 16f);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(270));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(270));
         matrixStack.translate(0.25f, -(1 - (this.drawTooltipScale < 0.5f ? this.drawTooltipScale * 2f : 1)) / 12f, 0);
         float scale = easeInOutElastic(this.drawTooltipScale);
         matrixStack.scale(scale, scale, scale);
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
         this.tooltipStack = stack;
         if (!this.tooltipStack.isEmpty()) {
@@ -4098,7 +4090,7 @@ public class PageDrawing {
             if (tooltip.size() > 0)
                 tooltip.addAll(this.tooltipText);
 
-            String modId = Registry.ITEM.getKey(this.tooltipStack.getItem()).getNamespace();
+            String modId = HexereiUtil.getRegistryName(this.tooltipStack.getItem()).getNamespace();
             String modName = getModNameForModId(modId);
             MutableComponent modNameComponent = Component.translatable(modName);
             modNameComponent.withStyle(Style.EMPTY.withItalic(true).withColor(5592575));
@@ -4138,7 +4130,7 @@ public class PageDrawing {
             tooltip.addAll(bookItemStackInSlot.extra_tooltips);
 
 
-        String modId = Registry.FLUID.getKey(fluidStack.getFluid()).getNamespace();
+        String modId = HexereiUtil.getRegistryName(fluidStack.getFluid()).getNamespace();
         String modName = getModNameForModId(modId);
         MutableComponent modNameComponent = Component.translatable(modName);
         modNameComponent.withStyle(Style.EMPTY.withItalic(true).withColor(5592575));
@@ -4156,21 +4148,21 @@ public class PageDrawing {
         matrixStack.translate(8f / 16f, 18f / 16f, 8f / 16f);
         matrixStack.translate((float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f), 0f / 16f, (float) Math.cos((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f));
         matrixStack.translate(0, -((tileEntityIn.degreesFloppedRender / 90)) / 16f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
         matrixStack.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(270));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(270));
         float scale = Math.min(this.drawTooltipScale, 1);
         matrixStack.translate(0.25f, -(1 - (scale < 0.5f ? scale * 2f : 1)) / 12f, 0);
         scale = easeInOutElastic(this.drawTooltipScale);
         if (scale < 0) scale = 0;
         matrixStack.scale(scale, scale, scale);
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
-        matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
 
         this.renderTooltip(this.tooltipStack, bufferSource, matrixStack, this.tooltipText, Optional.empty(), 0, 0, overlay, light);
 
@@ -4180,12 +4172,12 @@ public class PageDrawing {
 
     @OnlyIn(Dist.CLIENT)
     public void renderTooltip(ItemStack stack, MultiBufferSource buffer, PoseStack p_169389_, List<Component> components, Optional<TooltipComponent> p_169391_, int p_169392_, int p_169393_, int overlay, int light) {
-        List<ClientTooltipComponent> list = ForgeHooksClient.gatherTooltipComponents(stack, components, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font, Minecraft.getInstance().font);
+        List<ClientTooltipComponent> list = ForgeHooksClient.gatherTooltipComponents(stack, components, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font);
         List<Component> newComponentList = new ArrayList<>();
         for (Component component : components) {
             newComponentList.add(Component.translatable(component.getString()).withStyle(component.getStyle().withColor(0x292929)));
         }
-        List<ClientTooltipComponent> list2 = ForgeHooksClient.gatherTooltipComponents(stack, newComponentList, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font, Minecraft.getInstance().font);
+        List<ClientTooltipComponent> list2 = ForgeHooksClient.gatherTooltipComponents(stack, newComponentList, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font);
         this.renderTooltipInternal(buffer, p_169389_, list, list2, p_169392_, p_169393_, overlay, light);
     }
 
@@ -4194,7 +4186,7 @@ public class PageDrawing {
     private void renderTooltipInternal(MultiBufferSource bufferSource, PoseStack matrixStack, List<ClientTooltipComponent> clientTooltipComponentList, List<ClientTooltipComponent> clientTooltipComponentList2, int p_169386_, int p_169387_, int overlay, int light) {
         if (!clientTooltipComponentList.isEmpty()) {
 
-            RenderTooltipEvent.Pre preEvent = ForgeHooksClient.onRenderTooltipPre(this.tooltipStack, matrixStack, p_169386_, p_169387_, 750, 750, clientTooltipComponentList, Minecraft.getInstance().font, Minecraft.getInstance().font);
+            RenderTooltipEvent.Pre preEvent = ForgeHooksClient.onRenderTooltipPre(this.tooltipStack, new GuiGraphics(Minecraft.getInstance(), (MultiBufferSource.BufferSource) bufferSource), p_169386_, p_169387_, 750, 750, clientTooltipComponentList, Minecraft.getInstance().font, DefaultTooltipPositioner.INSTANCE);
             if (preEvent.isCanceled()) {
                 return;
             }
@@ -4224,10 +4216,12 @@ public class PageDrawing {
 
             VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/blank.png")));
 
-            matrixStack.mulPose(Vector3f.YP.rotationDegrees(-90));
+            matrixStack.mulPose(Axis.YP.rotationDegrees(-90));
             matrixStack.scale(0.003f, 0.003f, 0.003f);
             matrixStack.translate(-(i + 15) / 2f, -(j + 15) / 2f, -10);
-            RenderTooltipEvent.Color colorEvent = ForgeHooksClient.onRenderTooltipColor(this.tooltipStack, matrixStack, j2, k2, preEvent.getFont(), clientTooltipComponentList);
+
+
+            RenderTooltipEvent.Color colorEvent = ForgeHooksClient.onRenderTooltipColor(this.tooltipStack, new GuiGraphics(Minecraft.getInstance(), (MultiBufferSource.BufferSource) bufferSource), j2, k2, preEvent.getFont(), clientTooltipComponentList);
             fillGradient(matrixStack, buffer, j2 - 3, k2 - 4, j2 + i + 3, k2 - 3, 0, colorEvent.getBackgroundStart(), colorEvent.getBackgroundStart(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 3, k2 + j + 3, j2 + i + 3, k2 + j + 4, 0, colorEvent.getBackgroundEnd(), colorEvent.getBackgroundEnd(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 3, k2 - 3, j2 + i + 3, k2 + j + 3, 0.1f, colorEvent.getBackgroundStart(), colorEvent.getBackgroundEnd(), overlay, light);
@@ -4262,14 +4256,12 @@ public class PageDrawing {
                     int col = (a << 24) | (r << 16) | (g << 8) | b;
                     Font font = preEvent.getFont();
                     matrix4f = matrixStack.last().pose();
-                    font.renderText(clientTextTooltip.text, (float) j2, (float) l1, col, false, matrix4f, multibuffersource$buffersource, false, 0, light);
+                    font.drawInBatch(clientTextTooltip.text, (float) j2, (float) l1, col, false, matrix4f, multibuffersource$buffersource, Font.DisplayMode.NORMAL, 0, light);
                     matrixStack.pushPose();
                     matrixStack.translate(0.5f, 0.5f, 7500);
                     matrix4f = matrixStack.last().pose();
-                    font.renderText(((ClientTextTooltip) clientTooltipComponentList2.get(l2)).text, (float) j2, (float) l1, col, false, matrix4f, multibuffersource$buffersource, false, 0, light);
+                    font.drawInBatch(((ClientTextTooltip) clientTooltipComponentList2.get(l2)).text, (float) j2, (float) l1, col, false, matrix4f, multibuffersource$buffersource, Font.DisplayMode.NORMAL, 0, light);
                     matrixStack.popPose();
-
-
                 }
                 l1 += clientTooltipComponent2.getHeight() + (l2 == 0 ? 2 : 0);
             }
@@ -4333,7 +4325,7 @@ public class PageDrawing {
 
 
     @OnlyIn(Dist.CLIENT)
-    public void drawBookmark(BookImage bookImage, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, float zLevel, float rotate, int light, int overlay, PageOn pageOn, int color, boolean isItem, ItemTransforms.TransformType transformType) {
+    public void drawBookmark(BookImage bookImage, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, float zLevel, float rotate, int light, int overlay, PageOn pageOn, int color, boolean isItem, ItemDisplayContext transformType) {
 
         matrixStack.pushPose();
 
@@ -4352,10 +4344,10 @@ public class PageDrawing {
         else if (pageOn == PageOn.MIDDLE_BUTTON)
             translateToMiddleButton(tileEntityIn, matrixStack, isItem, transformType);
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8f / 16f, 5.5f / 16f, -0.012f / 16f);
         matrixStack.scale(0.5f * bookImage.scale, 0.5f * bookImage.scale, 0.5f * bookImage.scale);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
 
         matrixStack.translate((bookImage.x / 8.1f - 0.03f / 16f) / bookImage.scale, (bookImage.y / 8.1f - 0.053f / 16f) / bookImage.scale, -zLevel / 1600f / bookImage.scale);
 
@@ -4369,26 +4361,26 @@ public class PageDrawing {
             }
         }));
 
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(90));
 
         bookImage.effects.forEach((bookImageEffect -> {
             if (bookImageEffect.type.equals("tilt")) {
-                matrixStack.mulPose(Vector3f.XP.rotationDegrees(-bookImageEffect.amount * Mth.sin((Hexerei.getClientTicks()) / bookImageEffect.speed)));
+                matrixStack.mulPose(Axis.XP.rotationDegrees(-bookImageEffect.amount * Mth.sin((Hexerei.getClientTicks()) / bookImageEffect.speed)));
             }
         }));
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(rotate));
-        if (transformType != ItemTransforms.TransformType.NONE)
-            matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-35));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(rotate));
+        if (transformType != ItemDisplayContext.NONE)
+            matrixStack.mulPose(Axis.ZP.rotationDegrees(-35));
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
 
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(bookImage.imageLoc)));
 
-        matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         int u = (int) bookImage.u;
         int v = (int) bookImage.v;
@@ -4413,7 +4405,7 @@ public class PageDrawing {
         }
 
 
-        if (transformType != ItemTransforms.TransformType.NONE) {
+        if (transformType != ItemDisplayContext.NONE) {
             buffer.vertex(matrix, 0, -0.055f / 9 * height, -0.055f / 18 * width).color(r, g, b, a).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
             buffer.vertex(matrix, 0, 0, -0.055f / 18 * width).color(r, g, b, a).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
             buffer.vertex(matrix, 0, 0, 0.055f / 18 * width).color(r, g, b, a).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
@@ -4436,11 +4428,11 @@ public class PageDrawing {
 
     @OnlyIn(Dist.CLIENT)
     public void drawImage(BookImage bookImage, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, float zLevel, int light, int overlay, PageOn pageOn, boolean isItem) {
-        drawImage(bookImage, tileEntityIn, matrixStack, bufferSource, zLevel, light, overlay, pageOn, -1, isItem, ItemTransforms.TransformType.NONE);
+        drawImage(bookImage, tileEntityIn, matrixStack, bufferSource, zLevel, light, overlay, pageOn, -1, isItem, ItemDisplayContext.NONE);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void drawImage(BookImage bookImage, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, float zLevel, int light, int overlay, PageOn pageOn, int color, boolean isItem, ItemTransforms.TransformType transformType) {
+    public void drawImage(BookImage bookImage, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, float zLevel, int light, int overlay, PageOn pageOn, int color, boolean isItem, ItemDisplayContext transformType) {
 
         matrixStack.pushPose();
 
@@ -4459,10 +4451,10 @@ public class PageDrawing {
         else if (pageOn == PageOn.MIDDLE_BUTTON)
             translateToMiddleButton(tileEntityIn, matrixStack, isItem, transformType);
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8f / 16f, 5.5f / 16f, -0.012f / 16f);
         matrixStack.scale(0.5f * bookImage.scale, 0.5f * bookImage.scale, 0.5f * bookImage.scale);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
 
         matrixStack.translate((bookImage.x / 8.1f - 0.03f / 16f) / bookImage.scale, (bookImage.y / 8.1f - 0.053f / 16f) / bookImage.scale, -(zLevel + bookImage.z) / 1600f);
 
@@ -4476,17 +4468,17 @@ public class PageDrawing {
             }
         }));
 
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(90));
 
         bookImage.effects.forEach((bookImageEffect -> {
             if (bookImageEffect.type.equals("tilt")) {
-                matrixStack.mulPose(Vector3f.XP.rotationDegrees(-bookImageEffect.amount * Mth.sin((Hexerei.getClientTicks()) / bookImageEffect.speed)));
+                matrixStack.mulPose(Axis.XP.rotationDegrees(-bookImageEffect.amount * Mth.sin((Hexerei.getClientTicks()) / bookImageEffect.speed)));
             }
         }));
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
 
         AtomicReference<String> loc = new AtomicReference<>(bookImage.imageLoc);
@@ -4508,7 +4500,7 @@ public class PageDrawing {
 
                 LocalPlayer playerIn = (LocalPlayer) Hexerei.proxy.getPlayer();
 
-                double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+                double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
                 Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
                 Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
 
@@ -4518,12 +4510,12 @@ public class PageDrawing {
 
                     BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -4542,12 +4534,12 @@ public class PageDrawing {
 
                     BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -4568,7 +4560,7 @@ public class PageDrawing {
 
                 LocalPlayer playerIn = (LocalPlayer) Hexerei.proxy.getPlayer();
 
-                double reach = playerIn.getAttribute(ForgeMod.REACH_DISTANCE.get()).getValue();
+                double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
                 Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
                 Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
 
@@ -4578,12 +4570,12 @@ public class PageDrawing {
 
                     BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(10 + tileEntityIn.degreesOpenedRender / 1.12f));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -4603,12 +4595,12 @@ public class PageDrawing {
 
                     BlockPos blockPos = tileEntityIn.getBlockPos();
 
-                    vector3f_1.transform(Vector3f.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
-                    vector3f_1.transform(Vector3f.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
+                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + tileEntityIn.degreesOpenedRender / 1.12f)));
+                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - tileEntityIn.degreesOpenedRender / 2f));
 
                     vector3f.add(vector3f_1);
 
-                    vector3f.transform(Vector3f.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
+                    vector3f.rotate(Axis.YP.rotationDegrees(tileEntityIn.degreesSpunRender));
 
                     Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((tileEntityIn.degreesSpunRender) / 57.1f) / 32f * (tileEntityIn.degreesOpenedRender / 5f - 12f),
                             vector3f.y() + blockPos.getY() + 18 / 16f,
@@ -4641,7 +4633,7 @@ public class PageDrawing {
 
                 bookImageEffect.hoverImage.effects.forEach((bookHoverImageEffect -> {
                     if (bookHoverImageEffect.type.equals("tilt")) {
-                        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-bookHoverImageEffect.amount * Mth.sin((Hexerei.getClientTicks()) / bookHoverImageEffect.speed)));
+                        matrixStack.mulPose(Axis.XP.rotationDegrees(-bookHoverImageEffect.amount * Mth.sin((Hexerei.getClientTicks()) / bookHoverImageEffect.speed)));
                     }
                 }));
 
@@ -4653,7 +4645,7 @@ public class PageDrawing {
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(loc.get())));
 
-        matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
 
         float u1 = (u.get() + 0.0F) / (float) imageWidth.get();
@@ -4717,35 +4709,35 @@ public class PageDrawing {
         matrixStack.pushPose();
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
 
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8f / 16f, 5.5f / 16f, -0.012f / 16f);
         matrixStack.scale(0.5f, 0.5f, 0.5f);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
         matrixStack.translate(-0.03f / 16f, -0.053f / 16f, 0);
         matrixStack.translate(4.75f / 16f, 0f / 16f, 0);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(-90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(90));
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/title.png")));
 
-        matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         int u = 0;
         int v = 0;
@@ -4778,34 +4770,34 @@ public class PageDrawing {
         matrixStack.pushPose();
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8.35f / 16f, 5.5f / 16f, -0.07f / 16f);
         matrixStack.scale(0.5f, 0.5f, 0.5f);
         matrixStack.translate(this.lineHeight + yIn * 0.05f, -this.lineWidth - (ClientProxy.TEXT_WIDTH.get(character) / 2) - xIn * 0.042f, 0);
-        matrixStack.mulPose(Vector3f.XP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(90));
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.XP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(-90));
 
-        RenderSystem.setShader(GameRenderer::getNewEntityShader);
+        RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.cutout());
 
 
-        matrixStack.last().normal().mul(ITEM_LIGHT_ROTATION_FLAT);
+        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         buffer.vertex(matrix, -0.032f, -0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU0(), sprite.getV0()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
         buffer.vertex(matrix, 0.032f, -0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU0(), sprite.getV1()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
@@ -5113,22 +5105,22 @@ public class PageDrawing {
         matrixStack.pushPose();
 
         if (pageOn == PageOn.LEFT_PAGE)
-            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_UNDER)
-            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.LEFT_PAGE_PREV)
-            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToLeftPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         if (pageOn == PageOn.RIGHT_PAGE)
-            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPage(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_UNDER)
-            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPageUnder(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
         else if (pageOn == PageOn.RIGHT_PAGE_PREV)
-            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemTransforms.TransformType.NONE);
+            translateToRightPagePrevious(tileEntityIn, matrixStack, isItem, ItemDisplayContext.NONE);
 
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(90));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(90));
         matrixStack.translate(-8.35f / 16f, 4.5f / 16f, -0.01f / 16f);
         matrixStack.scale(0.00272f, 0.00272f, 0.00272f);
-        matrixStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
+        matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
 
         MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
 //            font.drawInBatch(s1, (activeElement.x * 9f) - 24, (activeElement.y * 9f) - 4, 16777216, false, matrixStack.last().pose(), bufferSource, false, 0, light);
@@ -5149,10 +5141,10 @@ public class PageDrawing {
                         if (bookParagraph.align.equals("middle"))
                             offsetX = (font.width(s1)) / 2;
 
-                        font.drawInBatch(s1, (box.x * 8f) - 24 - offsetX, ((box.y) * (font.lineHeight) + Math.round(linenumber * font.lineHeight)) - 4, HexereiUtil.getColorValue(0.12f, 0.12f, 0.12f), false, matrixStack.last().pose(), bufferSource, false, 0, light);
+                        font.drawInBatch(s1, (box.x * 8f) - 24 - offsetX, ((box.y) * (font.lineHeight) + Math.round(linenumber * font.lineHeight)) - 4, HexereiUtil.getColorValue(0.12f, 0.12f, 0.12f), false, matrixStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
                         matrixStack.pushPose();
                         matrixStack.translate(0.25f, 0.25f, 1 / 16f);
-                        font.drawInBatch(s1, (box.x * 8f) - 24 - offsetX, ((box.y) * (font.lineHeight) + Math.round(linenumber * font.lineHeight)) - 4, 16777216, false, matrixStack.last().pose(), bufferSource, false, 0, light);
+                        font.drawInBatch(s1, (box.x * 8f) - 24 - offsetX, ((box.y) * (font.lineHeight) + Math.round(linenumber * font.lineHeight)) - 4, 16777216, false, matrixStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, light);
                         matrixStack.popPose();
                     } else {
                         remainder.add(s1);

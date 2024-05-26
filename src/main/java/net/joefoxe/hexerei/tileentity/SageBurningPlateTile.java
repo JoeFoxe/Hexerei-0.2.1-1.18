@@ -52,8 +52,6 @@ import java.util.Random;
 
 public class SageBurningPlateTile extends RandomizableContainerBlockEntity implements WorldlyContainer, Clearable, MenuProvider {
 
-    //    public final ItemStackHandler itemHandler = createHandler();
-//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
     protected NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
 
     public int burnTimeMax = 20;
@@ -472,10 +470,10 @@ public class SageBurningPlateTile extends RandomizableContainerBlockEntity imple
                 Vec3 vec = new Vec3(Mth.sin((i / 360f) * (2 * Mth.PI)) * (rand.nextFloat() * HexConfig.SAGE_BURNING_PLATE_RANGE.get()), Mth.sin((rand.nextInt(360) / 360f) * (2 * Mth.PI)) * (rand.nextFloat() * HexConfig.SAGE_BURNING_PLATE_RANGE.get()), Mth.cos((i / 360f) * (2 * Mth.PI)) * (rand.nextFloat() * HexConfig.SAGE_BURNING_PLATE_RANGE.get()));
 
                 Vec3 vec2 = new Vec3(Mth.sin((i / 360f) * (2 * Mth.PI)) * (HexConfig.SAGE_BURNING_PLATE_RANGE.get()), 0, Mth.cos((i / 360f) * (2 * Mth.PI)) * (HexConfig.SAGE_BURNING_PLATE_RANGE.get()));
-                BlockPos pos2 = new BlockPos(worldPosition.getX() + 0.5f + vec2.x(), worldPosition.getY() + 0.25f + vec2.y(), worldPosition.getZ() + 0.5f + vec2.z());
+                BlockPos pos2 = new BlockPos(worldPosition.getX() + (int) (0.5f + vec2.x()), worldPosition.getY() + (int) (0.25f + vec2.y()), worldPosition.getZ() + (int) (0.5f + vec2.z()));
 
                 if (rand.nextInt(40) == 0 && (this.getBlockState().getValue(SageBurningPlate.MODE) == 0 || this.getBlockState().getValue(SageBurningPlate.MODE) == 1)) {
-                    BlockPos pos = new BlockPos(worldPosition.getX() + 0.5f + vec.x(), worldPosition.getY() + 0.25f + vec.y(), worldPosition.getZ() + 0.5f + vec.z());
+                    BlockPos pos = new BlockPos(worldPosition.getX() + (int) (0.5f + vec2.x()), worldPosition.getY() + (int) (0.25f + vec2.y()), worldPosition.getZ() + (int) (0.5f + vec2.z()));
 
                     if ((!level.getBlockState(pos.below()).isAir() || !level.getBlockState(pos.below().below()).isAir()) && level.getBlockState(pos).isAir())
                         level.addParticle(ModParticleTypes.FOG.get(), pos.getX(), pos.getY(), pos.getZ(), (rand.nextDouble() - 0.5d) / 15d, (rand.nextDouble() + 0.5d) * 0.015d, (rand.nextDouble() - 0.5d) / 15d);

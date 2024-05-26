@@ -337,10 +337,7 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
             return count;
         }
 
-
-        if (!this.itemHandler.getContents().get(0).sameItem(stack))
-            return 0;
-        if(!ItemStack.isSameItemSameTags(stack, this.itemHandler.getContents().get(0)))
+        if (!ItemStack.isSameItemSameTags(stack, this.itemHandler.getContents().get(0)))
             return 0;
 
         int countAdded = Math.min(count, stack.getCount());

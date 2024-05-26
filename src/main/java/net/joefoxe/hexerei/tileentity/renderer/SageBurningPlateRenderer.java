@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.SageBurningPlate;
 import net.joefoxe.hexerei.item.ModItems;
@@ -12,7 +12,9 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
@@ -46,7 +48,7 @@ public class SageBurningPlateRenderer implements BlockEntityRenderer<SageBurning
                 matrixStackIn.translate(1D, 0D, 0D);
             }
 
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(rotationOffset));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(rotationOffset));
             float damageOutOf5 = (tileEntityIn.getItems().get(0).getMaxDamage()-tileEntityIn.getItems().get(0).getDamageValue())/(float)tileEntityIn.getItems().get(0).getMaxDamage()*5f;
             if(damageOutOf5 <= 5f && damageOutOf5 > 4f)
                 renderBlock(matrixStackIn, bufferIn, combinedLightIn, (tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).getValue(SageBurningPlate.LIT)) ? ModBlocks.DRIED_SAGE_BUNDLE_PLATE_5_LIT.get().defaultBlockState() : ModBlocks.DRIED_SAGE_BUNDLE_PLATE_5.get().defaultBlockState());
@@ -62,11 +64,9 @@ public class SageBurningPlateRenderer implements BlockEntityRenderer<SageBurning
         }
     }
 
-    // THIS IS WHAT I WAS LOOKING FOR FOREVER AHHHHH
-    private void renderItem(ItemStack stack, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn, OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, BlockState state) {

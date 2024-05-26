@@ -947,8 +947,6 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             return 1;
         }
 
-        if (!this.items.get(slot).sameItem(stack))
-            return 0;
         if (!ItemStack.isSameItemSameTags(stack, this.items.get(slot)))
             return 0;
 
