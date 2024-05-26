@@ -4,12 +4,13 @@ package net.joefoxe.hexerei.screen.renderer;
 import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -17,18 +18,22 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 // CREDIT: https://github.com/mezz/JustEnoughItems by mezz
 // Under MIT-License: https://github.com/mezz/JustEnoughItems/blob/1.18/LICENSE.txt
-public class FluidStackRenderer implements IIngredientRenderer<FluidStack> {
+public class FluidStackRenderer<T> implements IIngredientRenderer<T> {
     private static final NumberFormat nf = NumberFormat.getIntegerInstance();
     private static final int TEXTURE_SIZE = 16;
     private static final int MIN_FLUID_HEIGHT = 1; // ensure tiny amounts of fluid are still visible
@@ -73,67 +78,87 @@ public class FluidStackRenderer implements IIngredientRenderer<FluidStack> {
     }
 
     @Override
-    public void render(PoseStack poseStack, FluidStack fluidStack) {
+    public void render(@NotNull GuiGraphics guiGraphics, @NotNull T fluidStack) {
         RenderSystem.enableBlend();
 
-        drawFluid(poseStack, width, height, fluidStack);
+        drawFluid(guiGraphics, width, height, fluidStack);
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
         if (overlay != null) {
-            poseStack.pushPose();
+            guiGraphics.pose().pushPose();
             {
-                poseStack.translate(0, 0, 200);
-                overlay.draw(poseStack);
+                guiGraphics.pose().translate(0, 0, 200);
+                overlay.draw(guiGraphics);
             }
-            poseStack.popPose();
+            guiGraphics.pose().popPose();
         }
         RenderSystem.disableBlend();
     }
 
-    public void render(PoseStack stack, int xPosition, int yPosition, @Nullable FluidStack ingredient) {
+    public void render(GuiGraphics guiGraphics, int xPosition, int yPosition, @Nullable T ingredient) {
         if (ingredient != null) {
-            stack.pushPose();
+            guiGraphics.pose().pushPose();
             {
-                stack.translate(xPosition, yPosition, 0);
-                render(stack, ingredient);
+                guiGraphics.pose().translate(xPosition, yPosition, 0);
+                render(guiGraphics, ingredient);
             }
-            stack.popPose();
+            guiGraphics.pose().popPose();
         }
     }
 
-    private void drawFluid(PoseStack poseStack, final int width, final int height, FluidStack fluidStack) {
+    private void drawFluid(GuiGraphics guiGraphics, final int width, final int height, T fluidStack) {
+
+
+        if (fluidStack instanceof FluidStack fluidStack1) {
+            if (fluidStack1.getFluid().isSame(Fluids.EMPTY)) {
+                return;
+            }
+            getStillFluidSprite(fluidStack1)
+                    .ifPresent(fluidStillSprite -> {
+                        int fluidColor = getColorTint(fluidStack1);
+
+                        long amount = fluidStack1.getAmount();
+                        long scaledAmount = (amount * height) / capacityMb;
+                        if (amount > 0 && scaledAmount < MIN_FLUID_HEIGHT) {
+                            scaledAmount = MIN_FLUID_HEIGHT;
+                        }
+                        if (scaledAmount > height) {
+                            scaledAmount = height;
+                        }
+
+                        drawTiledSprite(guiGraphics, width, height, fluidColor, scaledAmount, fluidStillSprite);
+                    });
+        }
+    }
+
+    public Optional<TextureAtlasSprite> getStillFluidSprite(FluidStack fluidStack) {
         Fluid fluid = fluidStack.getFluid();
-        if (fluid == null) {
-            return;
-        }
+        IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
+        ResourceLocation fluidStill = renderProperties.getStillTexture(fluidStack);
 
-        TextureAtlasSprite fluidStillSprite = getStillFluidSprite(fluidStack);
-
-        FluidType attributes = fluid.getFluidType();
-        int fluidColor = IClientFluidTypeExtensions.of(fluid).getTintColor(fluidStack);
-
-        int amount = fluidStack.getAmount();
-        int scaledAmount = (amount * height) / capacityMb;
-        if (amount > 0 && scaledAmount < MIN_FLUID_HEIGHT) {
-            scaledAmount = MIN_FLUID_HEIGHT;
-        }
-        if (scaledAmount > height) {
-            scaledAmount = height;
-        }
-
-        drawTiledSprite(poseStack, width, height, fluidColor, scaledAmount, fluidStillSprite);
+        TextureAtlasSprite sprite = Minecraft.getInstance()
+                .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+                .apply(fluidStill);
+        return Optional.of(sprite)
+                .filter(s -> s.atlasLocation() != MissingTextureAtlasSprite.getLocation());
     }
 
-    private static void drawTiledSprite(PoseStack poseStack, final int tiledWidth, final int tiledHeight, int color, int scaledAmount, TextureAtlasSprite sprite) {
+    public int getColorTint(FluidStack ingredient) {
+        Fluid fluid = ingredient.getFluid();
+        IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
+        return renderProperties.getTintColor(ingredient);
+    }
+
+    private static void drawTiledSprite(GuiGraphics guiGraphics, final int tiledWidth, final int tiledHeight, int color, long scaledAmount, TextureAtlasSprite sprite) {
         RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-        Matrix4f matrix = poseStack.last().pose();
+        Matrix4f matrix = guiGraphics.pose().last().pose();
         setGLColorFromInt(color);
 
         final int xTileCount = tiledWidth / TEXTURE_SIZE;
         final int xRemainder = tiledWidth - (xTileCount * TEXTURE_SIZE);
-        final int yTileCount = scaledAmount / TEXTURE_SIZE;
-        final int yRemainder = scaledAmount - (yTileCount * TEXTURE_SIZE);
+        final int yTileCount = (int)(scaledAmount / TEXTURE_SIZE);
+        final int yRemainder = (int)(scaledAmount - (yTileCount * TEXTURE_SIZE));
 
         final int yStart = tiledHeight;
 
@@ -151,14 +176,6 @@ public class FluidStackRenderer implements IIngredientRenderer<FluidStack> {
                 }
             }
         }
-    }
-
-    private static TextureAtlasSprite getStillFluidSprite(FluidStack fluidStack) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Fluid fluid = fluidStack.getFluid();
-        FluidType attributes = fluid.getFluidType();
-        ResourceLocation fluidStill = IClientFluidTypeExtensions.of(fluid).getStillTexture(fluidStack);
-        return minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(fluidStill);
     }
 
     private static void setGLColorFromInt(int color) {
@@ -191,30 +208,35 @@ public class FluidStackRenderer implements IIngredientRenderer<FluidStack> {
     }
 
     @Override
-    public List<Component> getTooltip(FluidStack fluidStack, TooltipFlag tooltipFlag) {
-        List<Component> tooltip = new ArrayList<>();
-        Fluid fluidType = fluidStack.getFluid();
-        if (fluidType == null) {
+    public List<Component> getTooltip(T fluidStack, TooltipFlag tooltipFlag) {
+        if (fluidStack instanceof FluidStack fluidStack1){
+            List<Component> tooltip = new ArrayList<>();
+            Fluid fluidType = fluidStack1.getFluid();
+            if (fluidType == null) {
+                return tooltip;
+            }
+
+            Component displayName = fluidStack1.getDisplayName();
+            if(fluidStack1.isEmpty())
+                displayName = Component.translatable("book.hexerei.tooltip.empty");
+            tooltip.add(displayName);
+
+            int amount = fluidStack1.getAmount();
+            if (tooltipMode == TooltipMode.SHOW_AMOUNT_AND_CAPACITY) {
+                MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount.with.capacity", nf.format(amount), nf.format(capacityMb));
+                tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
+            } else if (tooltipMode == TooltipMode.SHOW_AMOUNT) {
+                MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount", nf.format(amount));
+                tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
+            }
+
             return tooltip;
         }
 
-        Component displayName = fluidStack.getDisplayName();
-        if(fluidStack.isEmpty())
-            displayName = Component.translatable("book.hexerei.tooltip.empty");
-        tooltip.add(displayName);
-
-        int amount = fluidStack.getAmount();
-        if (tooltipMode == TooltipMode.SHOW_AMOUNT_AND_CAPACITY) {
-            MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount.with.capacity", nf.format(amount), nf.format(capacityMb));
-            tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
-        } else if (tooltipMode == TooltipMode.SHOW_AMOUNT) {
-            MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount", nf.format(amount));
-            tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
-        }
 
 
 
-        return tooltip;
+        return null;
     }
 
     @Override

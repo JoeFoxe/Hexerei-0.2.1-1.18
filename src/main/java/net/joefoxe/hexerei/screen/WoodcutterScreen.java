@@ -6,6 +6,7 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.WoodcutterContainer;
 import net.joefoxe.hexerei.data.recipes.WoodcutterRecipe;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -19,6 +20,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
+import java.util.Optional;
 
 @OnlyIn(Dist.CLIENT)
 public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContainer> {
@@ -55,42 +57,42 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
         this.inventoryLabelX = 9;
     }
 
-    public void render(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) {
-        super.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
-        this.renderTooltip(pPoseStack, pMouseX, pMouseY);
+    public void render(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        super.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.renderTooltip(guiGraphics, pMouseX, pMouseY);
     }
 
-    protected void renderBg(PoseStack pPoseStack, float pPartialTick, int pX, int pY) {
-        this.renderBackground(pPoseStack);
+    protected void renderBg(GuiGraphics guiGraphics, float pPartialTick, int pX, int pY) {
+        this.renderBackground(guiGraphics);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUI);
         int i = this.leftPos;
         int j = this.topPos;
-        this.blit(pPoseStack, i, j, 0, 0, 184, 122);
+        guiGraphics.blit(GUI, i, j, 0, 0, 184, 122);
         int k = (int)(39.0F * this.scrollOffs);
 
-        this.blit(pPoseStack, i + 123, j + 26 + k, 220 + (!this.isScrollBarActive() ? 24 : scrolling ? 12 : 0), 0, 12, 15);
+        guiGraphics.blit(GUI, i + 123, j + 26 + k, 220 + (!this.isScrollBarActive() ? 24 : scrolling ? 12 : 0), 0, 12, 15);
         int l = this.leftPos + RECIPES_X;
         int i1 = this.topPos + RECIPES_Y;
         int j1 = this.startIndex + 12;
-        this.renderButtons(pPoseStack, pX, pY, l, i1, j1,false);
-        this.renderRecipes(l, i1, j1);
+        this.renderButtons(guiGraphics, pX, pY, l, i1, j1,false);
+        this.renderRecipes(guiGraphics, l, i1, j1);
         RenderSystem.setShaderTexture(0, GUI);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         if(!this.menu.resultContainer.isEmpty()){
-            this.blit(pPoseStack, i + 146, j + 46, 211, 0, 8, 11);
+            guiGraphics.blit(GUI, i + 146, j + 46, 211, 0, 8, 11);
         }
 
-        this.renderButtons(pPoseStack, pX, pY, l, i1, j1,true);
+        this.renderButtons(guiGraphics, pX, pY, l, i1, j1,true);
         RenderSystem.setShaderTexture(0, INVENTORY);
-        this.blit(pPoseStack, i + 4, j + 97, 0, 0, 176, 100);
+        guiGraphics.blit(GUI, i + 4, j + 97, 0, 0, 176, 100);
     }
 
-    protected void renderTooltip(PoseStack pPoseStack, int pX, int pY) {
-        super.renderTooltip(pPoseStack, pX, pY);
+    protected void renderTooltip(GuiGraphics guiGraphics, int pX, int pY) {
+        super.renderTooltip(guiGraphics, pX, pY);
         if (this.displayRecipes) {
             int i = this.leftPos + RECIPES_X;
             int j = this.topPos + RECIPES_Y;
@@ -102,13 +104,13 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
                 int j1 = i + i1 % RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_WIDTH + 2;
                 int k1 = j + i1 / RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_HEIGHT + 2;
                 if (pX >= j1 && pX < j1 + RECIPES_IMAGE_SIZE_WIDTH && pY >= k1 && pY < k1 + RECIPES_IMAGE_SIZE_HEIGHT) {
-                    this.renderTooltip(pPoseStack, list.get(l).getResultItem(), pX, pY);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, list.get(l).getResultItem(this.minecraft.level.registryAccess()), pX, pY);
                 }
             }
         }
 
         if(WoodcutterScreen.isHovering((double) pX, pY, this.leftPos + 142, this.topPos + 32, 16, 16)) {
-            this.renderTooltip(pPoseStack, Component.translatable("Cost per craft."), pX, pY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, Component.translatable("Cost per craft."), pX, pY);
         }
 
 
@@ -120,7 +122,7 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 
-    private void renderButtons(PoseStack pPoseStack, int pMouseX, int pMouseY, int pX, int pY, int pLastVisibleElementIndex, boolean overlay) {
+    private void renderButtons(GuiGraphics guiGraphics, int pMouseX, int pMouseY, int pX, int pY, int pLastVisibleElementIndex, boolean overlay) {
         for(int i = this.startIndex; i < pLastVisibleElementIndex && i < this.menu.getNumRecipes(); ++i) {
             int j = i - this.startIndex;
 
@@ -134,19 +136,19 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
             } else if (pMouseX >= k + 2 && pMouseY >= i1 + 2 && pMouseX < k + 2 + RECIPES_IMAGE_SIZE_WIDTH && pMouseY < i1 + 2 + RECIPES_IMAGE_SIZE_HEIGHT) {
                 j1 += 44;
             }
-            pPoseStack.pushPose();
+            guiGraphics.pose().pushPose();
             if(overlay)
-                pPoseStack.translate(0,0,100);
+                guiGraphics.pose().translate(0,0,100);
 
-            this.blit(pPoseStack, k, i1 - 1, xOffset, 122 + j1, 22, 22);
+            guiGraphics.blit(GUI, k, i1 - 1, xOffset, 122 + j1, 22, 22);
 
-            pPoseStack.popPose();
+            guiGraphics.pose().popPose();
 
         }
 
     }
 
-    private void renderRecipes(int pLeft, int pTop, int pRecipeIndexOffsetMax) {
+    private void renderRecipes(GuiGraphics guiGraphics, int pLeft, int pTop, int pRecipeIndexOffsetMax) {
         List<WoodcutterRecipe> list = this.menu.getRecipes();
 
         for(int i = this.startIndex; i < pRecipeIndexOffsetMax && i < this.menu.getNumRecipes(); ++i) {
@@ -155,9 +157,9 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
             int l = j / RECIPES_COLUMNS;
             int i1 = pTop + l * RECIPES_IMAGE_SIZE_HEIGHT + 4;
 
-            ItemStack result = list.get(i).getResultItem();
-            this.minecraft.getItemRenderer().renderAndDecorateItem(result, k, i1);
-            this.minecraft.getItemRenderer().renderGuiItemDecorations(this.font, result, k, i1);
+            ItemStack result = list.get(i).getResultItem(this.minecraft.level.registryAccess());
+            guiGraphics.renderItem(result, k, i1);
+            guiGraphics.renderItemDecorations(this.font, result, k, i1);
         }
 
         if(this.menu.getSelectedRecipeIndex() != -1 && this.menu.getRecipes().size() >= this.menu.getSelectedRecipeIndex() + 1){
@@ -165,8 +167,8 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
             ItemStack stack = selectedRecipe.getIngredients().get(0).getItems()[0];
             stack.setCount(selectedRecipe.ingredientCount);
 
-            this.minecraft.getItemRenderer().renderAndDecorateItem(stack,  this.leftPos + 142,  this.topPos + 32);
-            this.minecraft.getItemRenderer().renderGuiItemDecorations(this.font, stack, this.leftPos + 142,  this.topPos + 32);
+            guiGraphics.renderItem(stack,  this.leftPos + 142,  this.topPos + 32);
+            guiGraphics.renderItemDecorations(this.font, stack, this.leftPos + 142,  this.topPos + 32);
         }
 
 

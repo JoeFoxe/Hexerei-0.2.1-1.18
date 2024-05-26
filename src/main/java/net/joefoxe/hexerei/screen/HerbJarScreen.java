@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.HerbJarContainer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -44,13 +45,13 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
 
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
-        this.renderButtonTooltip(matrixStack, mouseX, mouseY);
+        this.renderBackground(guiGraphics);
+        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+        this.renderButtonTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override
@@ -59,7 +60,7 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int x, int y) {
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int x, int y) {
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -67,24 +68,24 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
 
         int i = this.leftPos;
         int j = this.topPos;
-        this.blit(matrixStack, i, j - 3 - OFFSET, 0, 0, 214, 157);
+        guiGraphics.blit(GUI, i, j - 3 - OFFSET, 0, 0, 214, 157);
 
         if(this.menu.getToggled() == 1)
         {
-            this.blit(matrixStack, i + 82, j + 105 - OFFSET, 238, 26, 18, 18);
+            guiGraphics.blit(GUI, i + 82, j + 105 - OFFSET, 238, 26, 18, 18);
 
         }
-        this.blit(matrixStack, i + 78, j - 30 - OFFSET, 230, 0, 26, 26);
+        guiGraphics.blit(GUI, i + 78, j - 30 - OFFSET, 230, 0, 26, 26);
         Minecraft minecraft = Minecraft.getInstance();
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
         RenderSystem.disableDepthTest();
-        itemRenderer.renderGuiItem(this.menu.stack,
+        guiGraphics.renderItem(this.menu.stack,
                 this.leftPos + 83,
                 this.topPos - 25 - OFFSET);
         RenderSystem.enableDepthTest();
 
         RenderSystem.setShaderTexture(0, INVENTORY);
-        this.blit(matrixStack, i + 3, j + 129 - OFFSET, 0, 0, 176, 100);
+        guiGraphics.blit(GUI, i + 3, j + 129 - OFFSET, 0, 0, 176, 100);
 
 
         RenderSystem.setShaderTexture(0, GUI);
@@ -115,7 +116,7 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
         return mouseX >= this.leftPos + x && mouseX < this.leftPos + x + width && mouseY >= this.topPos + y && mouseY < this.topPos + y + height;
     }
 
-    public void renderButtonTooltip(PoseStack matrixStack, int mouseX, int mouseY){
+    public void renderButtonTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY){
         List<Component> components = new ArrayList<>();
         if (isHovering(mouseX, mouseY, 82D, 105 - OFFSET, 18D, 18D)) {
             components.add(Component.translatable("tooltip.hexerei.gather_to_here_button"));
@@ -129,7 +130,7 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-            this.renderTooltip(matrixStack, components, Optional.empty(), mouseX, mouseY, Minecraft.getInstance().font, ItemStack.EMPTY);
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, components, Optional.empty(), mouseX, mouseY);
         }
     }
 }
