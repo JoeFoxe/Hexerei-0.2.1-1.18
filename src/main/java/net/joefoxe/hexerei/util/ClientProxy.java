@@ -26,11 +26,14 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.model.BoatModel;
+import net.minecraft.client.model.ChestBoatModel;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.HangingSignRenderer;
+import net.minecraft.client.renderer.blockentity.SignRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -116,7 +119,8 @@ public class ClientProxy implements SidedProxy {
     @SubscribeEvent
     public static void setup(EntityRenderersEvent.RegisterRenderers e){
         e.registerBlockEntityRenderer(ModTileEntities.CHEST_TILE.get(), ModChestRenderer::new);
-        e.registerBlockEntityRenderer(ModTileEntities.SIGN_TILE.get(), ModSignRenderer::new);
+        e.registerBlockEntityRenderer(ModTileEntities.SIGN_TILE.get(), SignRenderer::new);
+        e.registerBlockEntityRenderer(ModTileEntities.HANGING_SIGN_TILE.get(), HangingSignRenderer::new);
         e.registerBlockEntityRenderer(ModTileEntities.MIXING_CAULDRON_TILE.get(), context -> new MixingCauldronRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.COFFER_TILE.get(), context -> new CofferRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.HERB_JAR_TILE.get(), context -> new HerbJarRenderer());
@@ -169,22 +173,21 @@ public class ClientProxy implements SidedProxy {
         event.registerLayerDefinition(CandleModel.CANDLE_HERB_LAYER, CandleModel::createBodyLayerHerb);
         event.registerLayerDefinition(CandleModel.CANDLE_GLOW_LAYER, CandleModel::createBodyLayerGlow);
         event.registerLayerDefinition(CandleModel.CANDLE_SWIRL_LAYER, CandleModel::createBodyLayerSwirl);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/willow"), "main"), ()-> BoatModel.createBodyModel(false));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_willow"), "main"), ()-> BoatModel.createBodyModel(false));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/witch_hazel"), "main"), ()-> BoatModel.createBodyModel(false));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_witch_hazel"), "main"), ()-> BoatModel.createBodyModel(false));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/mahogany"), "main"), ()-> BoatModel.createBodyModel(false));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_mahogany"), "main"), ()-> BoatModel.createBodyModel(false));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/willow"), "main"), ()-> BoatModel.createBodyModel(true));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_willow"), "main"), ()-> BoatModel.createBodyModel(true));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/witch_hazel"), "main"), ()-> BoatModel.createBodyModel(true));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_witch_hazel"), "main"), ()-> BoatModel.createBodyModel(true));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/mahogany"), "main"), ()-> BoatModel.createBodyModel(true));
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_mahogany"), "main"), ()-> BoatModel.createBodyModel(true));
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/willow"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_willow"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/witch_hazel"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_witch_hazel"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/mahogany"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_mahogany"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/willow"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_willow"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/witch_hazel"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_witch_hazel"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/mahogany"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_mahogany"), "main"), ChestBoatModel::createBodyModel);
         event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany"), "main"), ModChestRenderer::createSingleBodyLayer);
         event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany_right"), "main"), ModChestRenderer::createDoubleBodyRightLayer);
         event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany_left"), "main"), ModChestRenderer::createDoubleBodyLeftLayer);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "sign/mahogany"), "main"), ModSignRenderer::createSignLayer);
 
 
         initArmors(event::registerLayerDefinition);

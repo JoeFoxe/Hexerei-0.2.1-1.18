@@ -88,8 +88,8 @@ public class CTModel extends BakedModelWrapperWithData {
             CTSpriteShiftEntry spriteShift = behaviour.getShift(state, quad.getDirection(), quad.getSprite());
             if (spriteShift == null)
                 continue;
-            ResourceLocation loc1 = quad.getSprite().getName();
-            ResourceLocation loc2 = spriteShift.getOriginal().getName();
+            ResourceLocation loc1 = quad.getSprite().atlasLocation();
+            ResourceLocation loc2 = spriteShift.getOriginal().atlasLocation();
 
             if (loc1 != loc2)
                 continue;

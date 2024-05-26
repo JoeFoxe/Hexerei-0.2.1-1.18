@@ -32,7 +32,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -948,6 +947,24 @@ public class ModItems {
 	public static final RegistryObject<Item> POLISHED_MAHOGANY_SIGN = ITEMS.register("polished_mahogany_sign",
 			() -> new SignItem(new Item.Properties(), ModBlocks.POLISHED_MAHOGANY_SIGN.get(), ModBlocks.POLISHED_MAHOGANY_WALL_SIGN.get()));
 
+	public static final RegistryObject<Item> WILLOW_HANGING_SIGN = ITEMS.register("willow_hanging_sign",
+			() -> new HangingSignItem(ModBlocks.WILLOW_HANGING_SIGN.get(), ModBlocks.WILLOW_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
+
+	public static final RegistryObject<Item> WITCH_HAZEL_HANGING_SIGN = ITEMS.register("witch_hazel_hanging_sign",
+			() -> new HangingSignItem(ModBlocks.WITCH_HAZEL_HANGING_SIGN.get(), ModBlocks.WITCH_HAZEL_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
+
+	public static final RegistryObject<Item> MAHOGANY_HANGING_SIGN = ITEMS.register("mahogany_hanging_sign",
+			() -> new HangingSignItem(ModBlocks.MAHOGANY_HANGING_SIGN.get(), ModBlocks.MAHOGANY_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
+
+	public static final RegistryObject<Item> POLISHED_WILLOW_HANGING_SIGN = ITEMS.register("polished_willow_hanging_sign",
+			() -> new HangingSignItem(ModBlocks.POLISHED_WILLOW_HANGING_SIGN.get(), ModBlocks.POLISHED_WILLOW_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
+
+	public static final RegistryObject<Item> POLISHED_WITCH_HAZEL_HANGING_SIGN = ITEMS.register("polished_witch_hazel_hanging_sign",
+			() -> new HangingSignItem(ModBlocks.POLISHED_WITCH_HAZEL_HANGING_SIGN.get(), ModBlocks.POLISHED_WITCH_HAZEL_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
+
+	public static final RegistryObject<Item> POLISHED_MAHOGANY_HANGING_SIGN = ITEMS.register("polished_mahogany_hanging_sign",
+			() -> new HangingSignItem(ModBlocks.POLISHED_MAHOGANY_HANGING_SIGN.get(), ModBlocks.POLISHED_MAHOGANY_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
+
 	public static final RegistryObject<Item> MAHOGANY_WINDOW_PANE = ITEMS.register("mahogany_window_pane",
 			() -> new BlockItem(ModBlocks.MAHOGANY_WINDOW_PANE.get(), new Item.Properties()));
 
@@ -1682,11 +1699,11 @@ public class ModItems {
 //                    new Item.Properties()));
 
 	public static final RegistryObject<Item> WITCH_HELMET = ITEMS.register("witch_helmet",
-			() -> new WitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, EquipmentSlot.HEAD,
+			() -> new WitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, ArmorItem.Type.HELMET,
 					new Item.Properties()));
 
 	public static final RegistryObject<Item> WITCH_CHESTPLATE = ITEMS.register("witch_chestplate",
-			() -> new WitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, EquipmentSlot.CHEST,
+			() -> new WitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, ArmorItem.Type.CHESTPLATE,
 					new Item.Properties()));
 
 //    public static final RegistryObject<Item> WITCH_LEGGINGS = ITEMS.register("witch_leggings",
@@ -1694,12 +1711,12 @@ public class ModItems {
 //                    new Item.Properties()));
 
 	public static final RegistryObject<Item> WITCH_BOOTS = ITEMS.register("witch_boots",
-			() -> new WitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, EquipmentSlot.FEET,
+			() -> new WitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, ArmorItem.Type.BOOTS,
 					new Item.Properties()));
 
 
 	public static final RegistryObject<Item> MUSHROOM_WITCH_HAT = ITEMS.register("mushroom_witch_hat",
-			() -> new MushroomWitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, EquipmentSlot.HEAD,
+			() -> new MushroomWitchArmorItem(ModArmorMaterial.INFUSED_FABRIC, ArmorItem.Type.HELMET,
 					new Item.Properties()));
 
 

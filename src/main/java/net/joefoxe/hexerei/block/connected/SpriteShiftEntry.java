@@ -26,9 +26,6 @@ public class SpriteShiftEntry {
     }
 
     public TextureAtlasSprite getOriginal() {
-        if(original.get() == null)
-            original.loadSprite(Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(original.location).atlas());
-
         return original.get();
     }
 

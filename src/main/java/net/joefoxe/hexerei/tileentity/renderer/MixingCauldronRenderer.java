@@ -1,12 +1,10 @@
 package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.MixingCauldron;
-import net.joefoxe.hexerei.client.renderer.ModRenderTypes;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
 import net.joefoxe.hexerei.util.HexereiUtil;
@@ -25,7 +23,9 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -35,6 +35,7 @@ import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
+import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.util.Objects;
@@ -93,19 +94,19 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
                             0D + Math.sin(itemRotationOffset) / (3.5f + ((craftPercent * craftPercent) * 10.0f)),
                             (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 30 + (i * 20)) / 10) * 0.2D,
                             0D + Math.cos(itemRotationOffset)  / (3.5f + ((craftPercent * craftPercent) * 10.0f)));
-                    matrixStackIn.mulPose(Vector3f.YP.rotationDegrees((float)((45 * i) -1f + (2 * Math.sin((tileEntityIn.degrees + i * 20) / 40)))));
-                    matrixStackIn.mulPose(Vector3f.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tileEntityIn.degrees + i * 22) / 40)))));
-                    matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tileEntityIn.degrees + i * 24) / 40))) ));
+                    matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)((45 * i) -1f + (2 * Math.sin((tileEntityIn.degrees + i * 20) / 40)))));
+                    matrixStackIn.mulPose(Axis.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tileEntityIn.degrees + i * 22) / 40)))));
+                    matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tileEntityIn.degrees + i * 24) / 40))) ));
                     matrixStackIn.scale(1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f));
                 } else {
                     matrixStackIn.translate(0D + Math.sin(itemRotationOffset) / 3.5, 0,0D + Math.cos(itemRotationOffset) / 3.5);
-                    matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(45 * i));
-                    matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(85f ) );
-                    matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-2.5f ));
+                    matrixStackIn.mulPose(Axis.YP.rotationDegrees(45 * i));
+                    matrixStackIn.mulPose(Axis.XP.rotationDegrees(85f ) );
+                    matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-2.5f ));
                 }
 
                 matrixStackIn.scale(0.4f, 0.4f, 0.4f);
-                renderItem(item, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+                renderItem(item, tileEntityIn.getLevel(), matrixStackIn, bufferIn, combinedLightIn);
                 matrixStackIn.popPose();
             }
 
@@ -121,17 +122,17 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
 
             if(fillPercentage > 0) {
                 matrixStackIn.translate(0D,(Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D,0D);
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((tileEntityIn.degrees + 20) / 40))) - ((craftPercent * craftPercent) * 720f)));
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tileEntityIn.degrees + 22) / 40)))));
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tileEntityIn.degrees + 24) / 40)))));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((tileEntityIn.degrees + 20) / 40))) - ((craftPercent * craftPercent) * 720f)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tileEntityIn.degrees + 22) / 40)))));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tileEntityIn.degrees + 24) / 40)))));
             } else {
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(85f));
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-2.5f));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(85f));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-2.5f));
             }
 
             matrixStackIn.scale(0.4f, 0.4f, 0.4f);
-            renderItem(item2, partialTicks, matrixStackIn, bufferIn, combinedLightIn);
+            renderItem(item2, tileEntityIn.getLevel(), matrixStackIn, bufferIn, combinedLightIn);
             matrixStackIn.popPose();
 
 
@@ -414,11 +415,10 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).uv2(light).normal(0, 0, -1).endVertex();
     }
 
-    // THIS IS WHAT I WAS LOOKING FOR FOREVER AHHHHH
-    private void renderItem(ItemStack stack, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
     private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, BlockState state) {
@@ -447,7 +447,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    net.minecraftforge.client.extensions.common.IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemTransforms.TransformType.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    net.minecraftforge.client.extensions.common.IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 

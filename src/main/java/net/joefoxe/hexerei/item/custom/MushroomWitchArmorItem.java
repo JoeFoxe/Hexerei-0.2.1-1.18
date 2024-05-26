@@ -9,6 +9,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,7 +18,7 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 public class MushroomWitchArmorItem extends WitchArmorItem {
 
-    public MushroomWitchArmorItem(ArmorMaterial materialIn, EquipmentSlot slot, Properties builder) {
+    public MushroomWitchArmorItem(ArmorMaterial materialIn, ArmorItem.Type slot, Properties builder) {
         super(materialIn, slot, builder);
     }
 

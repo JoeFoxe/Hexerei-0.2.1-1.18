@@ -2,7 +2,7 @@ package net.joefoxe.hexerei.tileentity.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.ModChest;
 import net.joefoxe.hexerei.tileentity.ModChestBlockEntity;
@@ -106,7 +106,7 @@ public class ModChestRenderer<T extends BlockEntity & LidBlockEntity> implements
             pPoseStack.pushPose();
             float f = blockstate.getValue(ChestBlock.FACING).toYRot();
             pPoseStack.translate(0.5D, 0.5D, 0.5D);
-            pPoseStack.mulPose(Vector3f.YP.rotationDegrees(-f));
+            pPoseStack.mulPose(Axis.YP.rotationDegrees(-f));
             pPoseStack.translate(-0.5D, -0.5D, -0.5D);
             DoubleBlockCombiner.NeighborCombineResult<? extends ChestBlockEntity> neighborcombineresult;
             if (flag) {

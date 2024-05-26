@@ -3,7 +3,6 @@ package net.joefoxe.hexerei.client.renderer.entity.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.util.HexereiUtil;
@@ -14,6 +13,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.joml.Vector3f;
 
 import java.util.Collections;
 import java.util.Map;
@@ -121,9 +121,9 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
                 tailMid_dyed = body.getChild("tailMid_dyed"),
                 head_r1 = head.getChild("head_r1"),
                 head_eyes_closed_r1 = head_eyes_closed.getChild("head_eyes_closed_r1");
-        if (!entity.isOnGround() || !entity.isInSittingPose())
+        if (!entity.onGround() || !entity.isInSittingPose())
             body.y = 24.0f;
-        if (entity.isOnGround()) {
+        if (entity.onGround()) {
             leftWing.visible = false;
             rightWing.visible = false;
             wings.visible = true;
@@ -227,7 +227,7 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
         head.yRot = (float) Math.toRadians(netHeadYaw);
         head.zRot = Mth.sin(entity.headZTiltAngleActual / 100f) / 2f;
         head.xRot += Mth.sin(entity.headXTiltAngleActual / 100f) / 2f;
-        if ((entity.isOnGround() || entity.isPassenger()) && entity.dance) {
+        if ((entity.onGround() || entity.isPassenger()) && entity.dance) {
             head.zRot = 0f;
             head.xRot = (float) Math.toRadians(headPitch) + Mth.sin(entity.animationCounter / 1.5f) / 12f;
             head.yRot = (float) Math.toRadians(netHeadYaw) + Mth.sin(entity.animationCounter / 3f) / 4f;

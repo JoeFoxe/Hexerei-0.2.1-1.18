@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -47,7 +48,7 @@ public class ModChestBoatEntity extends ChestBoat {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
@@ -98,10 +99,10 @@ public class ModChestBoatEntity extends ChestBoat {
                         this.fallDistance = 0f;
                         return;
                     }
-                    causeFallDamage(this.fallDistance, 1f, DamageSource.FALL);
-                    if (!this.level.isClientSide && !this.isRemoved()) {
+                    causeFallDamage(this.fallDistance, 1f, this.damageSources().fall());
+                    if (!this.level().isClientSide && !this.isRemoved()) {
                         this.remove(RemovalReason.KILLED);
-                        if (this.level.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+                        if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
                             for (int i = 0; i < 3; ++i) {
                                 spawnAtLocation(getModel().getPlanks());
                             }
@@ -112,7 +113,7 @@ public class ModChestBoatEntity extends ChestBoat {
                     }
                 }
                 this.fallDistance = 0f;
-            } else if (!this.level.getFluidState(this.blockPosition().below()).is(FluidTags.WATER) && y < 0d) {
+            } else if (!this.level().getFluidState(this.blockPosition().below()).is(FluidTags.WATER) && y < 0d) {
                 this.fallDistance = (float) ((double) this.fallDistance - y);
             }
         }

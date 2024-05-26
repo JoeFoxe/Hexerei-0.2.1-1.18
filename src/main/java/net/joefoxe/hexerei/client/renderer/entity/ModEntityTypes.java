@@ -93,7 +93,7 @@ public class ModEntityTypes {
                 .setUpdateInterval(1)
                 .sized(width, height)
                 .build(Hexerei.MOD_ID + ":" + name);
-        ModItems.ITEMS.register(name + "_spawn_egg", () -> new SpawnEggItem(type, color1, color2, new Item.Properties().tab(ModItemGroup.HEXEREI_GROUP)));
+        ModItems.ITEMS.register(name + "_spawn_egg", () -> new SpawnEggItem(type, color1, color2, new Item.Properties()));
         return ENTITY_TYPES.register(name, () -> type);
     }
 

@@ -10,7 +10,6 @@ import net.joefoxe.hexerei.block.custom.*;
 import net.joefoxe.hexerei.block.custom.trees.MahoganyTree;
 import net.joefoxe.hexerei.block.custom.trees.WillowTree;
 import net.joefoxe.hexerei.block.custom.trees.WitchHazelTree;
-import net.joefoxe.hexerei.item.ModItemGroup;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.joefoxe.hexerei.util.ClientProxy;
@@ -29,7 +28,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.api.distmarker.Dist;
@@ -904,15 +902,6 @@ public class ModBlocks {
 	public static final RegistryObject<ModSign> WITCH_HAZEL_SIGN = registerBlockNoItem("witch_hazel_sign",
 			() -> new ModSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModWoodType.WITCH_HAZEL));
 
-	public static final RegistryObject<ModWallSign> MAHOGANY_WALL_SIGN = registerBlockNoItem("mahogany_wall_sign",
-			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.MAHOGANY));
-
-	public static final RegistryObject<ModWallSign> WILLOW_WALL_SIGN = registerBlockNoItem("willow_wall_sign",
-			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.WILLOW));
-
-	public static final RegistryObject<ModWallSign> WITCH_HAZEL_WALL_SIGN = registerBlockNoItem("witch_hazel_wall_sign",
-			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.WITCH_HAZEL));
-
 	public static final RegistryObject<ModSign> POLISHED_MAHOGANY_SIGN = registerBlockNoItem("polished_mahogany_sign",
 			() -> new ModSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModWoodType.POLISHED_MAHOGANY));
 
@@ -922,6 +911,15 @@ public class ModBlocks {
 	public static final RegistryObject<ModSign> POLISHED_WITCH_HAZEL_SIGN = registerBlockNoItem("polished_witch_hazel_sign",
 			() -> new ModSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModWoodType.POLISHED_WITCH_HAZEL));
 
+	public static final RegistryObject<ModWallSign> MAHOGANY_WALL_SIGN = registerBlockNoItem("mahogany_wall_sign",
+			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.MAHOGANY));
+
+	public static final RegistryObject<ModWallSign> WILLOW_WALL_SIGN = registerBlockNoItem("willow_wall_sign",
+			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.WILLOW));
+
+	public static final RegistryObject<ModWallSign> WITCH_HAZEL_WALL_SIGN = registerBlockNoItem("witch_hazel_wall_sign",
+			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.WITCH_HAZEL));
+
 	public static final RegistryObject<ModWallSign> POLISHED_MAHOGANY_WALL_SIGN = registerBlockNoItem("polished_mahogany_wall_sign",
 			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.POLISHED_MAHOGANY));
 
@@ -930,6 +928,32 @@ public class ModBlocks {
 
 	public static final RegistryObject<ModWallSign> POLISHED_WITCH_HAZEL_WALL_SIGN = registerBlockNoItem("polished_witch_hazel_wall_sign",
 			() -> new ModWallSign(BlockBehaviour.Properties.copy(Blocks.OAK_SIGN).explosionResistance(4f).strength(3).noCollission().noOcclusion(), ModTileEntities.SIGN_TILE::get, ModWoodType.POLISHED_WITCH_HAZEL));
+
+	public static final RegistryObject<ModHangingSign> MAHOGANY_HANGING_SIGN = registerBlockNoItem("mahogany_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_HANGING_SIGN), ModWoodType.MAHOGANY));
+	public static final RegistryObject<ModHangingSign> WILLOW_HANGING_SIGN = registerBlockNoItem("willow_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_HANGING_SIGN), ModWoodType.WILLOW));
+	public static final RegistryObject<ModHangingSign> WITCH_HAZEL_HANGING_SIGN = registerBlockNoItem("witch_hazel_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_HANGING_SIGN), ModWoodType.WITCH_HAZEL));
+	public static final RegistryObject<ModHangingSign> POLISHED_MAHOGANY_HANGING_SIGN = registerBlockNoItem("polished_mahogany_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_HANGING_SIGN), ModWoodType.POLISHED_MAHOGANY));
+	public static final RegistryObject<ModHangingSign> POLISHED_WILLOW_HANGING_SIGN = registerBlockNoItem("polished_willow_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_HANGING_SIGN), ModWoodType.POLISHED_WILLOW));
+	public static final RegistryObject<ModHangingSign> POLISHED_WITCH_HAZEL_HANGING_SIGN = registerBlockNoItem("polished_witch_hazel_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_HANGING_SIGN), ModWoodType.POLISHED_WITCH_HAZEL));
+
+	public static final RegistryObject<ModHangingSign> MAHOGANY_WALL_HANGING_SIGN = registerBlockNoItem("mahogany_wall_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_WALL_HANGING_SIGN), ModWoodType.MAHOGANY));
+	public static final RegistryObject<ModHangingSign> WILLOW_WALL_HANGING_SIGN = registerBlockNoItem("willow_wall_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_WALL_HANGING_SIGN), ModWoodType.WILLOW));
+	public static final RegistryObject<ModHangingSign> WITCH_HAZEL_WALL_HANGING_SIGN = registerBlockNoItem("witch_wall_hazel_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_WALL_HANGING_SIGN), ModWoodType.WITCH_HAZEL));
+	public static final RegistryObject<ModHangingSign> POLISHED_MAHOGANY_WALL_HANGING_SIGN = registerBlockNoItem("polished_mahogany_wall_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_WALL_HANGING_SIGN), ModWoodType.POLISHED_MAHOGANY));
+	public static final RegistryObject<ModHangingSign> POLISHED_WILLOW_WALL_HANGING_SIGN = registerBlockNoItem("polished_willow_wall_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_WALL_HANGING_SIGN), ModWoodType.POLISHED_WILLOW));
+	public static final RegistryObject<ModHangingSign> POLISHED_WITCH_HAZEL_WALL_HANGING_SIGN = registerBlockNoItem("polished_witch_hazel_wall_hanging_sign",
+			() -> new ModHangingSign(BlockBehaviour.Properties.copy(Blocks.OAK_WALL_HANGING_SIGN), ModWoodType.POLISHED_WITCH_HAZEL));
 
 //    public static final RegistryObject<Block> SAGE_BUNDLE_PLATE = registerBlock("sage_bundle_plate",
 //            () -> new Block(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).explosionResistance(2f)));
@@ -1467,7 +1491,7 @@ public class ModBlocks {
 
 	private static <T extends Block> void registerBlockItem(String name, RegistryObject<T> block) {
 		ModItems.ITEMS.register(name, () -> new BlockItem(block.get(),
-						new BlockItem.Properties().tab(ModItemGroup.HEXEREI_GROUP)));
+						new BlockItem.Properties()));
 	}
 
 	public static void register(IEventBus eventBus) {

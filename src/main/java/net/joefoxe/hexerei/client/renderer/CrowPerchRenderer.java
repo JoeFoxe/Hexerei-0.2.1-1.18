@@ -3,8 +3,7 @@ package net.joefoxe.hexerei.client.renderer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
@@ -17,12 +16,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import org.joml.Matrix4f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -264,11 +265,11 @@ public class CrowPerchRenderer {
             CompoundTag tag = id.getCompound(i);
 
             int crowId = tag.getInt("ID");
-
-            if ((Hexerei.proxy.getPlayer().level).getEntity(crowId) instanceof CrowEntity crow && ((CrowEntity) (Hexerei.proxy.getPlayer().level).getEntity(crowId)).getPerchPos() != null) {
+            Level level = Hexerei.proxy.getPlayer().level();
+            if ((level).getEntity(crowId) instanceof CrowEntity crow && ((CrowEntity) (level).getEntity(crowId)).getPerchPos() != null) {
 
                 pos = crow.getPerchPos();
-                double topOffset = Hexerei.proxy.getPlayer().level.getBlockState(pos).getBlock().getOcclusionShape(Hexerei.proxy.getPlayer().level.getBlockState(pos), Hexerei.proxy.getPlayer().level, pos).max(Direction.Axis.Y);
+                double topOffset = level.getBlockState(pos).getBlock().getOcclusionShape(level.getBlockState(pos), level, pos).max(Direction.Axis.Y);
                 int amount;
                 if (!map.containsKey(pos)) {
                     amount = 1;
@@ -292,7 +293,7 @@ public class CrowPerchRenderer {
                 Matrix4f posMat = matrixStack.last().pose();
                 int color = 0x3B143D;
                 if(crow.getDyeColorId() != -1)
-                    color = crow.getDyeColor().getMaterialColor().col;
+                    color = crow.getDyeColor().getMapColor().col;
 
                 int r = (color & 0xFF0000) >> 16;
                 int g = (color & 0xFF00) >> 8;
@@ -373,7 +374,7 @@ public class CrowPerchRenderer {
 
             int crowId = tag.getInt("ID");
 
-            if ((Hexerei.proxy.getPlayer().level).getEntity(crowId) instanceof CrowEntity crow) {
+            if ((Hexerei.proxy.getPlayer().level()).getEntity(crowId) instanceof CrowEntity crow) {
 
                 pos = crow.position();
 //                double topOffset = Hexerei.proxy.getPlayer().level.getBlockState(pos).getBlock().getOcclusionShape(Hexerei.proxy.getPlayer().level.getBlockState(pos), Hexerei.proxy.getPlayer().level, pos).max(Direction.Axis.Y);
@@ -417,7 +418,7 @@ public class CrowPerchRenderer {
                 }
 
                 if(crow.getDyeColorId() != -1)
-                    color = crow.getDyeColor().getMaterialColor().col;
+                    color = crow.getDyeColor().getMapColor().col;
 
                 int r = (color & 0xFF0000) >> 16;
                 int g = (color & 0xFF00) >> 8;
@@ -425,7 +426,7 @@ public class CrowPerchRenderer {
                 int alpha = 80;
 
                 matrixStack.translate(0, Mth.sin((Hexerei.getClientTicks() + (crowId * 20)) / 10f) / 10f, 0);
-                matrixStack.mulPose(Vector3f.YP.rotationDegrees(Hexerei.getClientTicks() + (crowId * 20)));
+                matrixStack.mulPose(Axis.YP.rotationDegrees(Hexerei.getClientTicks() + (crowId * 20)));
                 matrixStack.translate(-0.5f, 0, -0.5f);
                 matrixStack.translate(BOX_START, BOX_START, BOX_START);
                 matrixStack.scale(0.35f, 0.35f, 0.35f);
@@ -487,7 +488,7 @@ public class CrowPerchRenderer {
         int alpha = 80;
 
         matrixStack.translate(0, Mth.sin((Hexerei.getClientTicks()) / 10f) / 10f, 0);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(Hexerei.getClientTicks()));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(Hexerei.getClientTicks()));
         matrixStack.translate(-0.5f, 0, -0.5f);
         matrixStack.translate(BOX_START, BOX_START, BOX_START);
         matrixStack.scale(0.35f, 0.35f, 0.35f);

@@ -1,7 +1,6 @@
 package net.joefoxe.hexerei.client.renderer.entity.custom;
 
 import com.google.common.collect.Maps;
-import com.mojang.math.Vector3f;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.PickableDoubleFlower;
 import net.joefoxe.hexerei.block.custom.PickableFlower;
@@ -39,11 +38,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
@@ -83,7 +84,9 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -95,6 +98,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -291,20 +295,20 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
     public void sync() {
         setChanged();
-        if (!level.isClientSide) {
+        if (!level().isClientSide) {
 
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowSyncPacket(this, saveWithoutId(new CompoundTag())));
+            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowSyncPacket(this, saveWithoutId(new CompoundTag())));
         }
 
     }
 
     public void syncAdditionalData() {
         setChanged();
-        if (!level.isClientSide) {
+        if (!level().isClientSide) {
 
             CompoundTag tag = new CompoundTag();
             addAdditionalSaveDataNoSuper(tag);
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowSyncAdditonalDataPacket(this, tag));
+            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowSyncAdditonalDataPacket(this, tag));
         }
 
     }
@@ -363,10 +367,10 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
     @Override
     public boolean hurt(DamageSource pSource, float pAmount) {
         float f = this.getHealth();
-        if (!this.level.isClientSide && !this.isNoAi() && ((float)this.random.nextInt(3) < pAmount || f / this.getMaxHealth() < 0.5F) && pAmount < f && (pSource.getEntity() != null || pSource.getDirectEntity() != null) && !this.isPlayingDead()) {
+        if (!this.level().isClientSide && !this.isNoAi() && ((float)this.random.nextInt(3) < pAmount || f / this.getMaxHealth() < 0.5F) && pAmount < f && (pSource.getEntity() != null || pSource.getDirectEntity() != null) && !this.isPlayingDead()) {
             this.playingDead = TOTAL_PLAYDEAD_TIME;
         }
-        if(pSource == DamageSource.SWEET_BERRY_BUSH)
+        if(pSource.is(DamageTypes.SWEET_BERRY_BUSH))
             return false;
 
         return super.hurt(pSource, pAmount);
@@ -428,7 +432,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
         this.peckTimer = 10;
 
         this.caw = false;
-        if (!level.isClientSide)
+        if (!level().isClientSide)
             this.cawTimer = new Random().nextInt(360) + 360;
         this.cawTiltAngle = 0;
         this.cawTiltAngleActual = 0;
@@ -491,7 +495,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
     private void removeFramedMap(ItemStack pStack) {
         this.getFramedMapId().ifPresent((p_218864_) -> {
-            MapItemSavedData mapitemsaveddata = MapItem.getSavedData(p_218864_, this.level);
+            MapItemSavedData mapitemsaveddata = MapItem.getSavedData(p_218864_, this.level());
             if (mapitemsaveddata != null) {
                 mapitemsaveddata.removedFromFrame(this.blockPosition(), this.getId());
                 mapitemsaveddata.setDirty(true);
@@ -503,7 +507,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
 
     public boolean checkTotemDeathProtection(DamageSource pDamageSource) {
-        if (pDamageSource.isBypassInvul()) {
+        if (pDamageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         } else {
             ItemStack itemstack = null;
@@ -533,7 +537,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 900, 1));
                 this.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 100, 1));
                 this.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 800, 0));
-                this.level.broadcastEntityEvent(this, (byte)35);
+                this.level().broadcastEntityEvent(this, (byte)35);
                 this.sync();
             }
 
@@ -545,24 +549,24 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
     public void tick() {
         super.tick();
 
-        if(!this.sync && this.level instanceof ServerLevel) {
+        if(!this.sync && this.level() instanceof ServerLevel) {
             sync();
             this.sync = true;
         }
-        if(!this.sync && this.level instanceof ClientLevel) {
+        if(!this.sync && this.level() instanceof ClientLevel) {
 
-            if (level.isClientSide)
+            if (level().isClientSide)
                 HexereiPacketHandler.sendToServer(new CrowAskForSyncPacket(this));
 
             this.sync = true;
         }
-        if(!level.isClientSide){
+        if(!level().isClientSide){
             if(this.itemHandler.getStackInSlot(2).is(ModItems.CROW_BLANK_AMULET.get())){
-                this.itemHandler.getStackInSlot(2).inventoryTick(level, this, 2, true);
+                this.itemHandler.getStackInSlot(2).inventoryTick(level(), this, 2, true);
             } if(this.itemHandler.getStackInSlot(2).getItem() instanceof MapItem mapItem){
-                MapItemSavedData mapitemsaveddata = MapItem.getSavedData(this.itemHandler.getStackInSlot(2), level);
+                MapItemSavedData mapitemsaveddata = MapItem.getSavedData(this.itemHandler.getStackInSlot(2), level());
                 if (mapitemsaveddata != null && !mapitemsaveddata.locked) {
-                    mapItem.update(level, this, mapitemsaveddata);
+                    mapItem.update(level(), this, mapitemsaveddata);
                 }
             }
         }
@@ -578,16 +582,16 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
         if(CrowEntity.this.isPlayingDead())
             return;
 
-        if(this.breedNuggetGivenByCrowTimer > 0 && !this.level.isClientSide)
+        if(this.breedNuggetGivenByCrowTimer > 0 && !this.level().isClientSide)
         {
             this.breedNuggetGivenByCrowTimer--;
             if(breedNuggetGivenByCrowTimer == 10){
                 this.peck();
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(this));
+                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(this));
             }
             if(this.breedNuggetGivenByCrowTimer == 0)
-                if(level.getPlayerByUUID(this.breedNuggetGivenByPlayerUUID) != null)
-                    this.setInLove(level.getPlayerByUUID(this.breedNuggetGivenByPlayerUUID));
+                if(level().getPlayerByUUID(this.breedNuggetGivenByPlayerUUID) != null)
+                    this.setInLove(level().getPlayerByUUID(this.breedNuggetGivenByPlayerUUID));
         }
         if (this.pickpocketTimer > 0) {
             this.pickpocketTimer--;
@@ -601,11 +605,11 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
         this.animationCounter++;
         this.rideCooldownCounter++;
-        if (!this.level.isClientSide && this.isTame() && this.cofferHerbJarListResetTimer-- <= 0)
+        if (!this.level().isClientSide && this.isTame() && this.cofferHerbJarListResetTimer-- <= 0)
         {
-            this.cofferHerbJarList = HexereiUtil.getAllToggledCofferAndHerbJarPositionsNearby( this.interactionRange, level, this);
+            this.cofferHerbJarList = HexereiUtil.getAllToggledCofferAndHerbJarPositionsNearby( this.interactionRange, level(), this);
             this.cofferHerbJarListResetTimer = 200;
-            this.villagerList = this.level.getEntitiesOfClass(Villager.class, this.getTargetableArea(this.interactionRange), this.targetEntitySelector);
+            this.villagerList = this.level().getEntitiesOfClass(Villager.class, this.getTargetableArea(this.interactionRange), this.targetEntitySelector);
         }
 
         if(this.pickpocketTimer < 5 && this.pickpocketTimer > 0)
@@ -643,7 +647,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             }
 
         }
-        if (level.isClientSide) {
+        if (level().isClientSide) {
             this.headZTiltAngleActual = moveTo(this.headZTiltAngleActual, headZTiltAngle, 15f);
             this.headXTiltAngleActual = moveTo(this.headXTiltAngleActual, headXTiltAngle, 15f);
         }
@@ -661,7 +665,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
 
         // Caw animation
-        if (!level.isClientSide)
+        if (!level().isClientSide)
             if (!this.itemHandler.getStackInSlot(1).isEmpty())
                 this.cawTimer = 360;
 
@@ -672,21 +676,21 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if (this.caw) {
 
 
-                    if (!level.isClientSide) {
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowCawPacket(this));
+                    if (!level().isClientSide) {
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowCawPacket(this));
                         this.playSound(ModSounds.CROW_CAW.get(), this.getSoundVolume(), this.getVoicePitch());
                         this.cawTimer = 15;
                     }
 
                 } else {
-                    if (!level.isClientSide)
+                    if (!level().isClientSide)
                         this.cawTimer = random.nextInt(360) + 360;
                     else
                         this.cawTiltAngle = 0;
                 }
             }
         }
-        if (level.isClientSide)
+        if (level().isClientSide)
             this.cawTiltAngleActual = moveTo(this.cawTiltAngleActual, cawTiltAngle, 30f);
 
 
@@ -698,23 +702,23 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if (this.tailWag) {
 
 
-                    if (!level.isClientSide) {
+                    if (!level().isClientSide) {
                         if(!this.tailFan)
-                            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowTailWagPacket(this));
+                            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowTailWagPacket(this));
                         else
                             this.tailWag = false;
                         this.tailWagTimer = 15;
                     }
 
                 } else {
-                    if (!level.isClientSide)
+                    if (!level().isClientSide)
                         this.tailWagTimer = random.nextInt(80) + 80;
                     else
                         this.tailWagTiltAngle = 0;
                 }
             }
         }
-        if(this.level.isClientSide)
+        if(this.level().isClientSide)
         {
             if(this.tailWag)
             {
@@ -732,24 +736,24 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if (this.tailFan) {
 
 
-                    if (!level.isClientSide) {
+                    if (!level().isClientSide) {
 
                         if(!this.tailWag)
-                            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowTailFanPacket(this));
+                            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowTailFanPacket(this));
                         else
                             this.tailFan = false;
                         this.tailFanTimer = 15;
                     }
 
                 } else {
-                    if (!level.isClientSide)
+                    if (!level().isClientSide)
                         this.tailFanTimer = random.nextInt(80) + 20;
                     else
                         this.tailFanTiltAngle = 0;
                 }
             }
         }
-        if(this.level.isClientSide)
+        if(this.level().isClientSide)
         {
 //            if(this.tailFan)
 //            {
@@ -767,9 +771,9 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 heldItemTime = 0;
                 this.heal(4);
 
-                if(!level.isClientSide)
-                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowEatParticlesPacket(this, this.itemHandler.getStackInSlot(1)));
-//                this.level.addParticle(ParticleTypes.ITEM, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
+                if(!level().isClientSide)
+                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowEatParticlesPacket(this, this.itemHandler.getStackInSlot(1)));
+//                this.level().addParticle(ParticleTypes.ITEM, this.getRandomX(1.0D), this.getRandomY() + 0.5D, this.getRandomZ(1.0D), d0, d1, d2);
 
                 this.playSound(SoundEvents.PARROT_EAT, this.getSoundVolume(), this.getVoicePitch());
                 if (this.itemHandler.getStackInSlot(1).getItem() == ModItems.SEED_MIXTURE.get() && seedThrowerID != null && !this.isTame()) {
@@ -777,13 +781,13 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                         this.setTame(true);
                         this.setCommand(1);
                         this.setOwnerUUID(this.seedThrowerID);
-                        Player player = level.getPlayerByUUID(seedThrowerID);
+                        Player player = level().getPlayerByUUID(seedThrowerID);
                         if (player instanceof ServerPlayer) {
                             CriteriaTriggers.TAME_ANIMAL.trigger((ServerPlayer)player, this);
                         }
-                        this.level.broadcastEntityEvent(this, (byte) 7);
+                        this.level().broadcastEntityEvent(this, (byte) 7);
                     } else {
-                        this.level.broadcastEntityEvent(this, (byte) 6);
+                        this.level().broadcastEntityEvent(this, (byte) 6);
                     }
                 }
                 if (this.itemHandler.getStackInSlot(1).hasCraftingRemainingItem()) {
@@ -804,7 +808,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             scale = 4;
         Vec3 vec3 = this.calculateViewVector(0, this.yBodyRot);
         for(int i = 0; i < 6; i++)
-            level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, stack), this.getRandomX(0.125D) + vec3.x / scale, this.random.nextDouble()/4f - 0.125f + this.getEyeY(), this.getRandomZ(0.125D) + vec3.z / scale, (random.nextDouble() - 0.5d) / 15d, (random.nextDouble() + 0.5d) * 0.15d, (random.nextDouble() - 0.5d) / 15d);
+            level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, stack), this.getRandomX(0.125D) + vec3.x / scale, this.random.nextDouble()/4f - 0.125f + this.getEyeY(), this.getRandomZ(0.125D) + vec3.z / scale, (random.nextDouble() - 0.5d) / 15d, (random.nextDouble() + 0.5d) * 0.15d, (random.nextDouble() - 0.5d) / 15d);
 
     }
 
@@ -860,7 +864,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
     public void setCommand(int command) {
         this.entityData.set(COMMAND, command);
 
-        if (level.isClientSide)
+        if (level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowSyncCommandToServer(this, command));
         else
         {
@@ -880,7 +884,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
     public void setHelpCommand(int command) {
         this.entityData.set(HELP_COMMAND, command);
 
-        if (level.isClientSide)
+        if (level().isClientSide)
             HexereiPacketHandler.sendToServer(new CrowSyncHelpCommandToServer(this, command));
     }
 
@@ -1187,7 +1191,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
     public void aiStep() {
         super.aiStep();
         Vec3 motion = this.getDeltaMovement();
-        if (!this.onGround && motion.y < 0.0D) {
+        if (!this.onGround() && motion.y < 0.0D) {
             this.setDeltaMovement(motion.multiply(1.0D, 0.6D, 1.0D));
         }
     }
@@ -1203,7 +1207,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             }
         }
         else {
-            double topOffset = this.level.getBlockState(this.getPerchPos()).getBlock().getOcclusionShape(this.level.getBlockState(this.getPerchPos()), this.level, this.getPerchPos()).max(Direction.Axis.Y);
+            double topOffset = this.level().getBlockState(this.getPerchPos()).getBlock().getOcclusionShape(this.level().getBlockState(this.getPerchPos()), this.level(), this.getPerchPos()).max(Direction.Axis.Y);
             if(this.distanceTo(this.getPerchPos().getX(), this.getPerchPos().getZ()) < 1 && this.position().y() >= this.getPerchPos().getY() + topOffset && this.position().y() < this.getPerchPos().above().getY() + topOffset - 0.75f) {
                 if (this.isOrderedToSit() || this.isInSittingPose())
                 {
@@ -1381,41 +1385,41 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             }
         }
         if (player.isSecondaryUseActive() && isOwnedBy(player)) {
-            if (!level.isClientSide()) {
-                MenuProvider containerProvider = createContainerProvider(level, blockPosition());
+            if (!level().isClientSide()) {
+                MenuProvider containerProvider = createContainerProvider(level(), blockPosition());
 
                 NetworkHooks.openScreen((ServerPlayer) player, containerProvider, b -> b.writeInt(this.getId()));
 
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }else if(this.itemHandler.getStackInSlot(1).isEmpty()){
             if (!this.isTame() && itemstack.getItem() == ModItems.SEED_MIXTURE.get()) {
                 if (!player.getAbilities().instabuild) {
                     itemstack.shrink(1);
                 }
-                if (!this.level.isClientSide) {
+                if (!this.level().isClientSide) {
                     if (this.random.nextInt(10) == 0 && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player)) {
                         this.tame(player);
-                        this.level.broadcastEntityEvent(this, (byte) 7);
+                        this.level().broadcastEntityEvent(this, (byte) 7);
                     } else {
-                        this.level.broadcastEntityEvent(this, (byte) 6);
+                        this.level().broadcastEntityEvent(this, (byte) 6);
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             }else if (this.isTame() && !this.isBaby() && itemstack.getItem() == Items.GOLD_NUGGET && !this.isInLove()) {
                 this.breedNuggetGivenByPlayer = true;
                 this.breedNuggetGivenByPlayerUUID = player.getUUID();
                 if (!player.getAbilities().instabuild) {
                     itemstack.shrink(1);
                 }
-                if (!this.level.isClientSide) {
+                if (!this.level().isClientSide) {
                     this.setInLove(player);
                     this.spawnAtLocation(this.itemHandler.getStackInSlot(1).copy());
                     this.itemHandler.setStackInSlot(1, new ItemStack(Items.GOLD_NUGGET));
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             } else if (this.isTame() && this.isOwnedBy(player)) {
-                if (!this.level.isClientSide) {
+                if (!this.level().isClientSide) {
                     if(itemstack.getItem() instanceof DyeItem)
                     {
                         DyeColor dyecolor = ((DyeItem)itemstack.getItem()).getDyeColor();
@@ -1447,7 +1451,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
 
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             } else {
                 return super.mobInteract(player, hand);
             }
@@ -1458,7 +1462,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 this.spawnAtLocation(this.itemHandler.getStackInSlot(1).copy());
                 this.itemHandler.setStackInSlot(1, ItemStack.EMPTY);
             }
-            return InteractionResult.sidedSuccess(this.level.isClientSide);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
     }
 
@@ -1489,15 +1493,15 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             int k = 0;
             boolean flag = false;
             if(getPerchPos() != null){
-                BlockEntity perchEntity = level.getBlockEntity(getPerchPos());
+                BlockEntity perchEntity = level().getBlockEntity(getPerchPos());
                 if (perchEntity instanceof HerbJarTile herbJarTile && herbJarTile.buttonToggled != 0)
                     if (HexConfig.JARS_ONLY_HOLD_HERBS.get()) {
                         if (stack.is(HexereiTags.Items.HERB_ITEM)) {
-                            if(herbJarTile.itemHandler.getStackInSlot(0).isEmpty() || (herbJarTile.itemHandler.getStackInSlot(0).getTag() == stack.getTag() && herbJarTile.itemHandler.getStackInSlot(0).sameItem(stack)))
+                            if(herbJarTile.itemHandler.getStackInSlot(0).isEmpty() || (herbJarTile.itemHandler.getStackInSlot(0).getTag() == stack.getTag() && ItemStack.isSameItem(herbJarTile.itemHandler.getStackInSlot(0), stack)))
                                 return true;
                         }
                     } else {
-                        if(herbJarTile.itemHandler.getStackInSlot(0).isEmpty() || herbJarTile.itemHandler.getStackInSlot(0).getTag() == stack.getTag() && herbJarTile.itemHandler.getStackInSlot(0).sameItem(stack))
+                        if(herbJarTile.itemHandler.getStackInSlot(0).isEmpty() || herbJarTile.itemHandler.getStackInSlot(0).getTag() == stack.getTag() && ItemStack.isSameItem(herbJarTile.itemHandler.getStackInSlot(0), stack))
                             return true;
                     }
                 if (perchEntity instanceof CofferTile cofferTile && cofferTile.buttonToggled != 0) {
@@ -1506,7 +1510,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 }
             }
             for (BlockPos blockPos : this.cofferHerbJarList) {
-                BlockEntity blockEntity = level.getBlockEntity(this.cofferHerbJarList.get(k++));
+                BlockEntity blockEntity = level().getBlockEntity(this.cofferHerbJarList.get(k++));
                 if (blockEntity instanceof CofferTile cofferTile) {
                     for (int i = 0; i < cofferTile.itemStackHandler.getSlots(); i++) {
                         if ((cofferTile).itemStackHandler.getStackInSlot(i).is(stack.getItem())) {
@@ -1543,12 +1547,13 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
     public void onGetItem(ItemEntity e) {
         ItemStack duplicate = e.getItem().copy();
         duplicate.setCount(1);
-        if (!this.itemHandler.getStackInSlot(1).isEmpty() && !this.level.isClientSide) {
+        if (!this.itemHandler.getStackInSlot(1).isEmpty() && !this.level().isClientSide) {
             this.spawnAtLocation(this.itemHandler.getStackInSlot(1), 0.0F);
         }
+        Entity itemThrower = e.getOwner();
         this.itemHandler.setStackInSlot(1, duplicate);
         if (e.getItem().getItem() == ModItems.SEED_MIXTURE.get() && !this.isTame()) {
-            seedThrowerID = e.getThrower();
+            seedThrowerID = itemThrower.getUUID();
         } else {
             seedThrowerID = null;
         }
@@ -1566,7 +1571,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
     @Override
     public boolean isFlying() {
-        return !onGround;
+        return !onGround();
     }
 
     public boolean canSitOnShoulder() {
@@ -1715,7 +1720,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if(randomPos == null)
                     randomPos = LandRandomPos.getPos(CrowEntity.this, 10, 7);
                 if(randomPos != null)
-                    pos = new BlockPos(randomPos.x, randomPos.y, randomPos.z);
+                    pos = new BlockPos((int)randomPos.x, (int)randomPos.y, (int)randomPos.z);
                 else if(CrowEntity.this.getPerchPos() != null)
                     pos = CrowEntity.this.getPerchPos().above().above();
                 else
@@ -1861,7 +1866,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 return false;
             }
             if (!this.mustUpdate) {
-                long worldTime = CrowEntity.this.level.getGameTime() % 10;
+                long worldTime = CrowEntity.this.level().getGameTime() % 10;
                 if (this.mob.getNoActionTime() >= 100 && worldTime != 0) {
                     return false;
                 }
@@ -1870,7 +1875,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 }
             }
 
-            List<ItemEntity> list = this.mob.level.getEntitiesOfClass(ItemEntity.class, this.getTargetableArea(CrowEntity.this.interactionRange + 1), this.targetEntitySelector);
+            List<ItemEntity> list = this.mob.level().getEntitiesOfClass(ItemEntity.class, this.getTargetableArea(CrowEntity.this.interactionRange + 1), this.targetEntitySelector);
             if (list.isEmpty()) {
                 return false;
             } else {
@@ -1951,7 +1956,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if(randomPos == null)
                     randomPos = LandRandomPos.getPos(CrowEntity.this, 10, 7);
                 if(randomPos != null)
-                    pos = new BlockPos(randomPos.x, randomPos.y, randomPos.z);
+                    pos = new BlockPos((int)randomPos.x, (int)randomPos.y, (int)randomPos.z);
                 else if(CrowEntity.this.getPerchPos() != null)
                     pos = CrowEntity.this.getPerchPos().above().above();
                 else
@@ -1959,7 +1964,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
 
                 CrowEntity.this.navigation.stop();
-                if (CrowEntity.this.distanceToSqr(CrowEntity.this.lastStuckCheckPos) < 0.1D && CrowEntity.this.isOnGround()) {
+                if (CrowEntity.this.distanceToSqr(CrowEntity.this.lastStuckCheckPos) < 0.1D && CrowEntity.this.onGround()) {
 //                    CrowEntity.this.push(0,2,0);
                     CrowEntity.this.push(Math.min(0.2f,(pos.getX() - CrowEntity.this.position().x) / 20.0f), 0.15f, Math.min(0.2f,(pos.getZ() - CrowEntity.this.position().z) / 20.0f));
                     CrowEntity.this.navigation.moveTo(CrowEntity.this.getNavigation().createPath(pos, 0), 1.5f);
@@ -1979,13 +1984,13 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             } else {
                 moveTo();
             }
-            if (targetEntity != null && this.mob.hasLineOfSight(targetEntity) && this.mob.getBbWidth() > hunter.getMaxDistToItem() && this.mob.isOnGround()) {
+            if (targetEntity != null && this.mob.hasLineOfSight(targetEntity) && this.mob.getBbWidth() > hunter.getMaxDistToItem() && this.mob.onGround()) {
                 this.mob.getMoveControl().setWantedPosition(targetEntity.getX(), targetEntity.getY() + 0.5f, targetEntity.getZ(), 1.5f);
             }
             if (this.targetEntity != null && this.targetEntity.isAlive() && this.mob.distanceToSqr(this.targetEntity) < this.hunter.getMaxDistToItem() && CrowEntity.this.itemHandler.getStackInSlot(1).isEmpty()) {
                 if (!((CrowEntity) hunter).peck) {
                     hunter.peck();
-                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> ((CrowEntity) hunter).level.getChunkAt(((CrowEntity) hunter).blockPosition())), new CrowPeckPacket(this.mob));
+                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> ((CrowEntity) hunter).level().getChunkAt(((CrowEntity) hunter).blockPosition())), new CrowPeckPacket(this.mob));
                 }
 
 
@@ -2004,7 +2009,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if (this.mob.distanceTo(targetEntity) <= getMaxDistToItem()) {
                     crow.getMoveControl().setWantedPosition(this.targetEntity.getX(), targetEntity.getY() + 0.5f, this.targetEntity.getZ(), 1.5f);
 //                    crow.peck();
-//                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(this.mob));
+//                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(this.mob));
                 }
                 if(!crow.isInSittingPose())
                     this.mob.getNavigation().moveTo(CrowEntity.this.getNavigation().createPath(this.targetEntity.getX(), this.targetEntity.getY() + 0.5f, this.targetEntity.getZ(), 0), 1.5f);
@@ -2105,8 +2110,8 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
                     this.isSittingOnShoulder = this.entity.startRiding(this.owner, true);
 
-                    if(!level.isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowStartRidingPacket(this.entity, this.owner));
+                    if(!level().isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowStartRidingPacket(this.entity, this.owner));
                 }
 
             }
@@ -2168,25 +2173,25 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 }
                 if (blockstate.is(HexereiTags.Blocks.CROW_BLOCK_HARVESTABLE)) {
                     if (blockstate.getBlock() instanceof StemGrownBlock) {
-                        if (level.getBlockState(pos.north()).getBlock() instanceof AttachedStemBlock stemBlock)
-                            if (stemBlock.fruit == level.getBlockState(pos).getBlock())
+                        if (level().getBlockState(pos.north()).getBlock() instanceof AttachedStemBlock stemBlock)
+                            if (stemBlock.fruit == level().getBlockState(pos).getBlock())
                                 return true;
-                        if (level.getBlockState(pos.south()).getBlock() instanceof AttachedStemBlock stemBlock)
-                            if (stemBlock.fruit == level.getBlockState(pos).getBlock())
+                        if (level().getBlockState(pos.south()).getBlock() instanceof AttachedStemBlock stemBlock)
+                            if (stemBlock.fruit == level().getBlockState(pos).getBlock())
                                 return true;
-                        if (level.getBlockState(pos.east()).getBlock() instanceof AttachedStemBlock stemBlock)
-                            if (stemBlock.fruit == level.getBlockState(pos).getBlock())
+                        if (level().getBlockState(pos.east()).getBlock() instanceof AttachedStemBlock stemBlock)
+                            if (stemBlock.fruit == level().getBlockState(pos).getBlock())
                                 return true;
-                        if (level.getBlockState(pos.west()).getBlock() instanceof AttachedStemBlock stemBlock)
-                            if (stemBlock.fruit == level.getBlockState(pos).getBlock())
+                        if (level().getBlockState(pos.west()).getBlock() instanceof AttachedStemBlock stemBlock)
+                            if (stemBlock.fruit == level().getBlockState(pos).getBlock())
                                 return true;
                         return false;
                     }
                     if (ForgeRegistries.BLOCKS.getKey(blockstate.getBlock()).toString().equals("immersiveengineering:hemp")) {
-                        return level.getBlockState(pos.below()).is(blockstate.getBlock());
+                        return level().getBlockState(pos.below()).is(blockstate.getBlock());
                     }
                     if (blockstate.getBlock() instanceof SugarCaneBlock) {
-                        return level.getBlockState(pos.below()).is(blockstate.getBlock()) && !level.getBlockState(pos.below().below()).is(blockstate.getBlock());
+                        return level().getBlockState(pos.below()).is(blockstate.getBlock()) && !level().getBlockState(pos.below().below()).is(blockstate.getBlock());
                     } else
                         return true;
                 }
@@ -2209,9 +2214,9 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
             ++this.tryTicks;
             if (this.shouldRecalculatePath()) {
-                if(blockpos.closerThan(new Vec3i(CrowEntity.this.position().x,CrowEntity.this.position().y, CrowEntity.this.position().z), 3) && CrowEntity.this.position().y < blockpos.getY()) {
+                if(blockpos.closerThan(new Vec3i((int)CrowEntity.this.position().x, (int)CrowEntity.this.position().y, (int)CrowEntity.this.position().z), 3) && CrowEntity.this.position().y < blockpos.getY()) {
                     CrowEntity.this.setNoGravity(false);
-                    if(CrowEntity.this.isOnGround())
+                    if(CrowEntity.this.onGround())
                         CrowEntity.this.push((blockpos.getX() - CrowEntity.this.position().x) / 50.0f, (blockpos.getY() - CrowEntity.this.position().y) / 50.0f + 0.25f, (blockpos.getZ() - CrowEntity.this.position().z) / 50.0f);
                     else
                         CrowEntity.this.push((blockpos.getX() - CrowEntity.this.position().x) / 50.0f, (blockpos.getY() - CrowEntity.this.position().y) / 50.0f + 0.1f, (blockpos.getZ() - CrowEntity.this.position().z) / 50.0f);
@@ -2225,18 +2230,18 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
 
         protected void onReachedTarget() {
-            if (net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(CrowEntity.this.level, CrowEntity.this)) {
-                BlockState blockstate = CrowEntity.this.level.getBlockState(this.blockPos);
+            if (net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(CrowEntity.this.level(), CrowEntity.this)) {
+                BlockState blockstate = CrowEntity.this.level().getBlockState(this.blockPos);
                 if(blockstate.is(HexereiTags.Blocks.CROW_HARVESTABLE)){
                     if (blockstate.is(Blocks.SWEET_BERRY_BUSH)) {
                         this.pickSweetBerries(blockstate);
                         CrowEntity.this.peck();
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
                     } else if (CaveVines.hasGlowBerries(blockstate)) {
                         this.pickGlowBerry(blockstate);
                         CrowEntity.this.peck();
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
-                    } else if (blockstate.getBlock() instanceof PickableDoubleFlower && !CrowEntity.this.level.isClientSide) {
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                    } else if (blockstate.getBlock() instanceof PickableDoubleFlower && !CrowEntity.this.level().isClientSide) {
 
                         ItemStack firstOutput = new ItemStack(((PickableDoubleFlower) blockstate.getBlock()).firstOutput.get(), 4);
                         ItemStack secondOutput = ItemStack.EMPTY;
@@ -2246,23 +2251,23 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                         int k = 0;
                         if (((PickableDoubleFlower) blockstate.getBlock()).secondOutput != null)
                             k = Math.max(1, random.nextInt(secondOutput.getCount()));
-                        Block.popResource(level, this.blockPos, new ItemStack(firstOutput.getItem(), Math.max(1, (int) Math.floor(j))));
+                        Block.popResource(level(), this.blockPos, new ItemStack(firstOutput.getItem(), Math.max(1, (int) Math.floor(j))));
                         if (random.nextInt(2) == 0 && ((PickableDoubleFlower) blockstate.getBlock()).secondOutput != null)
-                            Block.popResource(level, this.blockPos, new ItemStack(secondOutput.getItem(), Math.max(1, (int) Math.floor(k))));
+                            Block.popResource(level(), this.blockPos, new ItemStack(secondOutput.getItem(), Math.max(1, (int) Math.floor(k))));
 
                         if (blockstate.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER) {
-                            CrowEntity.this.level.setBlock(this.blockPos, level.getBlockState(this.blockPos).setValue(BlockStateProperties.AGE_3, 0), 2);
-                            CrowEntity.this.level.setBlock(this.blockPos.above(), level.getBlockState(this.blockPos.above()).setValue(BlockStateProperties.AGE_3, 0), 2);
+                            CrowEntity.this.level().setBlock(this.blockPos, level().getBlockState(this.blockPos).setValue(BlockStateProperties.AGE_3, 0), 2);
+                            CrowEntity.this.level().setBlock(this.blockPos.above(), level().getBlockState(this.blockPos.above()).setValue(BlockStateProperties.AGE_3, 0), 2);
                         }
                         if (blockstate.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
-                            CrowEntity.this.level.setBlock(this.blockPos.below(), level.getBlockState(this.blockPos.below()).setValue(BlockStateProperties.AGE_3, 0), 2);
-                            CrowEntity.this.level.setBlock(this.blockPos, level.getBlockState(this.blockPos).setValue(BlockStateProperties.AGE_3, 0), 2);
+                            CrowEntity.this.level().setBlock(this.blockPos.below(), level().getBlockState(this.blockPos.below()).setValue(BlockStateProperties.AGE_3, 0), 2);
+                            CrowEntity.this.level().setBlock(this.blockPos, level().getBlockState(this.blockPos).setValue(BlockStateProperties.AGE_3, 0), 2);
                         }
                         CrowEntity.this.peck();
                         CrowEntity.this.playSound(SoundEvents.CAVE_VINES_PICK_BERRIES, 1.0F, 1.0F);
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
 
-                    } else if (blockstate.getBlock() instanceof PickableFlower && !CrowEntity.this.level.isClientSide) {
+                    } else if (blockstate.getBlock() instanceof PickableFlower && !CrowEntity.this.level().isClientSide) {
 
                         ItemStack firstOutput = new ItemStack(((PickableFlower) blockstate.getBlock()).firstOutput.get(), 4);
                         ItemStack secondOutput = ItemStack.EMPTY;
@@ -2272,51 +2277,51 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                         int k = 0;
                         if (((PickableFlower) blockstate.getBlock()).secondOutput != null)
                             k = Math.max(1, random.nextInt(secondOutput.getCount()));
-                        ((PickableFlower) blockstate.getBlock()).popResource(level, this.blockPos, new ItemStack(firstOutput.getItem(), Math.max(1, (int) Math.floor(j))));
+                        ((PickableFlower) blockstate.getBlock()).popResource(level(), this.blockPos, new ItemStack(firstOutput.getItem(), Math.max(1, (int) Math.floor(j))));
                         if (random.nextInt(2) == 0 && ((PickableFlower) blockstate.getBlock()).secondOutput != null)
-                            ((PickableFlower) blockstate.getBlock()).popResource(level, this.blockPos, new ItemStack(secondOutput.getItem(), Math.max(1, (int) Math.floor(k))));
+                            ((PickableFlower) blockstate.getBlock()).popResource(level(), this.blockPos, new ItemStack(secondOutput.getItem(), Math.max(1, (int) Math.floor(k))));
 
-                        CrowEntity.this.level.setBlock(this.blockPos, blockstate.setValue(BlockStateProperties.AGE_3, 0), 2);
+                        CrowEntity.this.level().setBlock(this.blockPos, blockstate.setValue(BlockStateProperties.AGE_3, 0), 2);
 
                         CrowEntity.this.peck();
                         CrowEntity.this.playSound(SoundEvents.CAVE_VINES_PICK_BERRIES, 1.0F, 1.0F);
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
 
-                    } else if (!CrowEntity.this.level.isClientSide) {
-                        List<ItemStack> drops = blockstate.getBlock().getDrops(blockstate, (ServerLevel) CrowEntity.this.level, this.blockPos, CrowEntity.this.level.getBlockEntity(this.blockPos));
+                    } else if (!CrowEntity.this.level().isClientSide) {
+                        List<ItemStack> drops = blockstate.getBlock().getDrops(blockstate, (ServerLevel) CrowEntity.this.level(), this.blockPos, CrowEntity.this.level().getBlockEntity(this.blockPos));
                         for (ItemStack drop : drops) {
 
                             if (blockstate.hasProperty(BlockStateProperties.AGE_3)) {
-                                CrowEntity.this.level.addFreshEntity(new ItemEntity(CrowEntity.this.level, this.blockPos.getX() + 0.5f, this.blockPos.getY() + 0.25f, this.blockPos.getZ() + 0.5f, drop));
-                                CrowEntity.this.level.setBlock(this.blockPos, blockstate.setValue(BlockStateProperties.AGE_3, 0), 2);
+                                CrowEntity.this.level().addFreshEntity(new ItemEntity(CrowEntity.this.level(), this.blockPos.getX() + 0.5f, this.blockPos.getY() + 0.25f, this.blockPos.getZ() + 0.5f, drop));
+                                CrowEntity.this.level().setBlock(this.blockPos, blockstate.setValue(BlockStateProperties.AGE_3, 0), 2);
                             }
                             if (blockstate.hasProperty(BlockStateProperties.AGE_7)) {
-                                CrowEntity.this.level.addFreshEntity(new ItemEntity(CrowEntity.this.level, this.blockPos.getX() + 0.5f, this.blockPos.getY() + 0.25f, this.blockPos.getZ() + 0.5f, drop));
-                                CrowEntity.this.level.setBlock(this.blockPos, blockstate.setValue(BlockStateProperties.AGE_7, 0), 2);
+                                CrowEntity.this.level().addFreshEntity(new ItemEntity(CrowEntity.this.level(), this.blockPos.getX() + 0.5f, this.blockPos.getY() + 0.25f, this.blockPos.getZ() + 0.5f, drop));
+                                CrowEntity.this.level().setBlock(this.blockPos, blockstate.setValue(BlockStateProperties.AGE_7, 0), 2);
                             }
                             CrowEntity.this.peck();
                             CrowEntity.this.playSound(SoundEvents.CROP_BREAK, 1.0F, 1.0F);
-                            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
 
                         }
                     }
                 }
                 else if(blockstate.is(HexereiTags.Blocks.CROW_BLOCK_HARVESTABLE)){
-                    LootContext.Builder builder = (new LootContext.Builder((ServerLevel) level)).withRandom(level.getRandom()).withParameter(LootContextParams.ORIGIN, position()).withParameter(LootContextParams.TOOL, new ItemStack(Items.IRON_HOE));
+                    LootParams.Builder lootparams = (new LootParams.Builder((ServerLevel) level())).withParameter(LootContextParams.ORIGIN, position()).withParameter(LootContextParams.TOOL, new ItemStack(Items.IRON_HOE));
 
-                    for(ItemStack stack : blockstate.getDrops(builder)){
-                        Block.popResource(level, this.blockPos, stack);
+                    for(ItemStack stack : blockstate.getDrops(lootparams)){
+                        Block.popResource(level(), this.blockPos, stack);
 
                         CrowEntity.this.playSound(blockstate.getSoundType().getBreakSound(), 1.0F, 1.0F);
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
                     }
-                    level.setBlock(this.blockPos, Blocks.AIR.defaultBlockState(), 3);
+                    level().setBlock(this.blockPos, Blocks.AIR.defaultBlockState(), 3);
                 }
             }
         }
 
         private void pickGlowBerry(BlockState p_148927_) {
-            CaveVines.use(p_148927_, CrowEntity.this.level, this.blockPos);
+            CaveVines.use(CrowEntity.this, p_148927_, CrowEntity.this.level(), this.blockPos);
         }
 
         private void pickSweetBerries(BlockState p_148929_) {
@@ -2330,11 +2335,11 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             }
 
             if (j > 0) {
-                Block.popResource(CrowEntity.this.level, this.blockPos, new ItemStack(Items.SWEET_BERRIES, j));
+                Block.popResource(CrowEntity.this.level(), this.blockPos, new ItemStack(Items.SWEET_BERRIES, j));
             }
 
             CrowEntity.this.playSound(SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, 1.0F, 1.0F);
-            CrowEntity.this.level.setBlock(this.blockPos, p_148929_.setValue(SweetBerryBushBlock.AGE, 1), 2);
+            CrowEntity.this.level().setBlock(this.blockPos, p_148929_.setValue(SweetBerryBushBlock.AGE, 1), 2);
         }
 
         public boolean canUse() {
@@ -2419,7 +2424,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 return false;
             }
             if (!this.mustUpdate) {
-                long worldTime = CrowEntity.this.level.getGameTime() % 10;
+                long worldTime = CrowEntity.this.level().getGameTime() % 10;
                 if (CrowEntity.this.getNoActionTime() >= 100 && worldTime != 0) {
                     return false;
                 }
@@ -2445,7 +2450,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 this.entity.cofferHerbJarList.sort(this.theNearestAttackableTargetSorter);
                 boolean flag = false;
                 for(BlockPos pos : this.entity.cofferHerbJarList){
-                    this.targetEntity = level.getBlockEntity(pos);
+                    this.targetEntity = level().getBlockEntity(pos);
 
                     if(this.targetEntity == null)
                         break;
@@ -2458,7 +2463,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                                 break;
                             }
                         } else if(targetEntity instanceof HerbJarTile herbJarTile){
-                            if(herbJarTile.itemHandler.getStackInSlot(0).isEmpty() || (herbJarTile.itemHandler.getStackInSlot(0).getTag() == CrowEntity.this.itemHandler.getStackInSlot(1).getTag() && herbJarTile.itemHandler.getStackInSlot(0).sameItem(CrowEntity.this.itemHandler.getStackInSlot(1)))) {
+                            if(herbJarTile.itemHandler.getStackInSlot(0).isEmpty() || (herbJarTile.itemHandler.getStackInSlot(0).getTag() == CrowEntity.this.itemHandler.getStackInSlot(1).getTag() && ItemStack.isSameItem(herbJarTile.itemHandler.getStackInSlot(0), CrowEntity.this.itemHandler.getStackInSlot(1)))) {
                                 flag = true;
                                 break;
                             }
@@ -2542,14 +2547,14 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 if(randomPos == null)
                     randomPos = LandRandomPos.getPos(CrowEntity.this, 10, 7);
                 if(randomPos != null)
-                    pos = new BlockPos(randomPos.x, randomPos.y, randomPos.z);
+                    pos = new BlockPos((int) randomPos.x, (int) randomPos.y, (int) randomPos.z);
                 else if(CrowEntity.this.getPerchPos() != null)
                     pos = CrowEntity.this.getPerchPos().above().above();
                 else
                     pos = CrowEntity.this.blockPosition().above().above();
 
                 CrowEntity.this.navigation.stop();
-                if (CrowEntity.this.distanceToSqr(CrowEntity.this.lastStuckCheckPos) < 0.1D && CrowEntity.this.isOnGround()) {
+                if (CrowEntity.this.distanceToSqr(CrowEntity.this.lastStuckCheckPos) < 0.1D && CrowEntity.this.onGround()) {
 //                    CrowEntity.this.push(0,2,0);
                     CrowEntity.this.push(Math.min(0.2f,(pos.getX() - CrowEntity.this.position().x) / 20.0f), 0.15f, Math.min(0.2f,(pos.getZ() - CrowEntity.this.position().z) / 20.0f));
                     CrowEntity.this.navigation.moveTo(CrowEntity.this.getNavigation().createPath(pos, 0), 1.5f);
@@ -2568,7 +2573,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             ++this.tryTicks;
             if (this.shouldRecalculatePath()) {
                 this.entity.getNavigation().moveTo(this.entity.getNavigation().createPath(this.targetEntity.getBlockPos().getX() + 0.5, targetEntity.getBlockPos().getY() + 0.5f, this.targetEntity.getBlockPos().getZ() + 0.5, 0), 1.5f);
-                if(targetEntity.getBlockPos().closerThan(new Vec3i(CrowEntity.this.position().x,CrowEntity.this.position().y, CrowEntity.this.position().z), 3) && CrowEntity.this.position().y < targetEntity.getBlockPos().getY()) {
+                if(targetEntity.getBlockPos().closerThan(new Vec3i((int) CrowEntity.this.position().x, (int) CrowEntity.this.position().y, (int) CrowEntity.this.position().z), 3) && CrowEntity.this.position().y < targetEntity.getBlockPos().getY()) {
                     CrowEntity.this.setNoGravity(false);
                     CrowEntity.this.push((this.targetEntity.getBlockPos().getX() - CrowEntity.this.position().x) / 50.0f, (this.targetEntity.getBlockPos().getY() - CrowEntity.this.position().y) / 50.0f + 0.1f, (this.targetEntity.getBlockPos().getZ() - CrowEntity.this.position().z) / 50.0f);
                 }
@@ -2600,7 +2605,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                                     CrowEntity.this.itemHandler.setStackInSlot(1, shrunkenStack);
                                 }
                                 CrowEntity.this.peck();
-                                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
                             } else {
                                 cooldown = 20;
                             }
@@ -2681,7 +2686,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 return false;
 
             if (!this.mustUpdate) {
-                long worldTime = CrowEntity.this.level.getGameTime() % 10;
+                long worldTime = CrowEntity.this.level().getGameTime() % 10;
                 if (CrowEntity.this.getNoActionTime() >= 100 && worldTime != 0) {
                     return false;
                 }
@@ -2760,19 +2765,19 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                     if (CrowEntity.this.distanceToSqr(targetEntity.position().x, targetEntity.position().y + 0.75f, targetEntity.position().z) < this.entity.getMaxDistToItem() * 2) {
                         this.entity.lookAt(targetEntity, 10.0F, (float) this.entity.getMaxHeadXRot());
                         CrowEntity.this.peck();
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
 
                         CrowEntity.this.pickpocketTimer = HexConfig.CROW_PICKPOCKET_COOLDOWN.get();
                         BlockPos pos = RandomPos.generateRandomDirection(this.entity.getRandom(), 10, 1);
                         flightTarget = new Vec3(pos.getX() + CrowEntity.this.position().x, pos.getY() + CrowEntity.this.position().y + 2.0f, pos.getZ() + CrowEntity.this.position().z);
 
 
-                        LootContext.Builder builder = (new LootContext.Builder((ServerLevel) level)).withRandom(level.getRandom()).withParameter(LootContextParams.THIS_ENTITY, targetEntity);
+                        LootParams.Builder builder = (new LootParams.Builder((ServerLevel) level())).withParameter(LootContextParams.THIS_ENTITY, targetEntity);
 
-                        LootContext ctx = builder.create(LootContextParamSet.builder().build());
+                        LootParams ctx = builder.create(LootContextParamSet.builder().build());
 
                         NonNullList<ItemStack> stacks = NonNullList.create();
-                        stacks.addAll(level.getServer().getLootTables().get(new ResourceLocation(Hexerei.MOD_ID + ":entities/crow_pickpocket_villager")).getRandomItems(ctx));
+                        stacks.addAll(level().getServer().getLootData().getLootTable(new ResourceLocation(Hexerei.MOD_ID + ":entities/crow_pickpocket_villager")).getRandomItems(ctx));
 
                         if(!stacks.isEmpty())
                             CrowEntity.this.itemHandler.setStackInSlot(1, stacks.get(0));
@@ -2860,7 +2865,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
         public FollowOwnerGoal(TamableAnimal p_25294_, double p_25295_, float p_25296_, float p_25297_, boolean p_25298_) {
             this.tamable = p_25294_;
-            this.level = p_25294_.level;
+            this.level = p_25294_.level();
             this.speedModifier = p_25295_;
             this.navigation = p_25294_.getNavigation();
             this.startDistance = p_25296_;
@@ -3013,7 +3018,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             } else if (CrowEntity.this.isOrderedToSit() || CrowEntity.this.isInSittingPose()) {
                 return false;
             } else {
-                List<? extends Animal> list = this.animal.level.getEntitiesOfClass(this.animal.getClass(), this.animal.getBoundingBox().inflate(8.0D, 4.0D, 8.0D));
+                List<? extends Animal> list = this.animal.level().getEntitiesOfClass(this.animal.getClass(), this.animal.getBoundingBox().inflate(8.0D, 4.0D, 8.0D));
                 Animal animal = null;
                 double d0 = Double.MAX_VALUE;
 
@@ -3106,7 +3111,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                     CrowEntity.this.setInSittingPose(false);
                     CrowEntity.this.setOrderedToSit(false);
                 }
-                this.player = this.mob.level.getNearestPlayer(this.targetingConditions, this.mob);
+                this.player = this.mob.level().getNearestPlayer(this.targetingConditions, this.mob);
                 return this.player != null;
             }
         }
@@ -3203,7 +3208,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
         public boolean canUse() {
             if(!CrowEntity.this.canAttack)
                 return false;
-            long i = this.mob.level.getGameTime();
+            long i = this.mob.level().getGameTime();
             if (i - this.lastCanUseCheck < 20L) {
                 return false;
             } else {
@@ -3335,7 +3340,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 this.mob.swing(InteractionHand.MAIN_HAND);
                 doHurtTarget(p_25557_);
                 CrowEntity.this.peck();
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> CrowEntity.this.level.getChunkAt(CrowEntity.this.blockPosition())), new CrowPeckPacket(this.mob));
+                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> CrowEntity.this.level().getChunkAt(CrowEntity.this.blockPosition())), new CrowPeckPacket(this.mob));
             }
 
         }
@@ -3354,7 +3359,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 p_21372_.setSecondsOnFire(i * 4);
             }
 
-            boolean flag = p_21372_.hurt(DamageSource.mobAttack(CrowEntity.this), f);
+            boolean flag = p_21372_.hurt(CrowEntity.this.damageSources().mobAttack(CrowEntity.this), f);
             if (flag) {
                 if (f1 > 0.0F && p_21372_ instanceof LivingEntity) {
                     ((LivingEntity) p_21372_).knockback(f1 * 0.5F, Mth.sin(CrowEntity.this.getYRot() * ((float) Math.PI / 180F)), -Mth.cos(CrowEntity.this.getYRot() * ((float) Math.PI / 180F)));
@@ -3377,7 +3382,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 float f = 0.25F + (float)EnchantmentHelper.getBlockEfficiency(CrowEntity.this) * 0.05F;
                 if (CrowEntity.this.random.nextFloat() < f) {
                     p_21425_.getCooldowns().addCooldown(Items.SHIELD, 100);
-                    CrowEntity.this.level.broadcastEntityEvent(p_21425_, (byte)30);
+                    CrowEntity.this.level().broadcastEntityEvent(p_21425_, (byte)30);
                 }
             }
 
@@ -3525,7 +3530,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
         public boolean canContinueToUse() {
             if(CrowEntity.this.getPerchPos() != null) {
-                double topOffset = CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level, CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                double topOffset = CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level(), CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
                 if (!(this.distanceTo(CrowEntity.this.getPerchPos().getX(), CrowEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= CrowEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < CrowEntity.this.getPerchPos().above().getY() + topOffset)) {
                     CrowEntity.this.setOrderedToSit(false);
                     return false;
@@ -3542,7 +3547,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 return false;
             } else if (this.mob.isInWaterOrBubble()) {
                 return false;
-            } else if (!this.mob.isOnGround()) {
+            } else if (!this.mob.onGround()) {
                 return false;
             } else {
                 LivingEntity livingentity = this.mob.getOwner();
@@ -3551,7 +3556,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 } else {
                     if(CrowEntity.this.getPerchPos() != null)
                     {
-                        double topOffset = CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level, CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                        double topOffset = CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level(), CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
                         if (!(this.distanceTo(CrowEntity.this.getPerchPos().getX(), CrowEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= CrowEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < CrowEntity.this.getPerchPos().above().getY() + topOffset)) {
                             return false;
                         }
@@ -3598,7 +3603,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
         public BreedGoal(Animal p_25125_, double p_25126_, Class<? extends Animal> p_25127_) {
             this.animal = p_25125_;
-            this.level = p_25125_.level;
+            this.level = p_25125_.level();
             this.partnerClass = p_25127_;
             this.speedModifier = p_25126_;
             this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
@@ -3652,7 +3657,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
 
                     CrowEntity.this.waitToGiveTime++;
 
-                    if (CrowEntity.this.waitToGiveTime > 20 && CrowEntity.this.isOnGround() && CrowEntity.this.itemHandler.getStackInSlot(1).is(Items.GOLD_NUGGET)) {
+                    if (CrowEntity.this.waitToGiveTime > 20 && CrowEntity.this.onGround() && CrowEntity.this.itemHandler.getStackInSlot(1).is(Items.GOLD_NUGGET)) {
 
                         ((CrowEntity) this.partner).setCommandFollow();
                         CrowEntity.this.waitToGiveTime = 0;
@@ -3665,8 +3670,8 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                         ItemStack stack2 = CrowEntity.this.itemHandler.getStackInSlot(1).copy();
                         ((CrowEntity) this.partner).itemHandler.setStackInSlot(1, stack2);
                         CrowEntity.this.itemHandler.setStackInSlot(1, ItemStack.EMPTY);
-                        ItemEntity itemEntity = new ItemEntity(this.partner.getLevel(), this.partner.position().x, this.partner.position().y, this.partner.position().z, stack);
-                        this.partner.getLevel().addFreshEntity(itemEntity);
+                        ItemEntity itemEntity = new ItemEntity(this.partner.level(), this.partner.position().x, this.partner.position().y, this.partner.position().z, stack);
+                        this.partner.level().addFreshEntity(itemEntity);
 
                         if (CrowEntity.this.breedNuggetGivenByPlayerUUID != null && level.getPlayerByUUID(CrowEntity.this.breedNuggetGivenByPlayerUUID) != null) {
                             ((CrowEntity) this.partner).breedNuggetGivenByPlayerUUID = CrowEntity.this.breedNuggetGivenByPlayerUUID;
@@ -3840,7 +3845,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             }
             double topOffset = 0;
             if(CrowEntity.this.getPerchPos() != null)
-                topOffset = CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level, CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                topOffset = CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level(), CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
             if(this.distanceTo(CrowEntity.this.getPerchPos().getX(), CrowEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= CrowEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < CrowEntity.this.getPerchPos().above().getY() + topOffset) {
                     return false;
             }
@@ -3929,7 +3934,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                             return true;
                     }
 
-                    double topOffset = CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level, CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                    double topOffset = CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level(), CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
                     if(this.distanceTo(CrowEntity.this.getPerchPos().getX(), CrowEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= CrowEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < CrowEntity.this.getPerchPos().above().getY() + topOffset) {
                         if(CrowEntity.this.isInSittingPose())
                             return false;
@@ -3952,7 +3957,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                 return;
             double topOffset = 0;
             if(CrowEntity.this.getPerchPos() != null)
-                topOffset = CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level, CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                topOffset = CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level(), CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
 
             boolean isStuck = false;
             if(CrowEntity.this.stuckTimer++ > 80)
@@ -3973,7 +3978,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                     pos = CrowEntity.this.blockPosition().above().above();
 
                 CrowEntity.this.navigation.stop();
-                if (CrowEntity.this.distanceToSqr(CrowEntity.this.lastStuckCheckPos) < 0.1D && CrowEntity.this.isOnGround()) {
+                if (CrowEntity.this.distanceToSqr(CrowEntity.this.lastStuckCheckPos) < 0.1D && CrowEntity.this.onGround()) {
 //                    CrowEntity.this.push(0,2,0);
                     CrowEntity.this.push(Math.min(0.2f,(pos.getX() - CrowEntity.this.position().x) / 20.0f), 0.15f, Math.min(0.2f,(pos.getZ() - CrowEntity.this.position().z) / 20.0f));
                     CrowEntity.this.navigation.moveTo(CrowEntity.this.getNavigation().createPath(pos, 0), 1.5f);
@@ -4011,7 +4016,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
             CrowEntity.this.aiItemFlag = false;
             CrowEntity.this.doingTask = false;
             if(CrowEntity.this.getPerchPos() != null){
-                double topOffset = CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level.getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level, CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                double topOffset = CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()).getBlock().getOcclusionShape(CrowEntity.this.level().getBlockState(CrowEntity.this.getPerchPos()), CrowEntity.this.level(), CrowEntity.this.getPerchPos()).max(Direction.Axis.Y);
                 if (this.distanceTo(CrowEntity.this.getPerchPos().getX(), CrowEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= CrowEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < CrowEntity.this.getPerchPos().above().getY() + topOffset) {
 //                CrowEntity.this.setCommandSit();
                     CrowEntity.this.setInSittingPose(true);
