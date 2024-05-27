@@ -38,7 +38,7 @@ public class BroomEnderSatchelBrushParticlePacket {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             ((BroomEntity)world.getEntity(packet.sourceId)).transferBrushParticles();

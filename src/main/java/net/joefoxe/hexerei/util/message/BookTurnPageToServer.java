@@ -49,7 +49,7 @@ public class BookTurnPageToServer {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             ((BookOfShadowsAltarTile)world.getBlockEntity(packet.bookAltar)).setTurnPage(packet.turnPage, packet.chapter, packet.page);

@@ -44,7 +44,7 @@ public class AskForMapDataPacket {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
             HoldingPlayer holdingPlayer = HoldingPlayer.create(ctx.get().getSender());
             MapItemSavedData.MapPatch mapitemsaveddata$mappatch;

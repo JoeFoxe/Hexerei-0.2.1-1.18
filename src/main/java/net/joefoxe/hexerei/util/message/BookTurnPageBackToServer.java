@@ -41,7 +41,7 @@ public class BookTurnPageBackToServer {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             ((HerbJarTile)world.getBlockEntity(packet.herbJarTile)).setButtonToggled(packet.toggled);

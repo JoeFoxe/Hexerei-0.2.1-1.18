@@ -41,7 +41,7 @@ public class CrowSyncPacket {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             if(world.getEntity(packet.sourceId) instanceof CrowEntity crow) {
