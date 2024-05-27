@@ -1,11 +1,10 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.Hexerei;
-import net.minecraft.core.Registry;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -66,7 +65,7 @@ public class ModRecipeTypes {
 
     public static final RegistryObject<RecipeType<CutCandleRecipe>> CUT_CANDLE_TYPE = RECIPE_TYPES.register("cut_candle", ModRecipeType::new);
     public static final RegistryObject<RecipeSerializer<CutCandleRecipe>> CUT_CANDLE_SERIALIZER =
-            RECIPE_SERIALIZERS.register("cut_candle", () -> new SimpleRecipeSerializer<>(CutCandleRecipe::new));
+            RECIPE_SERIALIZERS.register("cut_candle", () -> new SimpleCraftingRecipeSerializer<>(CutCandleRecipe::new));
 
 
 
@@ -76,7 +75,7 @@ public class ModRecipeTypes {
 
     public static final RegistryObject<RecipeType<FillWaxingKitRecipe>> FILL_WAXING_KIT_TYPE = RECIPE_TYPES.register("fill_waxing_kit", ModRecipeType::new);
     public static final RegistryObject<RecipeSerializer<FillWaxingKitRecipe>> FILL_WAXING_KIT_SERIALIZER =
-            RECIPE_SERIALIZERS.register("fill_waxing_kit", () -> new SimpleRecipeSerializer<>(FillWaxingKitRecipe::new));
+            RECIPE_SERIALIZERS.register("fill_waxing_kit", () -> new SimpleCraftingRecipeSerializer<>(FillWaxingKitRecipe::new));
 
 
     public static final RegistryObject<RecipeType<CrowFluteRecipe>> CROW_FLUTE_DYE_TYPE = RECIPE_TYPES.register("crow_flute_dye", ModRecipeType::new);
@@ -86,19 +85,19 @@ public class ModRecipeTypes {
     public static final RegistryObject<RecipeSerializer<BookOfShadowsRecipe>> BOOK_OF_SHADOWS_DYE_SERIALIZER = RECIPE_SERIALIZERS.register("book_of_shadows_dye", BookOfShadowsRecipe.Serializer::new);
 
     public static final RegistryObject<RecipeType<KeychainRecipe>> KEYCHAIN_APPLY_TYPE = RECIPE_TYPES.register("keychain_apply", ModRecipeType::new);
-    public static final RegistryObject<RecipeSerializer<KeychainRecipe>> KEYCHAIN_APPLY_SERIALIZER = RECIPE_SERIALIZERS.register("keychain_apply", () -> new SimpleRecipeSerializer<>(KeychainRecipe::new));
+    public static final RegistryObject<RecipeSerializer<KeychainRecipe>> KEYCHAIN_APPLY_SERIALIZER = RECIPE_SERIALIZERS.register("keychain_apply", () -> new SimpleCraftingRecipeSerializer<>(KeychainRecipe::new));
 
     public static final RegistryObject<RecipeType<KeychainUndoRecipe>> KEYCHAIN_UNDO_TYPE = RECIPE_TYPES.register("keychain_undo", ModRecipeType::new);
-    public static final RegistryObject<RecipeSerializer<KeychainUndoRecipe>> KEYCHAIN_UNDO_SERIALIZER = RECIPE_SERIALIZERS.register("keychain_undo", () -> new SimpleRecipeSerializer<>(KeychainUndoRecipe::new));
+    public static final RegistryObject<RecipeSerializer<KeychainUndoRecipe>> KEYCHAIN_UNDO_SERIALIZER = RECIPE_SERIALIZERS.register("keychain_undo", () -> new SimpleCraftingRecipeSerializer<>(KeychainUndoRecipe::new));
 
     public static final RegistryObject<RecipeType<WhistleBindRecipe>> WHISTLE_BIND_TYPE = RECIPE_TYPES.register("whistle_bind", ModRecipeType::new);
-    public static final RegistryObject<RecipeSerializer<WhistleBindRecipe>> WHISTLE_BIND_SERIALIZER = RECIPE_SERIALIZERS.register("whistle_bind", () -> new SimpleRecipeSerializer<>(WhistleBindRecipe::new));
+    public static final RegistryObject<RecipeSerializer<WhistleBindRecipe>> WHISTLE_BIND_SERIALIZER = RECIPE_SERIALIZERS.register("whistle_bind", () -> new SimpleCraftingRecipeSerializer<>(WhistleBindRecipe::new));
 
     public static final RegistryObject<RecipeType<CrowAmuletRecipe>> CROW_AMULET_APPLY_TYPE = RECIPE_TYPES.register("crow_amulet_apply", ModRecipeType::new);
-    public static final RegistryObject<RecipeSerializer<CrowAmuletRecipe>> CROW_AMULET_APPLY_SERIALIZER = RECIPE_SERIALIZERS.register("crow_amulet_apply", () -> new SimpleRecipeSerializer<>(CrowAmuletRecipe::new));
+    public static final RegistryObject<RecipeSerializer<CrowAmuletRecipe>> CROW_AMULET_APPLY_SERIALIZER = RECIPE_SERIALIZERS.register("crow_amulet_apply", () -> new SimpleCraftingRecipeSerializer<>(CrowAmuletRecipe::new));
 
     public static final RegistryObject<RecipeType<CrowAmuletUndoRecipe>> CROW_AMULET_UNDO_TYPE = RECIPE_TYPES.register("crow_amulet_undo", ModRecipeType::new);
-    public static final RegistryObject<RecipeSerializer<CrowAmuletUndoRecipe>> CROW_AMULET_UNDO_SERIALIZER = RECIPE_SERIALIZERS.register("crow_amulet_undo", () -> new SimpleRecipeSerializer<>(CrowAmuletUndoRecipe::new));
+    public static final RegistryObject<RecipeSerializer<CrowAmuletUndoRecipe>> CROW_AMULET_UNDO_SERIALIZER = RECIPE_SERIALIZERS.register("crow_amulet_undo", () -> new SimpleCraftingRecipeSerializer<>(CrowAmuletUndoRecipe::new));
 
     public static final RegistryObject<RecipeType<WoodcutterRecipe>> WOODCUTTING_TYPE = RECIPE_TYPES.register("woodcutting", ModRecipeType::new);
 
@@ -106,7 +105,7 @@ public class ModRecipeTypes {
     private static class ModRecipeType<T extends Recipe<?>> implements RecipeType<T> {
         @Override
         public String toString() {
-            return Registry.RECIPE_TYPE.getKey(this).toString();
+            return ForgeRegistries.RECIPE_TYPES.getKey(this).toString();
         }
     }
     public static void register(IEventBus eventBus) {

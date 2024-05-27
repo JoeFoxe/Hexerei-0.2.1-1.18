@@ -3,9 +3,11 @@ package net.joefoxe.hexerei.data.recipes;
 import net.joefoxe.hexerei.item.custom.BroomItem;
 import net.joefoxe.hexerei.item.custom.WhistleItem;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -15,8 +17,8 @@ import java.util.UUID;
 
 public class WhistleBindRecipe extends CustomRecipe {
 
-    public WhistleBindRecipe(ResourceLocation registryName) {
-        super(registryName);
+    public WhistleBindRecipe(ResourceLocation registryName, CraftingBookCategory cBc) {
+        super(registryName, cBc);
 
     }
 
@@ -68,7 +70,7 @@ public class WhistleBindRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inventory) {
+    public ItemStack assemble(CraftingContainer inventory, RegistryAccess pRegistryAccess) {
         ItemStack whistleItem = ItemStack.EMPTY;
         UUID broomUUID = null;
 

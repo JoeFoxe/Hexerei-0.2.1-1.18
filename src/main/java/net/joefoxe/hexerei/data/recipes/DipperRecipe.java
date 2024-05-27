@@ -8,6 +8,7 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.fluid.FluidIngredient;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -87,7 +88,7 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack assemble(SimpleContainer inv) {
+    public ItemStack assemble(SimpleContainer inv, RegistryAccess registryAccess) {
         return output;
     }
 
@@ -97,7 +98,7 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack getResultItem() {
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
 
         return output.copy();
     }
@@ -184,7 +185,7 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
             buffer.writeInt(recipe.getIngredients().size());
             for (Ingredient ing : recipe.getIngredients())
                 ing.toNetwork(buffer);
-            buffer.writeItem(recipe.getResultItem());
+            buffer.writeItem(recipe.output);
 
             buffer.writeFluidStack(recipe.getLiquid());
 

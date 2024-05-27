@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.data.recipes;
 import com.google.gson.JsonObject;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,7 +24,7 @@ public class AddToCandleRecipe extends CustomRecipe {
     ItemStack output;
 
     public AddToCandleRecipe(ResourceLocation pId, NonNullList<Ingredient> inputs, ItemStack output) {
-        super(pId);
+        super(pId, CraftingBookCategory.MISC);
         NonNullList<Ingredient> newInputs = NonNullList.withSize(inputs.size() + 1, Ingredient.of(new ItemStack(ModItems.CANDLE.get())));
         for(int i = 0; i < inputs.size(); i++){
             newInputs.set(i + 1,inputs.get(i));
@@ -81,7 +82,7 @@ public class AddToCandleRecipe extends CustomRecipe {
     /**
      * Returns an Item that is the result of this recipe
      */
-    public ItemStack assemble(CraftingContainer pInv) {
+    public ItemStack assemble(CraftingContainer pInv, RegistryAccess registryAccess) {
         int i = 0;
         ItemStack candle = ItemStack.EMPTY;
 
@@ -125,7 +126,7 @@ public class AddToCandleRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack getResultItem() {
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
         return getOutput();
     }
 

@@ -2,17 +2,22 @@ package net.joefoxe.hexerei.data.recipes;
 
 import com.google.gson.JsonObject;
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleItemRecipe;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.Optional;
 
 public class WoodcutterRecipe extends SingleItemRecipe {
 
@@ -66,8 +71,12 @@ public class WoodcutterRecipe extends SingleItemRecipe {
 
             String result = GsonHelper.getAsString(pJson, "result");
             int count = GsonHelper.getAsInt(pJson, "count", 1);
-            ItemStack itemstack = new ItemStack(Registry.ITEM.get(new ResourceLocation(result)), count);
-            return new WoodcutterRecipe(pRecipeId, group, ingredient, itemstack, ingredient_count);
+            Optional<Holder<Item>> op = ForgeRegistries.ITEMS.getHolder(new ResourceLocation(result));
+            ItemStack itemStack = ItemStack.EMPTY;
+            if (op.isPresent()){
+                itemStack = new ItemStack(op.get().get(), count);
+            }
+            return new WoodcutterRecipe(pRecipeId, group, ingredient, itemStack, ingredient_count);
         }
 
         public WoodcutterRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer) {

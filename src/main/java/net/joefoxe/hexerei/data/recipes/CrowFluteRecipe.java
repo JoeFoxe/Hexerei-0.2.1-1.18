@@ -3,12 +3,14 @@ package net.joefoxe.hexerei.data.recipes;
 import com.google.gson.JsonObject;
 import net.joefoxe.hexerei.item.custom.CrowFluteItem;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -22,11 +24,11 @@ public class CrowFluteRecipe extends ShapedRecipe {
     ItemStack output;
 
     public CrowFluteRecipe(ShapedRecipe compose) {
-        super(compose.getId(), compose.getGroup(), compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem());
+        super(compose.getId(), compose.getGroup(), CraftingBookCategory.MISC, compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem(null));
 
 
         this.inputs = compose.getIngredients();
-        this.output = compose.getResultItem();
+        this.output = compose.getResultItem(null);
     }
 
     @Override
@@ -35,7 +37,7 @@ public class CrowFluteRecipe extends ShapedRecipe {
     }
     @Nonnull
     @Override
-    public ItemStack assemble(CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
         int first = -1;
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
@@ -61,7 +63,7 @@ public class CrowFluteRecipe extends ShapedRecipe {
 
 
     @Override
-    public ItemStack getResultItem() {
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
         return getOutput();
     }
 

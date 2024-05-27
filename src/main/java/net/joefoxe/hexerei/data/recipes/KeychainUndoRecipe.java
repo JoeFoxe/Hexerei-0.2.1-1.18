@@ -2,11 +2,13 @@ package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.custom.KeychainItem;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -14,8 +16,8 @@ import net.minecraft.world.level.Level;
 
 public class KeychainUndoRecipe extends CustomRecipe {
 
-    public KeychainUndoRecipe(ResourceLocation registryName) {
-        super(registryName);
+    public KeychainUndoRecipe(ResourceLocation registryName, CraftingBookCategory cBc) {
+        super(registryName, cBc);
 
     }
 
@@ -66,7 +68,7 @@ public class KeychainUndoRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inventory) {
+    public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
         ItemStack keychain = ItemStack.EMPTY;
 
         for (int i = 0; i < inventory.getContainerSize(); ++i) {

@@ -2,10 +2,12 @@ package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -17,8 +19,8 @@ import java.util.List;
 public class FillWaxingKitRecipe extends CustomRecipe {
 
     int waxUsed;
-    public FillWaxingKitRecipe(ResourceLocation pId) {
-        super(pId);
+    public FillWaxingKitRecipe(ResourceLocation pId, CraftingBookCategory cBc) {
+        super(pId, cBc);
         waxUsed = 0;
     }
 
@@ -53,7 +55,7 @@ public class FillWaxingKitRecipe extends CustomRecipe {
         return wax >= 1 && kit == 1 && (!kit_item.hasTag() || (!kit_item.getOrCreateTag().contains("waxCount") || kit_item.getOrCreateTag().getInt("waxCount") < 256));
     }
 
-    public ItemStack assemble(CraftingContainer pInv) {
+    public ItemStack assemble(CraftingContainer pInv, RegistryAccess registryAccess) {
         int kit_i = 0;
         int wax_i = 0;
         ItemStack kit = ItemStack.EMPTY;

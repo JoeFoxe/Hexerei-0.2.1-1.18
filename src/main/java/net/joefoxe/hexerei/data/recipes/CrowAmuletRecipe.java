@@ -1,22 +1,23 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.custom.CrowAmuletItem;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 import net.minecraft.world.level.Level;
 
 
 public class CrowAmuletRecipe extends CustomRecipe {
-    public static final SimpleRecipeSerializer<CrowAmuletRecipe> SERIALIZER = new SimpleRecipeSerializer<>(CrowAmuletRecipe::new);
+//    public static final SimpleCraftingRecipeSerializer<CrowAmuletRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(new CrowAmuletRecipe());
 
-    public CrowAmuletRecipe(ResourceLocation registryName) {
-        super(registryName);
+    public CrowAmuletRecipe(ResourceLocation registryName, CraftingBookCategory cBc) {
+        super(registryName, cBc);
 
 
     }
@@ -53,7 +54,7 @@ public class CrowAmuletRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inventory) {
+    public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
         ItemStack amulet = ItemStack.EMPTY;
         ItemStack other = ItemStack.EMPTY;
 
