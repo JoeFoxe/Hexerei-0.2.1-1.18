@@ -33,19 +33,19 @@ public class DarkCovenLegProcessor extends StructureProcessor {
     @ParametersAreNonnullByDefault
     @Override
     public StructureTemplate.StructureBlockInfo process(LevelReader worldReader, BlockPos jigsawPiecePos, BlockPos jigsawPieceBottomCenterPos, StructureTemplate.StructureBlockInfo blockInfoLocal, StructureTemplate.StructureBlockInfo blockInfoGlobal, StructurePlaceSettings structurePlacementData, @Nullable StructureTemplate template) {
-        if (blockInfoGlobal.state.getBlock() == Blocks.YELLOW_STAINED_GLASS_PANE) {
-            ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos);
+        if (blockInfoGlobal.state().getBlock() == Blocks.YELLOW_STAINED_GLASS_PANE) {
+            ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
             ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
-            RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos);
+            RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
 
             // Always replace the glass itself with mossy cobble
-            currentChunk.setBlockState(blockInfoGlobal.pos, Blocks.DARK_OAK_LOG.defaultBlockState(), false);
-            blockInfoGlobal = new StructureTemplate.StructureBlockInfo(blockInfoGlobal.pos, Blocks.DARK_OAK_LOG.defaultBlockState(), blockInfoGlobal.nbt);
+            currentChunk.setBlockState(blockInfoGlobal.pos(), Blocks.DARK_OAK_LOG.defaultBlockState(), false);
+            blockInfoGlobal = new StructureTemplate.StructureBlockInfo(blockInfoGlobal.pos(), Blocks.DARK_OAK_LOG.defaultBlockState(), blockInfoGlobal.nbt());
 
             // Generate vertical pillar down
-            BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos.below().mutable();
+            BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.getMaterial() == Material.AIR || currBlock.getMaterial() == Material.WATER || currBlock.getMaterial() == Material.LAVA)) {
+            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.getMaterial() == Material.WATER || currBlock.getMaterial() == Material.LAVA)) {
                 currentChunk.setBlockState(mutable, Blocks.DARK_OAK_LOG.defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);

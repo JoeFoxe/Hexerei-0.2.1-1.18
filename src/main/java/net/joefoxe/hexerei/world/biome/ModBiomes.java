@@ -58,21 +58,21 @@ public class ModBiomes {
 
 		BiomeSpecialEffects.Builder specialEffectsBuilder = new BiomeSpecialEffects.Builder();
 		specialEffectsBuilder.waterColor(6388580)
-						.waterFogColor(2302743)
-						.fogColor(12638463)
-						.skyColor(getSkyColorWithTemperatureModifier(0.8F))
-						.foliageColorOverride(6975545)
-						.grassColorModifier(BiomeSpecialEffects.GrassColorModifier.SWAMP)
-						.ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS);
+				.waterFogColor(2302743)
+				.fogColor(12638463)
+				.skyColor(getSkyColorWithTemperatureModifier(0.8F))
+				.foliageColorOverride(6975545)
+				.grassColorModifier(BiomeSpecialEffects.GrassColorModifier.SWAMP)
+				.ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS);
 
 		return (new Biome.BiomeBuilder())
-						.precipitation(Biome.Precipitation.RAIN)
-						.temperature(0.8F)
-						.downfall(0.9F)
-						.specialEffects(specialEffectsBuilder.build())
-						.mobSpawnSettings(mobSpawnSettingsBuilder.build())
-						.generationSettings(genSettingsBuilder.build())
-						.build();
+				.hasPrecipitation(true)
+				.temperature(0.8F)
+				.downfall(0.9F)
+				.specialEffects(specialEffectsBuilder.build())
+				.mobSpawnSettings(mobSpawnSettingsBuilder.build())
+				.generationSettings(genSettingsBuilder.build())
+				.build();
 	}
 
 

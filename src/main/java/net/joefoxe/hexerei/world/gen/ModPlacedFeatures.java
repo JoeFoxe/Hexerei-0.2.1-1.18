@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.world.gen;
 import net.joefoxe.hexerei.Hexerei;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.data.worldgen.placement.VegetationPlacements;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class ModPlacedFeatures {
     public static final DeferredRegister<PlacedFeature> PLACED_FEATURES =
-            DeferredRegister.create(Registry.PLACED_FEATURE_REGISTRY, Hexerei.MOD_ID);
+            DeferredRegister.create(Registries.PLACED_FEATURE, Hexerei.MOD_ID);
 
 
     public static final RegistryObject<PlacedFeature> WILLOW_PLACED = PLACED_FEATURES.register("willow_placed",
