@@ -19,6 +19,7 @@ import net.joefoxe.hexerei.config.HexConfig;
 import net.joefoxe.hexerei.container.ModContainers;
 import net.joefoxe.hexerei.data.books.PageDrawing;
 import net.joefoxe.hexerei.data.datagen.ModRecipeProvider;
+import net.joefoxe.hexerei.data.datagen.WorldGenProvider;
 import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.data.tags.ModBiomeTagsProvider;
 import net.joefoxe.hexerei.event.ClientEvents;
@@ -55,6 +56,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.animal.Animal;
@@ -96,9 +98,9 @@ import static net.joefoxe.hexerei.util.ClientProxy.MODEL_SWAPPER;
 public class Hexerei {
 
 	public static final String MOD_ID = "hexerei";
-    private static final Lazy<Registrate> REGISTRATE = Lazy.of(() -> new HexRegistrate(MOD_ID)
-    );
-    public static boolean curiosLoaded = false;
+	private static final Lazy<Registrate> REGISTRATE = Lazy.of(() -> new HexRegistrate(MOD_ID)
+	);
+	public static boolean curiosLoaded = false;
 
 	static class HexRegistrate extends Registrate {
 		protected HexRegistrate(String modid) {
@@ -139,17 +141,17 @@ public class Hexerei {
 	}
 
 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
-					.disableHtmlEscaping()
-					.create();
+			.disableHtmlEscaping()
+			.create();
 
 	// Directly reference a log4j logger.
 	public static final Logger LOGGER = LogManager.getLogger();
 
 	public static final SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder.named(HexereiConstants.CHANNEL_NAME)
-					.clientAcceptedVersions(HexereiConstants.PROTOCOL_VERSION::equals)
-					.serverAcceptedVersions(HexereiConstants.PROTOCOL_VERSION::equals)
-					.networkProtocolVersion(HexereiConstants.PROTOCOL_VERSION::toString)
-					.simpleChannel();
+			.clientAcceptedVersions(HexereiConstants.PROTOCOL_VERSION::equals)
+			.serverAcceptedVersions(HexereiConstants.PROTOCOL_VERSION::equals)
+			.networkProtocolVersion(HexereiConstants.PROTOCOL_VERSION::toString)
+			.simpleChannel();
 
 	public static StructureProcessorType<WitchHutLegProcessor> WITCH_HUT_LEG_PROCESSOR = () -> WitchHutLegProcessor.CODEC;
 	public static StructureProcessorType<DarkCovenLegProcessor> DARK_COVEN_LEG_PROCESSOR = () -> DarkCovenLegProcessor.CODEC;
@@ -186,7 +188,6 @@ public class Hexerei {
 		ModSounds.register(eventBus);
 		ModEntityTypes.register(eventBus);
 		ModBiomeModifiers.register(eventBus);
-		ModBiomes.register(eventBus);
 		HexereiJeiCompat.init();
 		ModLootModifiers.init();
 		HexereiModNameTooltipCompat.init();
@@ -206,25 +207,27 @@ public class Hexerei {
 		eventBus.addListener(this::doClientStuff);
 
 
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> MODEL_SWAPPER.registerListeners(eventBus));
+		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> MODEL_SWAPPER.registerListeners(eventBus));
 
 //        forgeEventBus.addListener(EventPriority.NORMAL, this::addDimensionalSpacing);
 //        forgeEventBus.addListener(EventPriority.NORMAL, WitchHutStructure::setupStructureSpawns);
 
 
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
+		// Register ourselves for server and other game events we are interested in
+		MinecraftForge.EVENT_BUS.register(this);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, this::gatherData);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, this::gatherData);
 
-        curiosLoaded = ModList.get().isLoaded("curios");
-    }
+		curiosLoaded = ModList.get().isLoaded("curios");
+	}
 
 	public void gatherData(GatherDataEvent event) {
 		DataGenerator gen = event.getGenerator();
+		PackOutput output = gen.getPackOutput();
 
-		gen.addProvider(true, new ModRecipeProvider(gen));
+		gen.addProvider(true, new ModRecipeProvider(output));
 		gen.addProvider(event.includeServer(), new ModBiomeTagsProvider(gen, event.getExistingFileHelper()));
+		gen.addProvider(event.includeServer(), new WorldGenProvider(output, event.getLookupProvider()));
 //		gen.addProvider(event.includeServer(), new HexereiRecipeProvider(gen));
 	}
 
@@ -241,12 +244,12 @@ public class Hexerei {
 			DispenserBlock.registerBehavior(Items.FLINT_AND_STEEL, new CustomFlintAndSteelDispenserBehavior(DispenserBlock.DISPENSER_REGISTRY.get(Items.FLINT_AND_STEEL)));
 
 			AxeItem.STRIPPABLES = new ImmutableMap.Builder<Block, Block>().putAll(AxeItem.STRIPPABLES)
-							.put(ModBlocks.MAHOGANY_LOG.get(), ModBlocks.STRIPPED_MAHOGANY_LOG.get())
-							.put(ModBlocks.MAHOGANY_WOOD.get(), ModBlocks.STRIPPED_MAHOGANY_WOOD.get())
-							.put(ModBlocks.WILLOW_LOG.get(), ModBlocks.STRIPPED_WILLOW_LOG.get())
-							.put(ModBlocks.WILLOW_WOOD.get(), ModBlocks.STRIPPED_WILLOW_WOOD.get())
-							.put(ModBlocks.WITCH_HAZEL_LOG.get(), ModBlocks.STRIPPED_WITCH_HAZEL_LOG.get())
-							.put(ModBlocks.WITCH_HAZEL_WOOD.get(), ModBlocks.STRIPPED_WITCH_HAZEL_WOOD.get()).build();
+					.put(ModBlocks.MAHOGANY_LOG.get(), ModBlocks.STRIPPED_MAHOGANY_LOG.get())
+					.put(ModBlocks.MAHOGANY_WOOD.get(), ModBlocks.STRIPPED_MAHOGANY_WOOD.get())
+					.put(ModBlocks.WILLOW_LOG.get(), ModBlocks.STRIPPED_WILLOW_LOG.get())
+					.put(ModBlocks.WILLOW_WOOD.get(), ModBlocks.STRIPPED_WILLOW_WOOD.get())
+					.put(ModBlocks.WITCH_HAZEL_LOG.get(), ModBlocks.STRIPPED_WITCH_HAZEL_LOG.get())
+					.put(ModBlocks.WITCH_HAZEL_WOOD.get(), ModBlocks.STRIPPED_WITCH_HAZEL_WOOD.get()).build();
 //            ModStructures.setupStructures();
 //            ModConfiguredStructures.registerConfiguredStructures();
 			WoodType.register(ModWoodType.MAHOGANY);
@@ -268,7 +271,7 @@ public class Hexerei {
 			HexereiPacketHandler.register();
 
 			SpawnPlacements.register(ModEntityTypes.CROW.get(), SpawnPlacements.Type.ON_GROUND,
-							Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
+					Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
 			LightManager.init();
 
 			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.MANDRAKE_FLOWER.getId(), ModBlocks.POTTED_MANDRAKE_FLOWER);
@@ -305,7 +308,7 @@ public class Hexerei {
 			ComposterBlock.COMPOSTABLES.put(ModItems.DRIED_SAGE.get().asItem(), 0.3F);
 			ComposterBlock.COMPOSTABLES.put(ModItems.TALLOW_IMPURITY.get().asItem(), 0.3F);
 		});
-		if (ModList.get().isLoaded("terrablender") && HexConfig.WILLOW_SWAMP_RARITY.get() > 0){
+		if (ModList.get().isLoaded("terrablender") && HexConfig.WILLOW_SWAMP_RARITY.get() > 0) {
 			event.enqueueWork(ModRegion::init);
 		}
 	}
@@ -340,7 +343,7 @@ public class Hexerei {
 
 		});
 
-        if (curiosLoaded) GlassesCurioRender.register();
+		if (curiosLoaded) GlassesCurioRender.register();
 
 	}
 
@@ -358,7 +361,7 @@ public class Hexerei {
 	public void clientTickEvent(TickEvent.ClientTickEvent event) {
 		if (event.type == TickEvent.Type.CLIENT)
 			clientTicks += 1;
-		if(ClientProxy.fontList.isEmpty()) {
+		if (ClientProxy.fontList.isEmpty()) {
 			List<? extends String> fonts = HexConfig.FONT_LIST.get();
 			for (String str : fonts) {
 				if (!ClientProxy.fontList.containsKey(str))
@@ -394,7 +397,7 @@ public class Hexerei {
 //    }
 
 	private void enqueueIMC(final InterModEnqueueEvent event) {
-        if (curiosLoaded) CurioCompat.sendIMC();
+		if (curiosLoaded) CurioCompat.sendIMC();
 	}
 
 	private void processIMC(final InterModProcessEvent event) {
@@ -402,20 +405,20 @@ public class Hexerei {
 	}
 
 	private void loadComplete(final FMLLoadCompleteEvent event) {
-        MinecraftForge.EVENT_BUS.register(new SageBurningPlateEvent());
-        MinecraftForge.EVENT_BUS.register(new WitchArmorEvent());
-        MinecraftForge.EVENT_BUS.register(new CrowFluteEvent());
-        MinecraftForge.EVENT_BUS.register(new CrowWhitelistEvent());
+		MinecraftForge.EVENT_BUS.register(new SageBurningPlateEvent());
+		MinecraftForge.EVENT_BUS.register(new WitchArmorEvent());
+		MinecraftForge.EVENT_BUS.register(new CrowFluteEvent());
+		MinecraftForge.EVENT_BUS.register(new CrowWhitelistEvent());
 
-        MinecraftForge.EVENT_BUS.register(new PageDrawing());
-        glassesZoomKeyPressEvent = new GlassesZoomKeyPressEvent();
-        MinecraftForge.EVENT_BUS.register(glassesZoomKeyPressEvent);
+		MinecraftForge.EVENT_BUS.register(new PageDrawing());
+		glassesZoomKeyPressEvent = new GlassesZoomKeyPressEvent();
+		MinecraftForge.EVENT_BUS.register(glassesZoomKeyPressEvent);
 
 		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
 			if (ModList.get().isLoaded("ars_nouveau")) net.joefoxe.hexerei.compat.LightManagerCompat.fallbackToArs();
 		});
 
-    }
+	}
 
 
 }
