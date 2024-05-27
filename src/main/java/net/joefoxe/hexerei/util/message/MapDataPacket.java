@@ -100,7 +100,7 @@ public class MapDataPacket {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
             Minecraft minecraft = Minecraft.getInstance();
             MapRenderer maprenderer = minecraft.gameRenderer.getMapRenderer();

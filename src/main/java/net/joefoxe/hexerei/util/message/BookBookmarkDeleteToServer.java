@@ -41,7 +41,7 @@ public class BookBookmarkDeleteToServer {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             ((BookOfShadowsAltarTile)world.getBlockEntity(packet.bookAltar)).deleteBookmark(packet.slot);

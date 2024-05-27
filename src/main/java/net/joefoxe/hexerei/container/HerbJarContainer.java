@@ -72,7 +72,7 @@ public class HerbJarContainer extends AbstractContainerMenu {
         if (slot != null) {
             ItemStack slotStack = slot.getItem();
 
-            if (!flag && stack.sameItem(slotStack) && ItemStack.isSameItemSameTags(slotStack, stack)) {
+            if (!flag && ItemStack.isSameItemSameTags(slotStack, stack)) {
                 return slotStack.getCount() + (stackSizeMatters ? 0 : stack.getCount()) <= slot.getMaxStackSize(slotStack);
             }
         }
@@ -123,7 +123,6 @@ public class HerbJarContainer extends AbstractContainerMenu {
                         if (slot1 != null && canItemQuickReplace(slot1, itemstack1, true) && slot1.mayPlace(itemstack1) && (this.quickcraftType == 2 || itemstack1.getCount() >= this.quickcraftSlots.size()) && this.canDragTo(slot1)) {
                             ItemStack itemstack2 = itemstack3.copy();
                             int j = slot1.hasItem() ? slot1.getItem().getCount() : 0;
-                            getQuickCraftSlotCount(this.quickcraftSlots, this.quickcraftType, itemstack2, j);
                             int k = Math.min(itemstack2.getMaxStackSize(), slot1.getMaxStackSize(itemstack2));
                             if (itemstack2.getCount() > k) {
                                 itemstack2.setCount(k);
@@ -164,8 +163,7 @@ public class HerbJarContainer extends AbstractContainerMenu {
                 if (!slot6.mayPickup(p_150434_)) {
                     return;
                 }
-
-                for(ItemStack itemstack9 = this.quickMoveStack(p_150434_, p_150431_); !itemstack9.isEmpty() && ItemStack.isSame(slot6.getItem(), itemstack9); itemstack9 = this.quickMoveStack(p_150434_, p_150431_)) {
+                for(ItemStack itemstack9 = this.quickMoveStack(p_150434_, p_150431_); !itemstack9.isEmpty() && ItemStack.isSameItem(slot6.getItem(), itemstack9); itemstack9 = this.quickMoveStack(p_150434_, p_150431_)) {
                 }
             } else {
                 if (p_150431_ < 0) {

@@ -319,7 +319,7 @@ public class BroomContainer extends AbstractContainerMenu implements HasCustomIn
     }
 
     public void playSound() {
-        this.broomEntity.getLevel().playSound(null, this.broomEntity.blockPosition(), SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.broomEntity.level().playSound(null, this.broomEntity.blockPosition(), SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public void playSoundOpen(boolean isEnder) {
@@ -330,7 +330,7 @@ public class BroomContainer extends AbstractContainerMenu implements HasCustomIn
             volume = 0.5f;
         }
 
-        this.broomEntity.getLevel().playSound(null, this.broomEntity.getX(), this.broomEntity.getY() + 0.5D, this.broomEntity.getZ(), sound, SoundSource.BLOCKS, volume, this.broomEntity.getLevel().random.nextFloat() * 0.1F + 0.9F);
+        this.broomEntity.level().playSound(null, this.broomEntity.getX(), this.broomEntity.getY() + 0.5D, this.broomEntity.getZ(), sound, SoundSource.BLOCKS, volume, this.broomEntity.level().random.nextFloat() * 0.1F + 0.9F);
     }
 
     public void playSoundClose(boolean isEnder) {
@@ -343,11 +343,11 @@ public class BroomContainer extends AbstractContainerMenu implements HasCustomIn
             volume = 0.5f;
         }
 
-        this.broomEntity.getLevel().playSound(null, this.broomEntity.getX(), this.broomEntity.getY() + 0.5D, this.broomEntity.getZ(), sound, SoundSource.BLOCKS, volume, this.broomEntity.getLevel().random.nextFloat() * 0.1F + pitch);
+        this.broomEntity.level().playSound(null, this.broomEntity.getX(), this.broomEntity.getY() + 0.5D, this.broomEntity.getZ(), sound, SoundSource.BLOCKS, volume, this.broomEntity.level().random.nextFloat() * 0.1F + pitch);
     }
 
     public void playSound(SoundEvent event) {
-        this.broomEntity.getLevel().playSound(null, this.broomEntity.blockPosition(), event, SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.broomEntity.level().playSound(null, this.broomEntity.blockPosition(), event, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public boolean getFloatMode() {

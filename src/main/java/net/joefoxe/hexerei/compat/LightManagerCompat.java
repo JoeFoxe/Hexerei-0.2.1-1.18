@@ -1,6 +1,6 @@
 package net.joefoxe.hexerei.compat;
 
-import com.hollingsworth.arsnouveau.setup.Config;
+import com.hollingsworth.arsnouveau.setup.config.Config;
 import net.joefoxe.hexerei.config.HexConfig;
 import net.joefoxe.hexerei.light.LightManager;
 

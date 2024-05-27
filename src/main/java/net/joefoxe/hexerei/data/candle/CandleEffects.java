@@ -14,13 +14,12 @@ public class CandleEffects {
 
      public static void init() {
          effects = new HashMap<>();
-         for(int i = 0; i < Registry.MOB_EFFECT.size(); i++){
-             ForgeRegistries.MOB_EFFECTS.forEach(mobEffect -> {
-                ResourceLocation loc = Registry.MOB_EFFECT.getKey(mobEffect);
-                String str = loc != null ? loc.toString() : mobEffect.getDescriptionId();
-                effects.put(str, new PotionCandleEffect(mobEffect));
-            });
-        }
+
+         ForgeRegistries.MOB_EFFECTS.forEach(mobEffect -> {
+             ResourceLocation loc = ForgeRegistries.MOB_EFFECTS.getKey(mobEffect);
+             String str = loc != null ? loc.toString() : mobEffect.getDescriptionId();
+             effects.put(str, new PotionCandleEffect(mobEffect));
+         });
          effects.put(new ResourceLocation(Hexerei.MOD_ID, "growth_effect").toString(), new BonemealingCandleEffect());
          effects.put(new ResourceLocation(Hexerei.MOD_ID, "sunshine_effect").toString(), new SunshineCandleEffect());
 

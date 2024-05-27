@@ -64,7 +64,7 @@ public class RecipeToServer {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             ((MixingCauldronTile)world.getBlockEntity(packet.pos)).setContents(packet.stacks, world.getPlayerByUUID(packet.uuid));

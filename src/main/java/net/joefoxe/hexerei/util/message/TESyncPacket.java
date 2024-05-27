@@ -36,7 +36,7 @@ public class TESyncPacket {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             if(world.getBlockEntity(packet.pos) != null){

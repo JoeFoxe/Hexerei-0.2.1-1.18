@@ -38,7 +38,7 @@ public class DrainCauldronToServer {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             if(world.getBlockEntity(packet.cauldronPos) instanceof MixingCauldronTile mixingCauldronTile) {

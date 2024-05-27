@@ -49,7 +49,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -80,7 +79,7 @@ public class HexereiUtil {
         return ForgeRegistries.ITEMS.getKey(i);
     }
     public static ResourceLocation getRegistryName(Fluid i) {
-        return ForgeRegistries.ITEMS.getKey(i);
+        return ForgeRegistries.FLUIDS.getKey(i);
     }
 
     public static ResourceLocation getRegistryName(Block b) {
@@ -173,9 +172,8 @@ public class HexereiUtil {
                         .ultraWarm())
                     return;
 
-                Material material = world.getBlockState(pos.below())
-                        .getMaterial();
-                if (material.blocksMotion() || material.isLiquid())
+                BlockState blockState = world.getBlockState(pos.below());
+                if (blockState.blocksMotion() || blockState.liquid())
                     world.setBlockAndUpdate(pos, Blocks.WATER.defaultBlockState());
                 return;
             }
@@ -595,7 +593,7 @@ public class HexereiUtil {
 
             if (tileType.equals(te)) {
                 BlockPos tilePos = tile.getBlockPos();
-                if (tilePos.closerThan(new Vec3i(entity.position().x, entity.position().y, entity.position().z), radius)) {
+                if (tilePos.closerThan(new Vec3i((int)entity.position().x, (int)entity.position().y, (int)entity.position().z), radius)) {
                     nearby.add(tile.getBlockPos());
                 }
             }
@@ -614,7 +612,7 @@ public class HexereiUtil {
 
             if (tile instanceof CofferTile cofferTile) {
                 BlockPos tilePos = tile.getBlockPos();
-                if (tilePos.closerThan(new Vec3i(entity.position().x, entity.position().y, entity.position().z), radius)) {
+                if (tilePos.closerThan(new Vec3i((int)entity.position().x, (int)entity.position().y, (int)entity.position().z), radius)) {
                     if (cofferTile.buttonToggled != 0) {
 
                         for (int i = 0; i < cofferTile.itemStackHandler.getSlots(); i++) {
@@ -625,7 +623,7 @@ public class HexereiUtil {
                 }
             } else if (tile instanceof HerbJarTile herbJarTile) {
                 BlockPos tilePos = tile.getBlockPos();
-                if (tilePos.closerThan(new Vec3i(entity.position().x, entity.position().y, entity.position().z), radius)) {
+                if (tilePos.closerThan(new Vec3i((int)entity.position().x, (int)entity.position().y, (int)entity.position().z), radius)) {
                     if (herbJarTile.buttonToggled != 0) {
                         nearby.add(tile.getBlockPos());
                     }

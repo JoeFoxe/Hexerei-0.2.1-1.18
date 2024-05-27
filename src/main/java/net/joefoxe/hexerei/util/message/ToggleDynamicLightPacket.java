@@ -37,7 +37,7 @@ public class ToggleDynamicLightPacket {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             LightManager.toggleLightsAndConfig(packet.enabled);

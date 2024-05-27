@@ -190,7 +190,7 @@ public class CofferContainer extends AbstractContainerMenu {
     }
 
     public void playSound() {
-        this.tileEntity.getLevel().playSound(null, this.tileEntity.getBlockPos(), SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.tileEntity.getLevel().playSound(null, this.tileEntity.getBlockPos(), SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public int getToggled() {

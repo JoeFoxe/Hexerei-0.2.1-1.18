@@ -41,7 +41,7 @@ public class CofferSyncCrowButtonToServer {
             }
             else {
                 if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level;
+                world = ctx.get().getSender().level();
             }
 
             ((CofferTile)world.getBlockEntity(packet.cofferTile)).setButtonToggled(packet.toggled);
