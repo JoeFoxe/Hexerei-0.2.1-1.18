@@ -29,12 +29,12 @@ import java.util.function.Consumer;
 
 public class ModRecipeProvider extends RecipeProvider implements IConditionBuilder {
     public ModRecipeProvider(DataGenerator pGenerator) {
-        super(pGenerator);
+        super(pGenerator.getPackOutput());
     }
 
 
     public static String getItemName(ItemLike pItemLike) {
-        return Registry.ITEM.getKey(pItemLike.asItem()).getPath();
+        return ForgeRegistries.ITEMS.getKey(pItemLike.asItem()).getPath();
     }
 
     public static String getAddCandleRecipeName(ItemLike pResult) {
@@ -46,7 +46,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
     }
 
     @Override
-    protected void buildCraftingRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
+    protected void buildRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
 
         File add_to_candle_file = new File("./recipe-builder/add_to_candle.json");
         File woodcutting_file = new File("./recipe-builder/woodcutting.json");
@@ -74,7 +74,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
             finalRecipesToAdd.forEach((recipeBlock) -> {
                 if (ForgeRegistries.BLOCKS.getKey(block).toString().equals(recipeBlock.getAsString())) {
                     ItemStack stack = new ItemStack(ModItems.CANDLE.get());
-                    CandleItem.setBaseLayerFromBlock(stack, Registry.BLOCK.getKey(block).toString());
+                    CandleItem.setBaseLayerFromBlock(stack, ForgeRegistries.BLOCKS.getKey(block).toString());
                     new AddToCandleRecipeBuilder(block.asItem(), stack.getItem(), 1, stack.getOrCreateTag())
                             .unlockedBy("has_candle", inventoryTrigger(ItemPredicate.Builder.item()
                                     .of(ModItems.CANDLE.get()).build())).save(pFinishedRecipeConsumer, getAddCandleRecipeName(block));

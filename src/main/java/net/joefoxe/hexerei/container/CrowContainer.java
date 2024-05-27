@@ -134,7 +134,7 @@ public class CrowContainer extends AbstractContainerMenu {
     }
 
     public void playSound() {
-        this.crowEntity.getLevel().playSound(null, this.crowEntity.blockPosition(), SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.crowEntity.level().playSound(null, this.crowEntity.blockPosition(), SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public int getCommand() {

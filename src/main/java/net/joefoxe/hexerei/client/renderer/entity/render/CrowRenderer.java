@@ -5,10 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.model.CrowModel;
@@ -46,6 +43,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractSkullBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -54,6 +52,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.model.data.ModelData;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -131,12 +131,6 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
 //            System.out.println(p_115455_.headTiltTimer);
     }
 
-    private void renderItem(ItemStack stack, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn,
-                            int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
-    }
-
     @Override
     protected void scale(CrowEntity entitylivingbaseIn, PoseStack matrixStackIn, float partialTickTime) {
         float f = 1;
@@ -166,17 +160,17 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
             if(crow.isBaby()){
                 matrixStackIn.scale(0.75F, 0.75F, 0.75F);
             }
-            matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(-2.5F));
+            matrixStackIn.mulPose(Axis.YP.rotationDegrees(-2.5F));
             if(itemstack.getItem() instanceof BroomItem)
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-90F));
-            matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-90F));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(-90F));
+            matrixStackIn.mulPose(Axis.XP.rotationDegrees(-90F));
             matrixStackIn.scale(0.75F, 0.75F, 0.75F);
             ItemStack stack = itemstack.copy();
-//            Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemTransforms.TransformType.GROUND, false, matrixStackIn, bufferIn, packedLightIn);
+//            Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemDisplayContext.GROUND, false, matrixStackIn, bufferIn, packedLightIn);
             if(itemstack.getItem() == ModItems.WARHAMMER.get() && crow.getDisplayName().getString().equals("Thor") && !itemstack.isEnchanted())
                 stack = EnchantmentHelper.enchantItem(RandomSource.create(), itemstack.copy(), 1, false);
 
-            Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemTransforms.TransformType.GROUND, false, matrixStackIn, bufferIn, packedLightIn);
+            Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemDisplayContext.GROUND, false, matrixStackIn, bufferIn, packedLightIn);
             matrixStackIn.popPose();
         }
 
@@ -235,13 +229,13 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                 if(crow.isBaby()){
                     matrixStackIn.scale(0.75F, 0.75F, 0.75F);
                 }
-                matrixStackIn.mulPose(Vector3f.YP.rotationDegrees(180F));
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees(180F));
                 if(itemstack.getItem() instanceof BroomItem)
-                    matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(-90F));
-                matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(180F));
+                    matrixStackIn.mulPose(Axis.XP.rotationDegrees(-90F));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees(180F));
                 matrixStackIn.scale(0.1F, 0.1F, 0.1F);
                 ItemStack stack = itemstack.copy();
-    //            Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemTransforms.TransformType.GROUND, false, matrixStackIn, bufferIn, packedLightIn);
+    //            Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemDisplayContext.GROUND, false, matrixStackIn, bufferIn, packedLightIn);
 
 
                 BakedModel itemModel = Minecraft.getInstance().getItemRenderer().getModel(stack, null, null, 0);
@@ -254,14 +248,14 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                     matrixStackIn.translate(0, 0, -0.02F);
                     matrixStackIn.scale(10, 10, 10);
 
-                    matrixStackIn.mulPose(Vector3f.XP.rotationDegrees(180));
-                    RenderSystem.setShader(GameRenderer::getNewEntityShader);
+                    matrixStackIn.mulPose(Axis.XP.rotationDegrees(180));
+//                    RenderSystem.setShader(GameRenderer::getNewEntityShader);
 
                     Matrix4f matrix = matrixStackIn.last().pose();
                     MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
                     VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(loc));
 
-                    matrixStackIn.last().normal().mul(new Quaternion(Vector3f.XP, 45f, true));
+                    matrixStackIn.last().normal().rotate(Axis.XP.rotationDegrees((float) 45));
                     Matrix3f normal = matrixStackIn.last().normal();
                     int u = 0;
                     int v = 0;
@@ -288,8 +282,8 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                         buffer = bufferSource.getBuffer(RenderType.entityTranslucentEmissive(new ResourceLocation("hexerei:textures/item/crow_active_amulet_trinket.png")));
 
                         matrixStackIn.translate(0, 0, 0.002F);
-                        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(-(Hexerei.getClientTicks()) % 360f));
-                        matrixStackIn.last().normal().mul(new Quaternion(Vector3f.XP, 45f, true));
+                        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-(Hexerei.getClientTicks()) % 360f));
+                        matrixStackIn.last().normal().rotate(Axis.XP.rotationDegrees((float) 45));
                         normal = matrixStackIn.last().normal();
                         imageWidth = 32;
                         imageHeight = 32;
@@ -308,7 +302,7 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
 
                         matrixStackIn.scale(1.15f, 1.15f, 1.15f);
                         matrixStackIn.translate(0, 0, -0.004F);
-                        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(1.5f * (Hexerei.getClientTicks()) % 360f));
+                        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(1.5f * (Hexerei.getClientTicks()) % 360f));
                         buffer.vertex(matrix, 0.055f / 16 * width, -0.055f / 16 * height, 0).color(1, 1, 1, Math.abs(Mth.cos(Hexerei.getClientTicks() / 75f))).uv(u1, v1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLightIn).normal(normal, 1F, 0F, 0F).endVertex();
                         buffer.vertex(matrix, 0.055f / 16 * width, 0.055f / 16 * height, 0).color(1, 1, 1, Math.abs(Mth.cos(Hexerei.getClientTicks() / 75f))).uv(u1, v2).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLightIn).normal(normal, 1F, 0F, 0F).endVertex();
                         buffer.vertex(matrix, -0.055f / 16 * width, 0.055f / 16 * height, 0).color(1, 1, 1, Math.abs(Mth.cos(Hexerei.getClientTicks() / 75f))).uv(u2, v2).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLightIn).normal(normal, 1F, 0F, 0F).endVertex();
@@ -319,7 +313,7 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                     matrixStackIn.popPose();
                     matrixStackIn.translate(0, 0, 0.03F);
                     matrixStackIn.scale(1.15F, 1.15F, 1.15F);
-                    Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, new ItemStack(ModItems.CROW_BLANK_AMULET_TRINKET.get()), ItemTransforms.TransformType.FIXED, false, matrixStackIn, bufferIn, packedLightIn);
+                    Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, new ItemStack(ModItems.CROW_BLANK_AMULET_TRINKET.get()), ItemDisplayContext.FIXED, false, matrixStackIn, bufferIn, packedLightIn);
                     renderNecklace = true;
                 }else {
 
@@ -327,9 +321,9 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                         matrixStackIn.pushPose();
                         matrixStackIn.translate(-1/2f, -1/2f, 0);
                         matrixStackIn.scale(1F/128F, 1F/128F, 1);
-                        matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180f));
+                        matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180f));
                         matrixStackIn.translate(-128F, -128F, 0);
-                        MapItemSavedData mapitemsaveddata = MapItem.getSavedData(itemstack, crow.level);
+                        MapItemSavedData mapitemsaveddata = MapItem.getSavedData(itemstack, crow.level());
                         if(mapitemsaveddata == null)
                                 HexereiPacketHandler.sendToServer(new AskForMapDataPacket(itemstack));
                         if(mapitemsaveddata != null && crow.getFramedMapId().isPresent())
@@ -337,7 +331,7 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                         matrixStackIn.popPose();
                         matrixStackIn.translate(0, 0, 0.03F);
                         matrixStackIn.scale(1.15F, 1.15F, 1.15F);
-                        Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, new ItemStack(ModItems.CROW_BLANK_AMULET_TRINKET_FRAME.get()), ItemTransforms.TransformType.FIXED, false, matrixStackIn, bufferIn, packedLightIn);
+                        Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, new ItemStack(ModItems.CROW_BLANK_AMULET_TRINKET_FRAME.get()), ItemDisplayContext.FIXED, false, matrixStackIn, bufferIn, packedLightIn);
                         renderNecklace = true;
 
                     }
@@ -345,7 +339,7 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                         matrixStackIn.pushPose();
                         matrixStackIn.translate(0, 0, 0.03F);
                         matrixStackIn.scale(1.15F, 1.15F, 1.15F);
-                        Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemTransforms.TransformType.FIXED, false, matrixStackIn, bufferIn, packedLightIn);
+                        Minecraft.getInstance().gameRenderer.itemInHandRenderer.renderItem(crow, stack, ItemDisplayContext.FIXED, false, matrixStackIn, bufferIn, packedLightIn);
                         matrixStackIn.popPose();
                         renderNecklace = true;
                     }
@@ -435,8 +429,8 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
                 translateToHand(matrixStackIn);
                 matrixStackIn.scale(0.45F, 0.45F, 0.45F);
                 matrixStackIn.translate(0f, -0.2F, -0.2F);
-                matrixStackIn.mulPose(Vector3f.ZP.rotationDegrees(180));
-                renderItem(itemstack, matrixStackIn, bufferIn, packedLightIn);
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees(180));
+                renderItem(itemstack, crow.level(), matrixStackIn, bufferIn, packedLightIn);
             }
 
             matrixStackIn.popPose();
@@ -449,10 +443,10 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
 
         }
 
-        private void renderItem(ItemStack stack, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+        private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                                 int combinedLightIn) {
-            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, combinedLightIn,
-                    OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, 1);
+            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+                    OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
         }
 
         private static final Map<String, ResourceLocation> ARMOR_TEXTURE_RES_MAP = Maps.newHashMap();

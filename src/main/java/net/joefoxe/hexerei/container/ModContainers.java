@@ -30,7 +30,7 @@ public class ModContainers {
             = CONTAINERS.register("mixing_cauldron_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
                 BlockPos pos = data.readBlockPos();
-                Level world = inv.player.getLevel();
+                Level world = inv.player.level();
                 return new MixingCauldronContainer(windowId, world, pos, inv, inv.player);
             })));
 
@@ -39,7 +39,7 @@ public class ModContainers {
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
                 if(data.readBoolean()){
                     BlockPos pos = data.readBlockPos();
-                    Level world = inv.player.getLevel();
+                    Level world = inv.player.level();
                     return new CofferContainer(windowId, world, pos, inv, inv.player);
                 } else {
 
@@ -55,7 +55,7 @@ public class ModContainers {
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
                 BlockPos pos = data.readBlockPos();
                 ItemStack item = data.readItem();
-                Level world = inv.player.getLevel();
+                Level world = inv.player.level();
                 return new HerbJarContainer(windowId, item, world, pos, inv, inv.player);
             })));
 
@@ -63,7 +63,7 @@ public class ModContainers {
             = CONTAINERS.register("dipper_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
                 BlockPos pos = data.readBlockPos();
-                Level world = inv.player.getLevel();
+                Level world = inv.player.level();
                 return new DipperContainer(windowId, world, pos, inv, inv.player);
             })));
 
@@ -71,7 +71,7 @@ public class ModContainers {
             = CONTAINERS.register("drying_rack_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
                 BlockPos pos = data.readBlockPos();
-                Level world = inv.player.getLevel();
+                Level world = inv.player.level();
                 return new DipperContainer(windowId, world, pos, inv, inv.player);
             })));
 
@@ -79,7 +79,7 @@ public class ModContainers {
             = CONTAINERS.register("pestle_and_mortar_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
                 BlockPos pos = data.readBlockPos();
-                Level world = inv.player.getLevel();
+                Level world = inv.player.level();
                 return new PestleAndMortarContainer(windowId, world, pos, inv, inv.player);
             })));
 
@@ -97,7 +97,7 @@ public class ModContainers {
             = CONTAINERS.register("broom_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
 
-                Level world = inv.player.getLevel();//new BroomEntity(world, pos.getX(), pos.getY(), pos.getZ())
+                Level world = inv.player.level();//new BroomEntity(world, pos.getX(), pos.getY(), pos.getZ())
                 int id = data.readInt();
                 boolean isEnder = data.readBoolean();
                 if(world.getEntity(id) != null)
@@ -111,7 +111,7 @@ public class ModContainers {
             = CONTAINERS.register("crow_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
 
-                Level world = inv.player.getLevel();//new BroomEntity(world, pos.getX(), pos.getY(), pos.getZ())
+                Level world = inv.player.level();//new BroomEntity(world, pos.getX(), pos.getY(), pos.getZ())
                 int id = data.readInt();
                 if(world.getEntity(id) != null)
                     return new CrowContainer(windowId,(CrowEntity)world.getEntity(id), inv, inv.player);
