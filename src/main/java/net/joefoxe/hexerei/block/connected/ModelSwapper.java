@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -20,17 +21,21 @@ import java.util.function.Function;
 public class ModelSwapper {
 
     protected CustomBlockModels customBlockModels = new CustomBlockModels();
+//    protected CustomItemModels customItemModels = new CustomItemModels();
 
     public CustomBlockModels getCustomBlockModels() {
         return customBlockModels;
     }
 
+//    public CustomItemModels getCustomItemModels() {
+//        return customItemModels;
+//    }
 
-
-    public void onModelBake(ModelEvent.BakingCompleted event) {
+    public void onModelBake(ModelEvent.ModifyBakingResult event) {
         Map<ResourceLocation, BakedModel> modelRegistry = event.getModels();
-
         customBlockModels.forEach((block, modelFunc) -> swapModels(modelRegistry, getAllBlockStateModelLocations(block), modelFunc));
+//        customItemModels.forEach((item, modelFunc) -> swapModels(modelRegistry, getItemModelLocation(item), modelFunc));
+//        CustomRenderedItems.forEach(item -> swapModels(modelRegistry, getItemModelLocation(item), CustomRenderedItemModel::new));
     }
 
     public void registerListeners(IEventBus modEventBus) {
@@ -58,6 +63,10 @@ public class ModelSwapper {
                     models.add(BlockModelShaper.stateToModelLocation(blockRl, state));
                 });
         return models;
+    }
+
+    public static ModelResourceLocation getItemModelLocation(Item item) {
+        return new ModelResourceLocation(HexereiUtil.getKeyOrThrow(item), "inventory");
     }
 
 }

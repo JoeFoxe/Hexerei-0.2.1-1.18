@@ -23,6 +23,7 @@ import java.util.Random;
 
 // CREDIT: https://github.com/Creators-of-Create/Create/tree/mc1.19/dev by simibubi & team
 // Under MIT-License: https://github.com/Creators-of-Create/Create/blob/mc1.19/dev/LICENSE
+
 public class CTModel extends BakedModelWrapperWithData {
 
     private static final ModelProperty<CTData> CT_PROPERTY = new ModelProperty<>();
@@ -35,7 +36,8 @@ public class CTModel extends BakedModelWrapperWithData {
     }
 
     @Override
-    protected Builder gatherModelData(Builder builder, BlockAndTintGetter world, BlockPos pos, BlockState state) {
+    protected ModelData.Builder gatherModelData(Builder builder, BlockAndTintGetter world, BlockPos pos, BlockState state,
+                                                ModelData blockEntityData) {
         return builder.with(CT_PROPERTY, createCTData(world, pos, state));
     }
 
@@ -43,28 +45,18 @@ public class CTModel extends BakedModelWrapperWithData {
         CTData data = new CTData();
         MutableBlockPos mutablePos = new MutableBlockPos();
         for (Direction face : Direction.values()) {
+            BlockState actualState = world.getBlockState(pos);
             if (!behaviour.buildContextForOccludedDirections()
-                    && !Block.shouldRenderFace(state, world, pos, face, mutablePos.setWithOffset(pos, face)))
+                    && !Block.shouldRenderFace(state, world, pos, face, mutablePos.setWithOffset(pos, face))
+//                    && !(actualState.getBlock()instanceof CopycatBlock ufb
+//                    && !ufb.canFaceBeOccluded(actualState, face))
+            )
                 continue;
-            CTType dataType = behaviour.getDataType(state, face);
+            CTType dataType = behaviour.getDataType(world, pos, state, face);
             if (dataType == null)
                 continue;
             ConnectedTextureBehaviour.CTContext context = behaviour.buildContext(world, pos, state, face, dataType.getContextRequirement());
-
-
-            int textureIndex = dataType.getTextureIndex(context);
-
-
-            if(dataType.getExtraFaceVariations() > 0){
-                if (textureIndex == 54) {
-                    Random random = new Random((long) (Math.abs(pos.getX()) + 1) * (Math.abs(pos.getY()) + 1) * (Math.abs(pos.getZ()) + 1));
-
-                    int rand = random.nextInt((int)(dataType.getExtraFaceVariations() / dataType.getPercent()));
-                    if (rand != 0 && rand < dataType.getExtraFaceVariations())
-                        textureIndex = (rand * 8) - 1;
-                }
-            }
-            data.put(face, textureIndex);
+            data.put(face, dataType.getTextureIndex(context));
         }
         return data;
     }
@@ -88,22 +80,17 @@ public class CTModel extends BakedModelWrapperWithData {
             CTSpriteShiftEntry spriteShift = behaviour.getShift(state, quad.getDirection(), quad.getSprite());
             if (spriteShift == null)
                 continue;
-            ResourceLocation loc1 = quad.getSprite().atlasLocation();
-            ResourceLocation loc2 = spriteShift.getOriginal().atlasLocation();
-
-            if (loc1 != loc2)
+            if (quad.getSprite() != spriteShift.getOriginal())
                 continue;
 
-            BakedQuad newQuad = QuadHelper.clone(quad);
-
+            BakedQuad newQuad = BakedQuadHelper.clone(quad);
             int[] vertexData = newQuad.getVertices();
 
             for (int vertex = 0; vertex < 4; vertex++) {
-                float u = QuadHelper.getU(vertexData, vertex);
-                float v = QuadHelper.getV(vertexData, vertex);
-
-                QuadHelper.setU(vertexData, vertex, spriteShift.getTargetU(u, index));
-                QuadHelper.setV(vertexData, vertex, spriteShift.getTargetV(v, index));
+                float u = BakedQuadHelper.getU(vertexData, vertex);
+                float v = BakedQuadHelper.getV(vertexData, vertex);
+                BakedQuadHelper.setU(vertexData, vertex, spriteShift.getTargetU(u, index));
+                BakedQuadHelper.setV(vertexData, vertex, spriteShift.getTargetV(v, index));
             }
 
             quads.set(i, newQuad);

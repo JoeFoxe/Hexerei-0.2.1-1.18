@@ -1,0 +1,77 @@
+{
+  "type": "minecraft:simple_random_selector",
+  "config": {
+    "features": [
+      {
+        "feature": {
+          "type": "minecraft:simple_block",
+          "config": {
+            "to_place": {
+              "type": "minecraft:simple_state_provider",
+              "state": {
+                "Name": "hexerei:yellow_dock_bush",
+                "Properties": {
+                  "age": "2",
+                  "half": "lower"
+                }
+              }
+            }
+          }
+        },
+        "placement": []
+      },
+      {
+        "feature": {
+          "type": "minecraft:simple_block",
+          "config": {
+            "to_place": {
+              "type": "minecraft:simple_state_provider",
+              "state": {
+                "Name": "hexerei:mugwort_bush",
+                "Properties": {
+                  "age": "0",
+                  "half": "lower"
+                }
+              }
+            }
+          }
+        },
+        "placement": []
+      },
+      {
+        "feature": {
+          "type": "minecraft:simple_block",
+          "config": {
+            "to_place": {
+              "type": "minecraft:simple_state_provider",
+              "state": {
+                "Name": "hexerei:belladonna_flower",
+                "Properties": {
+                  "age": "0"
+                }
+              }
+            }
+          }
+        },
+        "placement": []
+      },
+      {
+        "feature": {
+          "type": "minecraft:simple_block",
+          "config": {
+            "to_place": {
+              "type": "minecraft:simple_state_provider",
+              "state": {
+                "Name": "hexerei:mandrake_flower",
+                "Properties": {
+                  "age": "0"
+                }
+              }
+            }
+          }
+        },
+        "placement": []
+      }
+    ]
+  }
+}

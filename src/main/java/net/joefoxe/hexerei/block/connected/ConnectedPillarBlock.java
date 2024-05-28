@@ -42,7 +42,7 @@ public class ConnectedPillarBlock extends LayeredBlock {
         return updateColumn(pContext.getLevel(), pContext.getClickedPos(), state, true);
     }
 
-    public BlockState updateColumn(Level level, BlockPos pos, BlockState state, boolean present) {
+    private BlockState updateColumn(Level level, BlockPos pos, BlockState state, boolean present) {
         MutableBlockPos currentPos = new MutableBlockPos();
         Axis axis = state.getValue(AXIS);
 
@@ -95,14 +95,8 @@ public class ConnectedPillarBlock extends LayeredBlock {
         BlockPos belowPos =
                 pPos.relative(Direction.fromAxisAndDirection(pState.getValue(AXIS), AxisDirection.NEGATIVE));
         BlockState belowState = pLevel.getBlockState(belowPos);
-        if(belowState.getBlock() == pState.getBlock() && belowState.getValue(AXIS) == pState.getValue(AXIS)) {
-            LevelTickAccess<Block> blockTicks = pLevel.getBlockTicks();
-            if (!blockTicks.hasScheduledTick(pPos, this))
-                pLevel.scheduleTick(belowPos, belowState.getBlock(), 0);
-        }
         if (!canConnect(pState, belowState))
             pLevel.setBlock(pPos, updateColumn(pLevel, pPos, pState, true), 3);
-
     }
 
     @Override
@@ -151,33 +145,48 @@ public class ConnectedPillarBlock extends LayeredBlock {
             return null;
 
         if (axis == Axis.X) {
-            return switch (side) {
-                case UP -> EAST;
-                case NORTH -> NORTH;
-                case SOUTH -> SOUTH;
-                case DOWN -> WEST;
-                default -> null;
-            };
+            switch (side) {
+                case UP:
+                    return EAST;
+                case NORTH:
+                    return NORTH;
+                case SOUTH:
+                    return SOUTH;
+                case DOWN:
+                    return WEST;
+                default:
+                    return null;
+            }
         }
 
         if (axis == Axis.Y) {
-            return switch (side) {
-                case EAST -> EAST;
-                case NORTH -> NORTH;
-                case SOUTH -> SOUTH;
-                case WEST -> WEST;
-                default -> null;
-            };
+            switch (side) {
+                case EAST:
+                    return EAST;
+                case NORTH:
+                    return NORTH;
+                case SOUTH:
+                    return SOUTH;
+                case WEST:
+                    return WEST;
+                default:
+                    return null;
+            }
         }
 
         if (axis == Axis.Z) {
-            return switch (side) {
-                case UP -> WEST;
-                case WEST -> SOUTH;
-                case EAST -> NORTH;
-                case DOWN -> EAST;
-                default -> null;
-            };
+            switch (side) {
+                case UP:
+                    return WEST;
+                case WEST:
+                    return SOUTH;
+                case EAST:
+                    return NORTH;
+                case DOWN:
+                    return EAST;
+                default:
+                    return null;
+            }
         }
 
         return null;

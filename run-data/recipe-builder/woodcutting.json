@@ -1,0 +1,512 @@
+{
+  "values": [
+    {
+      "type" : "oak",
+      "wood" : "minecraft:oak_wood",
+      "log" : "minecraft:oak_log",
+      "stripped_wood" : "minecraft:stripped_oak_wood",
+      "stripped_log" : "minecraft:stripped_oak_log",
+      "planks" : "minecraft:oak_planks",
+      "slab" : "minecraft:oak_slab",
+      "stairs" : "minecraft:oak_stairs",
+      "door" : "minecraft:oak_door",
+      "trapdoor" : "minecraft:oak_trapdoor",
+      "fence" : "minecraft:oak_fence",
+      "fence_gate" : "minecraft:oak_fence_gate",
+      "pressure_plate" : "minecraft:oak_pressure_plate",
+      "button" : "minecraft:oak_button",
+      "boat" : "minecraft:oak_boat",
+      "chest_boat" : "minecraft:oak_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:oak_sign"
+    },
+    {
+      "type" : "spruce",
+      "wood" : "minecraft:spruce_wood",
+      "log" : "minecraft:spruce_log",
+      "stripped_wood" : "minecraft:stripped_spruce_wood",
+      "stripped_log" : "minecraft:stripped_spruce_log",
+      "planks" : "minecraft:spruce_planks",
+      "slab" : "minecraft:spruce_slab",
+      "stairs" : "minecraft:spruce_stairs",
+      "door" : "minecraft:spruce_door",
+      "trapdoor" : "minecraft:spruce_trapdoor",
+      "fence" : "minecraft:spruce_fence",
+      "fence_gate" : "minecraft:spruce_fence_gate",
+      "pressure_plate" : "minecraft:spruce_pressure_plate",
+      "button" : "minecraft:spruce_button",
+      "boat" : "minecraft:spruce_boat",
+      "chest_boat" : "minecraft:spruce_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:spruce_sign"
+    },
+    {
+      "type" : "birch",
+      "wood" : "minecraft:birch_wood",
+      "log" : "minecraft:birch_log",
+      "stripped_wood" : "minecraft:stripped_birch_wood",
+      "stripped_log" : "minecraft:stripped_birch_log",
+      "planks" : "minecraft:birch_planks",
+      "slab" : "minecraft:birch_slab",
+      "stairs" : "minecraft:birch_stairs",
+      "door" : "minecraft:birch_door",
+      "trapdoor" : "minecraft:birch_trapdoor",
+      "fence" : "minecraft:birch_fence",
+      "fence_gate" : "minecraft:birch_fence_gate",
+      "pressure_plate" : "minecraft:birch_pressure_plate",
+      "button" : "minecraft:birch_button",
+      "boat" : "minecraft:birch_boat",
+      "chest_boat" : "minecraft:birch_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:birch_sign"
+    },
+    {
+      "type" : "dark_oak",
+      "wood" : "minecraft:dark_oak_wood",
+      "log" : "minecraft:dark_oak_log",
+      "stripped_wood" : "minecraft:stripped_dark_oak_wood",
+      "stripped_log" : "minecraft:stripped_dark_oak_log",
+      "planks" : "minecraft:dark_oak_planks",
+      "slab" : "minecraft:dark_oak_slab",
+      "stairs" : "minecraft:dark_oak_stairs",
+      "door" : "minecraft:dark_oak_door",
+      "trapdoor" : "minecraft:dark_oak_trapdoor",
+      "fence" : "minecraft:dark_oak_fence",
+      "fence_gate" : "minecraft:dark_oak_fence_gate",
+      "pressure_plate" : "minecraft:dark_oak_pressure_plate",
+      "button" : "minecraft:dark_oak_button",
+      "boat" : "minecraft:dark_oak_boat",
+      "chest_boat" : "minecraft:dark_oak_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:dark_oak_sign"
+    },
+    {
+      "type" : "jungle",
+      "wood" : "minecraft:jungle_wood",
+      "log" : "minecraft:jungle_log",
+      "stripped_wood" : "minecraft:stripped_jungle_wood",
+      "stripped_log" : "minecraft:stripped_jungle_log",
+      "planks" : "minecraft:jungle_planks",
+      "slab" : "minecraft:jungle_slab",
+      "stairs" : "minecraft:jungle_stairs",
+      "door" : "minecraft:jungle_door",
+      "trapdoor" : "minecraft:jungle_trapdoor",
+      "fence" : "minecraft:jungle_fence",
+      "fence_gate" : "minecraft:jungle_fence_gate",
+      "pressure_plate" : "minecraft:jungle_pressure_plate",
+      "button" : "minecraft:jungle_button",
+      "boat" : "minecraft:jungle_boat",
+      "chest_boat" : "minecraft:jungle_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:jungle_sign"
+    },
+    {
+      "type" : "acacia",
+      "wood" : "minecraft:acacia_wood",
+      "log" : "minecraft:acacia_log",
+      "stripped_wood" : "minecraft:stripped_acacia_wood",
+      "stripped_log" : "minecraft:stripped_acacia_log",
+      "planks" : "minecraft:acacia_planks",
+      "slab" : "minecraft:acacia_slab",
+      "stairs" : "minecraft:acacia_stairs",
+      "door" : "minecraft:acacia_door",
+      "trapdoor" : "minecraft:acacia_trapdoor",
+      "fence" : "minecraft:acacia_fence",
+      "fence_gate" : "minecraft:acacia_fence_gate",
+      "pressure_plate" : "minecraft:acacia_pressure_plate",
+      "button" : "minecraft:acacia_button",
+      "boat" : "minecraft:acacia_boat",
+      "chest_boat" : "minecraft:acacia_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:acacia_sign"
+    },
+    {
+      "type" : "mangrove",
+      "wood" : "minecraft:mangrove_wood",
+      "log" : "minecraft:mangrove_log",
+      "stripped_wood" : "minecraft:stripped_mangrove_wood",
+      "stripped_log" : "minecraft:stripped_mangrove_log",
+      "planks" : "minecraft:mangrove_planks",
+      "slab" : "minecraft:mangrove_slab",
+      "stairs" : "minecraft:mangrove_stairs",
+      "door" : "minecraft:mangrove_door",
+      "trapdoor" : "minecraft:mangrove_trapdoor",
+      "fence" : "minecraft:mangrove_fence",
+      "fence_gate" : "minecraft:mangrove_fence_gate",
+      "pressure_plate" : "minecraft:mangrove_pressure_plate",
+      "button" : "minecraft:mangrove_button",
+      "boat" : "minecraft:mangrove_boat",
+      "chest_boat" : "minecraft:mangrove_chest_boat",
+      "chest" : "minecraft:chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel",
+      "sign" : "minecraft:mangrove_sign"
+    },
+    {
+      "type" : "willow",
+      "wood" : "hexerei:willow_wood",
+      "log" : "hexerei:willow_log",
+      "stripped_wood" : "hexerei:stripped_willow_wood",
+      "stripped_log" : "hexerei:stripped_willow_log",
+      "planks" : [
+        {
+          "planks" : "hexerei:willow_planks"
+        },
+        {
+          "planks" : "hexerei:polished_willow_planks"
+        },
+        {
+          "planks" : "hexerei:polished_willow_pillar"
+        },
+        {
+          "planks" : "hexerei:polished_willow_layered"
+        },
+        {
+          "planks" : "hexerei:polished_willow_connected"
+        },
+        {
+          "planks" : "hexerei:willow_connected"
+        }
+      ],
+      "slab" : [
+        {
+          "slab" : "hexerei:willow_slab"
+        },
+        {
+          "slab" : "hexerei:polished_willow_slab"
+        }
+      ],
+      "stairs" : [
+        {
+          "stairs" : "hexerei:willow_stairs"
+        },
+        {
+          "stairs" : "hexerei:polished_willow_stairs"
+        }
+      ],
+      "door" : [
+        {
+          "door" : "hexerei:willow_door"
+        },
+        {
+          "door" : "hexerei:polished_willow_door"
+        }
+      ],
+      "trapdoor" : [
+        {
+          "trapdoor" : "hexerei:willow_trapdoor"
+        },
+        {
+          "trapdoor" : "hexerei:polished_willow_trapdoor"
+        }
+      ],
+      "fence" : [
+        {
+          "fence" : "hexerei:willow_fence"
+        },
+        {
+          "fence" : "hexerei:polished_willow_fence"
+        }
+      ],
+      "fence_gate" : [
+        {
+          "fence_gate" : "hexerei:willow_fence_gate"
+        },
+        {
+          "fence_gate" : "hexerei:polished_willow_fence_gate"
+        }
+      ],
+      "pressure_plate" : [
+        {
+          "pressure_plate" : "hexerei:willow_pressure_plate"
+        },
+        {
+          "pressure_plate" : "hexerei:polished_willow_pressure_plate"
+        }
+      ],
+      "button" : [
+        {
+          "button" : "hexerei:willow_button"
+        },
+        {
+          "button" : "hexerei:polished_willow_button"
+        }
+      ],
+      "sign" : [
+        {
+          "sign" : "hexerei:willow_sign"
+        },
+        {
+          "sign" : "hexerei:polished_willow_sign"
+        }
+      ],
+      "boat" : [
+        {
+          "boat" : "hexerei:willow_boat"
+        },
+        {
+          "boat" : "hexerei:polished_willow_boat"
+        }
+      ],
+      "chest_boat" : [
+        {
+          "chest_boat" : "hexerei:willow_chest_boat"
+        },
+        {
+          "chest_boat" : "hexerei:polished_willow_chest_boat"
+        }
+      ],
+      "chest" : "hexerei:willow_chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel"
+    },
+    {
+      "type" : "mahogany",
+      "wood" : "hexerei:mahogany_wood",
+      "log" : "hexerei:mahogany_log",
+      "stripped_wood" : "hexerei:stripped_mahogany_wood",
+      "stripped_log" : "hexerei:stripped_mahogany_log",
+      "planks" : [
+        {
+          "planks" : "hexerei:mahogany_planks"
+        },
+        {
+          "planks" : "hexerei:polished_mahogany_planks"
+        },
+        {
+          "planks" : "hexerei:polished_mahogany_pillar"
+        },
+        {
+          "planks" : "hexerei:polished_mahogany_layered"
+        },
+        {
+          "planks" : "hexerei:polished_mahogany_connected"
+        },
+        {
+          "planks" : "hexerei:mahogany_connected"
+        }
+      ],
+      "slab" : [
+        {
+          "slab" : "hexerei:mahogany_slab"
+        },
+        {
+          "slab" : "hexerei:polished_mahogany_slab"
+        }
+      ],
+      "stairs" : [
+        {
+          "stairs" : "hexerei:mahogany_stairs"
+        },
+        {
+          "stairs" : "hexerei:polished_mahogany_stairs"
+        }
+      ],
+      "door" : [
+        {
+          "door" : "hexerei:mahogany_door"
+        },
+        {
+          "door" : "hexerei:polished_mahogany_door"
+        }
+      ],
+      "trapdoor" : [
+        {
+          "trapdoor" : "hexerei:mahogany_trapdoor"
+        },
+        {
+          "trapdoor" : "hexerei:polished_mahogany_trapdoor"
+        }
+      ],
+      "fence" : [
+        {
+          "fence" : "hexerei:mahogany_fence"
+        },
+        {
+          "fence" : "hexerei:polished_mahogany_fence"
+        }
+      ],
+      "fence_gate" : [
+        {
+          "fence_gate" : "hexerei:mahogany_fence_gate"
+        },
+        {
+          "fence_gate" : "hexerei:polished_mahogany_fence_gate"
+        }
+      ],
+      "pressure_plate" : [
+        {
+          "pressure_plate" : "hexerei:mahogany_pressure_plate"
+        },
+        {
+          "pressure_plate" : "hexerei:polished_mahogany_pressure_plate"
+        }
+      ],
+      "button" : [
+        {
+          "button" : "hexerei:mahogany_button"
+        },
+        {
+          "button" : "hexerei:polished_mahogany_button"
+        }
+      ],
+      "sign" : [
+        {
+          "sign" : "hexerei:mahogany_sign"
+        },
+        {
+          "sign" : "hexerei:polished_mahogany_sign"
+        }
+      ],
+      "boat" : [
+        {
+          "boat" : "hexerei:mahogany_boat"
+        },
+        {
+          "boat" : "hexerei:polished_mahogany_boat"
+        }
+      ],
+      "chest_boat" : [
+        {
+          "chest_boat" : "hexerei:mahogany_chest_boat"
+        },
+        {
+          "chest_boat" : "hexerei:polished_mahogany_chest_boat"
+        }
+      ],
+      "chest" : "hexerei:mahogany_chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel"
+    },
+    {
+      "type" : "witch_hazel",
+      "wood" : "hexerei:witch_hazel_wood",
+      "log" : "hexerei:witch_hazel_log",
+      "stripped_wood" : "hexerei:stripped_witch_hazel_wood",
+      "stripped_log" : "hexerei:stripped_witch_hazel_log",
+      "planks" : [
+        {
+          "planks" : "hexerei:witch_hazel_planks"
+        },
+        {
+          "planks" : "hexerei:polished_witch_hazel_planks"
+        },
+        {
+          "planks" : "hexerei:polished_witch_hazel_pillar"
+        },
+        {
+          "planks" : "hexerei:polished_witch_hazel_layered"
+        },
+        {
+          "planks" : "hexerei:polished_witch_hazel_connected"
+        },
+        {
+          "planks" : "hexerei:witch_hazel_connected"
+        }
+      ],
+      "slab" : [
+        {
+          "slab" : "hexerei:witch_hazel_slab"
+        },
+        {
+          "slab" : "hexerei:polished_witch_hazel_slab"
+        }
+      ],
+      "stairs" : [
+        {
+          "stairs" : "hexerei:witch_hazel_stairs"
+        },
+        {
+          "stairs" : "hexerei:polished_witch_hazel_stairs"
+        }
+      ],
+      "door" : [
+        {
+          "door" : "hexerei:witch_hazel_door"
+        },
+        {
+          "door" : "hexerei:polished_witch_hazel_door"
+        }
+      ],
+      "trapdoor" : [
+        {
+          "trapdoor" : "hexerei:witch_hazel_trapdoor"
+        },
+        {
+          "trapdoor" : "hexerei:polished_witch_hazel_trapdoor"
+        }
+      ],
+      "fence" : [
+        {
+          "fence" : "hexerei:witch_hazel_fence"
+        },
+        {
+          "fence" : "hexerei:polished_witch_hazel_fence"
+        }
+      ],
+      "fence_gate" : [
+        {
+          "fence_gate" : "hexerei:witch_hazel_fence_gate"
+        },
+        {
+          "fence_gate" : "hexerei:polished_witch_hazel_fence_gate"
+        }
+      ],
+      "pressure_plate" : [
+        {
+          "pressure_plate" : "hexerei:witch_hazel_pressure_plate"
+        },
+        {
+          "pressure_plate" : "hexerei:polished_witch_hazel_pressure_plate"
+        }
+      ],
+      "button" : [
+        {
+          "button" : "hexerei:witch_hazel_button"
+        },
+        {
+          "button" : "hexerei:polished_witch_hazel_button"
+        }
+      ],
+      "sign" : [
+        {
+          "sign" : "hexerei:witch_hazel_sign"
+        },
+        {
+          "sign" : "hexerei:polished_witch_hazel_sign"
+        }
+      ],
+      "boat" : [
+        {
+          "boat" : "hexerei:witch_hazel_boat"
+        },
+        {
+          "boat" : "hexerei:polished_witch_hazel_boat"
+        }
+      ],
+      "chest_boat" : [
+        {
+          "chest_boat" : "hexerei:witch_hazel_chest_boat"
+        },
+        {
+          "chest_boat" : "hexerei:polished_witch_hazel_chest_boat"
+        }
+      ],
+      "chest" : "hexerei:witch_hazel_chest",
+      "crafting_table" : "minecraft:crafting_table",
+      "barrel" : "minecraft:barrel"
+    }
+  ]
+}

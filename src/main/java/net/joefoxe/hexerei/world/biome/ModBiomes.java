@@ -28,7 +28,7 @@ public class ModBiomes {
 	public static final ResourceKey<Biome> WILLOW_SWAMP = ResourceKey.create(ForgeRegistries.Keys.BIOMES, new ResourceLocation(Hexerei.MOD_ID, "willow_swamp"));
 
 	public static void bootstrap(BootstapContext<Biome> context) {
-		context.register(WILLOW_SWAMP, makeWillowSwampBiome(context));
+//		context.register(WILLOW_SWAMP, makeWillowSwampBiome(context));
 	}
 
 	private static Biome makeWillowSwampBiome(BootstapContext<Biome> context) {
@@ -62,7 +62,8 @@ public class ModBiomes {
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, CavePlacements.ROOTED_AZALEA_TREE);
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, CavePlacements.SPORE_BLOSSOM);
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, CavePlacements.CLASSIC_VINES);
-		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, placedFeature.getOrThrow(ModPlacedFeatures.COMMON_SWAMP_FLOWERS_PLACED_KEY));
+		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, placedFeature.getOrThrow(ModPlacedFeatures.FLOWERING_LILYPAD_PLACED_KEY));
+		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, placedFeature.getOrThrow(ModPlacedFeatures.SWAMP_FLOWERS_PLACED_KEY));
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, placedFeature.getOrThrow(ModPlacedFeatures.TREES_WILLOW_SWAMP_PLACED_KEY));
 
 		BiomeSpecialEffects.Builder specialEffectsBuilder = new BiomeSpecialEffects.Builder();

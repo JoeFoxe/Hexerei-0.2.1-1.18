@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.block.connected;
 
 // CREDIT: https://github.com/Creators-of-Create/Create/tree/mc1.19/dev by simibubi & team
 // Under MIT-License: https://github.com/Creators-of-Create/Create/blob/mc1.19/dev/LICENSE
+
 public class CTSpriteShiftEntry extends SpriteShiftEntry {
 
     protected final CTType type;

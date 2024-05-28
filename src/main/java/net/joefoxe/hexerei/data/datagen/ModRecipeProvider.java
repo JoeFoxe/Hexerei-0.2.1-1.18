@@ -48,8 +48,8 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
     @Override
     protected void buildRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
 
-		File add_to_candle_file = new File("./recipe-builder/add_to_candle.json");
-		File woodcutting_file = new File("./recipe-builder/woodcutting.json");
+		File add_to_candle_file = new File("recipe-builder/add_to_candle.json");
+		File woodcutting_file = new File("recipe-builder/woodcutting.json");
 
 		JsonArray recipesAddToCandle;
 		JsonArray recipesWoodcutting;

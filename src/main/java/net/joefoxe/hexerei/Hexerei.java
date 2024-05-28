@@ -227,9 +227,9 @@ public class Hexerei {
 		PackOutput output = gen.getPackOutput();
 		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-		gen.addProvider(true, new ModRecipeProvider(output));
-		gen.addProvider(event.includeServer(), new ModBiomeTagsProvider(output, lookupProvider, event.getExistingFileHelper()));
+//		gen.addProvider(true, new ModRecipeProvider(output));
 		gen.addProvider(event.includeServer(), new WorldGenProvider(output, event.getLookupProvider()));
+		gen.addProvider(event.includeServer(), new ModBiomeTagsProvider(output, lookupProvider, event.getExistingFileHelper()));
 //		gen.addProvider(event.includeServer(), new HexereiRecipeProvider(gen));
 	}
 

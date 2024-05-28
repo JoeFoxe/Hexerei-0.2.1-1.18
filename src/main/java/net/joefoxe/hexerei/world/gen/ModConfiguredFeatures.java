@@ -2,13 +2,9 @@ package net.joefoxe.hexerei.world.gen;
 
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstapContext;
-import net.minecraft.data.worldgen.features.FeatureUtils;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -19,20 +15,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.GeodeBlockSettings;
 import net.minecraft.world.level.levelgen.GeodeCrackSettings;
 import net.minecraft.world.level.levelgen.GeodeLayerSettings;
-import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.WeightedPlacedFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.*;
 import net.minecraft.world.level.levelgen.feature.featuresize.TwoLayersFeatureSize;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.BlobFoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.StraightTrunkPlacer;
-import net.minecraft.world.level.levelgen.placement.*;
-import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Random;
@@ -47,9 +36,6 @@ public class ModConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> WILLOW_KEY = registerKey("willow");
     public static final ResourceKey<ConfiguredFeature<?, ?>> WITCH_HAZEL_KEY = registerKey("witch_hazel");
     public static final ResourceKey<ConfiguredFeature<?, ?>> MAHOGANY_KEY = registerKey("mahogany");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> WILLOW_SPAWN_KEY = registerKey("willow_spawn");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> WITCH_HAZEL_SPAWN_KEY = registerKey("witch_hazel_spawn");
-    public static final ResourceKey<ConfiguredFeature<?, ?>> MAHOGANY_SPAWN_KEY = registerKey("mahogany_spawn");
     public static ResourceKey<ConfiguredFeature<?, ?>> registerKey(String name) {
         return ResourceKey.create(Registries.CONFIGURED_FEATURE, new ResourceLocation(Hexerei.MOD_ID, name));
     }
@@ -62,7 +48,6 @@ public class ModConfiguredFeatures {
     public static Random random = new Random();
 
     public static void bootstrap(BootstapContext<ConfiguredFeature<?, ?>> context) {
-        HolderGetter<PlacedFeature> placedFeature = context.lookup(Registries.PLACED_FEATURE);
 
         register(context, SELENITE_GEODE_KEY, Feature.GEODE,
                 new GeodeConfiguration(new GeodeBlockSettings(
@@ -88,18 +73,18 @@ public class ModConfiguredFeatures {
                         PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.MUGWORT_BUSH.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))),
                         PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.BELLADONNA_FLOWER.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))),
                         PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.MANDRAKE_FLOWER.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))))));
-
+//
         register(context, FLOWERING_LILYPAD_KEY, Feature.RANDOM_PATCH,
                 new RandomPatchConfiguration(10, 7, 3, PlacementUtils.onlyWhenEmpty(Feature.SIMPLE_BLOCK,
                         new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.LILY_PAD_BLOCK.get().defaultBlockState())))));
-
+//
         register(context, WILLOW_KEY, ModFeatures.WILLOW_TREE.get(), new TreeConfiguration.TreeConfigurationBuilder(
                 BlockStateProvider.simple(ModBlocks.WILLOW_LOG.get()),
                 new StraightTrunkPlacer(5, 6, 3),
                 BlockStateProvider.simple(ModBlocks.WILLOW_LEAVES.get()),
                 new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 4),
                 new TwoLayersFeatureSize(1, 0, 2)).build());
-
+//
         register(context, WITCH_HAZEL_KEY, ModFeatures.WITCH_HAZEL_TREE.get(), new TreeConfiguration.TreeConfigurationBuilder(
                 BlockStateProvider.simple(ModBlocks.WITCH_HAZEL_LOG.get()),
                 new StraightTrunkPlacer(5, 6, 3),
@@ -113,16 +98,6 @@ public class ModConfiguredFeatures {
                 BlockStateProvider.simple(ModBlocks.MAHOGANY_LEAVES.get()),
                 new BlobFoliagePlacer(ConstantInt.of(2), ConstantInt.of(0), 4),
                 new TwoLayersFeatureSize(1, 0, 2)).build());
-
-        register(context, WILLOW_SPAWN_KEY, Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(List.of(
-                new WeightedPlacedFeature(placedFeature.getOrThrow(ModPlacedFeatures.WILLOW_CHECKED_KEY),0.5F)), placedFeature.getOrThrow(ModPlacedFeatures.WILLOW_CHECKED_KEY)));
-
-        register(context, WITCH_HAZEL_SPAWN_KEY, Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(List.of(
-                new WeightedPlacedFeature(placedFeature.getOrThrow(ModPlacedFeatures.WITCH_HAZEL_CHECKED_KEY),0.5F)), placedFeature.getOrThrow(ModPlacedFeatures.WITCH_HAZEL_CHECKED_KEY)));
-
-        register(context, MAHOGANY_SPAWN_KEY, Feature.RANDOM_SELECTOR, new RandomFeatureConfiguration(List.of(
-                new WeightedPlacedFeature(placedFeature.getOrThrow(ModPlacedFeatures.MAHOGANY_CHECKED_KEY),0.5F)), placedFeature.getOrThrow(ModPlacedFeatures.MAHOGANY_CHECKED_KEY)));
-
     }
 
 }

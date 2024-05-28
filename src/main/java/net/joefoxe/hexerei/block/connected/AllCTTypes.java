@@ -169,17 +169,6 @@ public enum AllCTTypes implements CTType {
     }
 
     @Override
-    public int getExtraFaceVariations() {
-        return extraFaceVariations;
-    }
-
-    @Override
-    public float getPercent() {
-        return percentChanceFromBase;
-    }
-
-
-    @Override
     public int getSheetSize() {
         return sheetSize;
     }
