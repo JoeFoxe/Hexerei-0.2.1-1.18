@@ -133,8 +133,8 @@ public class ClientProxy implements SidedProxy {
         e.registerBlockEntityRenderer(ModTileEntities.PESTLE_AND_MORTAR_TILE.get(), context -> new PestleAndMortarRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.SAGE_BURNING_PLATE_TILE.get(), context -> new SageBurningPlateRenderer());
         e.registerEntityRenderer(ModEntityTypes.BROOM.get(), BroomRenderer::new);
-        e.registerEntityRenderer(ModEntityTypes.HEXEREI_BOAT.get(), context -> new ModBoatRenderer(context, false));
-        e.registerEntityRenderer(ModEntityTypes.HEXEREI_CHEST_BOAT.get(), context -> new ModChestBoatRenderer(context, true));
+        e.registerEntityRenderer(ModEntityTypes.HEXEREI_BOAT.get(), ModBoatRenderer::new);
+        e.registerEntityRenderer(ModEntityTypes.HEXEREI_CHEST_BOAT.get(), ModChestBoatRenderer::new);
         e.registerEntityRenderer(ModEntityTypes.CROW.get(), CrowRenderer::new);
         ModItemProperties.makeDowsingRod(ModItems.DOWSING_ROD.get());
     }

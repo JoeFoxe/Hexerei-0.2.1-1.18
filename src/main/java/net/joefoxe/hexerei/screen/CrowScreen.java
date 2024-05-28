@@ -59,6 +59,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
+
+    private final static int FRONT_OVERLAY_BLIT_LAYER = 3;
+    private final static int FRONT_BLIT_LAYER = 2;
+    private final static int BACK_OVERLAY_BLIT_LAYER = 1;
+    private final static int BACK_BLIT_LAYER = 0;
     private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
             "textures/gui/crow_gui.png");
     private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
@@ -316,9 +321,9 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
 
     }
 
-    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int color){
+    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int z, int color){
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 1);
+        guiGraphics.pose().translate(x, y, z);
         guiGraphics.drawString(minecraft.font, component, 0, 0, color, true);
         guiGraphics.pose().popPose();
     }
@@ -332,125 +337,131 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
         int j = this.topPos - OFFSET;
         inventoryLabelY = 134 - OFFSET;
         inventoryLabelX = 9;
-        guiGraphics.blit(GUI, i + 184 - 28 + (int)whitelistOffset, j + 19, 0, 0, 156, 37, 100, 256, 256);
-        guiGraphics.blit(GUI, i - 5 - (int)leftPanelOffset, j + 19, 0, 74, 156, 37, 100, 256, 256);
+        guiGraphics.blit(GUI, i + 184 - 28 + (int)whitelistOffset, j + 19, 0, BACK_BLIT_LAYER, 156, 37, 100, 256, 256);
+        guiGraphics.blit(GUI, i - 5 - (int)leftPanelOffset, j + 19, BACK_BLIT_LAYER, 74, 156, 37, 100, 256, 256);
 
         if(CrowWhitelistEvent.whiteListingCrow != null && CrowWhitelistEvent.whiteListingCrow == crowEntity){
-            guiGraphics.blit(GUI, i + 184 - 28 + 6 + (int)whitelistOffset, j + 19 + 8, 1, 238, 178, 18, 18, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 6 + (int)whitelistOffset, j + 19 + 8, BACK_OVERLAY_BLIT_LAYER, 238, 178, 18, 18, 256, 256);
         }
-        guiGraphics.blit(GUI, i + 184 - 28 + (int)whitelistOffset, j + 19 + 100 - 12, 1, 37, 244, 37, 12, 256, 256);
-        guiGraphics.blit(GUI, i + 2 - (int)leftPanelOffset, j + 19 + 100 - 12, 1, 37, 244, 37, 12, 256, 256);
+        guiGraphics.blit(GUI, i + 184 - 28 + (int)whitelistOffset, j + 19 + 100 - 12, BACK_OVERLAY_BLIT_LAYER, 37, 244, 37, 12, 256, 256);
+        guiGraphics.blit(GUI, i + 2 - (int)leftPanelOffset, j + 19 + 100 - 12, BACK_OVERLAY_BLIT_LAYER, 37, 244, 37, 12, 256, 256);
         //(leftPanelOffset > 21 && x > this.leftPos + 8 - (int)leftPanelOffset && x < this.leftPos + 8 - (int)leftPanelOffset + 18 && y > this.topPos + 30 && y < this.topPos + 30 + 18)
         if(!crowEntity.canAttack)
-            guiGraphics.blit(GUI, i + 8 - (int)leftPanelOffset, j + 30, 2, 238, 196, 18, 18, 256, 256);
+            guiGraphics.blit(GUI, i + 8 - (int)leftPanelOffset, j + 30, BACK_OVERLAY_BLIT_LAYER, 238, 196, 18, 18, 256, 256);
 
         //range slider
         if(rangeSliderClicked)
-            guiGraphics.blit(GUI, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24), 1, 40, 232, 16, 5, 256, 256);
+            guiGraphics.blit(GUI, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24), BACK_OVERLAY_BLIT_LAYER, 40, 232, 16, 5, 256, 256);
         else
-            guiGraphics.blit(GUI, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - crowEntity.interactionRange, 1, 40, 238, 16, 5, 256, 256);
+            guiGraphics.blit(GUI, i - 5 + 14 - (int)leftPanelOffset, j + 19 + 64 - crowEntity.interactionRange, BACK_OVERLAY_BLIT_LAYER, 40, 238, 16, 5, 256, 256);
 
         MutableComponent component = Component.literal(String.valueOf(crowEntity.interactionRange));
         if(rangeSliderClicked)
             component = Component.literal(String.valueOf(Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24)));
         if(minecraft != null)
-            drawFont(guiGraphics, component, i - 5 + 22.5f - (int)leftPanelOffset - (float)(font.width(component.getVisualOrderText()) / 2), j + 102 - font.lineHeight / 2f, 0xFF303030);
+            drawFont(guiGraphics, component, i - 5 + 22.5f - (int)leftPanelOffset - (float)(font.width(component.getVisualOrderText()) / 2), j + 102 - font.lineHeight / 2f, BACK_OVERLAY_BLIT_LAYER, 0xFF303030);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUI);
         if(crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 1)
-            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29, 2, 231, 117, 7, 7, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29, BACK_OVERLAY_BLIT_LAYER, 231, 117, 7, 7, 256, 256);
 
         if(crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 2)
-            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18, 2, 231, 117, 7, 7, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18, BACK_OVERLAY_BLIT_LAYER, 231, 117, 7, 7, 256, 256);
 
         if(crowEntity.harvestWhitelist.size() >= whitelistPage * 3 + 3)
-            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18 + 18, 2, 231, 117, 7, 7, 256, 256);
+            guiGraphics.blit(GUI, i + 184 - 28 + 19 + (int)whitelistOffset, j + 19 + 29 + 18 + 18, BACK_OVERLAY_BLIT_LAYER, 231, 117, 7, 7, 256, 256);
 
         if(this.menu.crowEntity.harvestWhitelist.size() > 3 + 3 * whitelistPage) {
-            guiGraphics.blit(GUI, i + 184 + 21 - 28 + (int)whitelistOffset, j + 19 + 88, 3, 217, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 184 + 21 - 28 + (int)whitelistOffset, j + 19 + 88, BACK_OVERLAY_BLIT_LAYER, 217, 107, 7, 10, 256, 256);
         }
         if(whitelistPage > 0){
-            guiGraphics.blit(GUI, i + 184 + 3 - 28 + (int)whitelistOffset, j + 19 + 88, 3, 210, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 184 + 3 - 28 + (int)whitelistOffset, j + 19 + 88, BACK_OVERLAY_BLIT_LAYER, 210, 107, 7, 10, 256, 256);
         }
 
         if(this.menu.crowEntity.interactionRange < 24) {
-            guiGraphics.blit(GUI, i + 5 - (int)leftPanelOffset + 18, j + 19 + 100 - 12, 3, 217, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 5 - (int)leftPanelOffset + 18, j + 19 + 100 - 12, BACK_OVERLAY_BLIT_LAYER, 217, 107, 7, 10, 256, 256);
         }
         if(this.menu.crowEntity.interactionRange > 0){
-            guiGraphics.blit(GUI, i + 5 - (int)leftPanelOffset, j + 19 + 100 - 12, 3, 210, 107, 7, 10, 256, 256);
+            guiGraphics.blit(GUI, i + 5 - (int)leftPanelOffset, j + 19 + 100 - 12, BACK_OVERLAY_BLIT_LAYER, 210, 107, 7, 10, 256, 256);
         }
 
-        guiGraphics.blit(GUI, i, j, 0, 0, 188, 153);
+        guiGraphics.blit(GUI, i, j, FRONT_BLIT_LAYER, 0, 0, 188, 153, 256, 256);
 
         if(this.menu.getCommand() == 0)
         {
-            guiGraphics.blit(GUI, i + 23, j + 92, 238, 52, 18, 18);
+            guiGraphics.blit(GUI, i + 23, j + 92, FRONT_BLIT_LAYER, 238, 52, 18, 18, 256, 256);
         }else if(this.menu.getCommand() == 1)
         {
-            guiGraphics.blit(GUI, i + 43, j + 92, 238, 70, 18, 18);
+            guiGraphics.blit(GUI, i + 43, j + 92, FRONT_BLIT_LAYER, 238, 70, 18, 18, 256, 256);
         }else if(this.menu.getCommand() == 2)
         {
-            guiGraphics.blit(GUI, i + 63, j + 92, 238, 88, 18, 18);
+            guiGraphics.blit(GUI, i + 63, j + 92, FRONT_BLIT_LAYER, 238, 88, 18, 18, 256, 256);
         }else if(this.menu.getCommand() == 3)
         {
-            guiGraphics.blit(GUI, i + 83, j + 92, 238, 106, 18, 18);
+            guiGraphics.blit(GUI, i + 83, j + 92, FRONT_BLIT_LAYER, 238, 106, 18, 18, 256, 256);
         }
 
         if (this.menu.getCommand() == 3) {
             if (this.menu.getHelpCommand() == 0) {
-                guiGraphics.blit(GUI, i + 107, j + 92, 238, 124, 18, 18);
+                guiGraphics.blit(GUI, i + 107, j + 92, FRONT_BLIT_LAYER, 238, 124, 18, 18, 256, 256);
             }
             if (this.menu.getHelpCommand() == 1) {
-                guiGraphics.blit(GUI, i + 127, j + 92, 238, 142, 18, 18);
+                guiGraphics.blit(GUI, i + 127, j + 92, FRONT_BLIT_LAYER, 238, 142, 18, 18, 256, 256);
             }
             if (this.menu.getHelpCommand() == 2) {
-                guiGraphics.blit(GUI, i + 147, j + 92, 238, 160, 18, 18);
+                guiGraphics.blit(GUI, i + 147, j + 92, FRONT_BLIT_LAYER, 238, 160, 18, 18, 256, 256);
             }
         }
         else
         {
             if (this.menu.getHelpCommand() == 0) {
-                guiGraphics.blit(GUI, i + 107, j + 92, 220, 124, 18, 18);
+                guiGraphics.blit(GUI, i + 107, j + 92, FRONT_BLIT_LAYER, 220, 124, 18, 18, 256, 256);
             }
             else
             {
-                guiGraphics.blit(GUI, i + 107, j + 92, 202, 124, 18, 18);
+                guiGraphics.blit(GUI, i + 107, j + 92, FRONT_BLIT_LAYER, 202, 124, 18, 18, 256, 256);
             }
             if (this.menu.getHelpCommand() == 1) {
-                guiGraphics.blit(GUI, i + 127, j + 92, 220, 142, 18, 18);
+                guiGraphics.blit(GUI, i + 127, j + 92, FRONT_BLIT_LAYER, 220, 142, 18, 18, 256, 256);
             }
             else
             {
-                guiGraphics.blit(GUI, i + 127, j + 92, 202, 142, 18, 18);
+                guiGraphics.blit(GUI, i + 127, j + 92, FRONT_BLIT_LAYER, 202, 142, 18, 18, 256, 256);
             }
             if (this.menu.getHelpCommand() == 2) {
-                guiGraphics.blit(GUI, i + 147, j + 92, 220, 160, 18, 18);
+                guiGraphics.blit(GUI, i + 147, j + 92, FRONT_BLIT_LAYER, 220, 160, 18, 18, 256, 256);
             }
             else
             {
-                guiGraphics.blit(GUI, i + 147, j + 92, 202, 160, 18, 18);
+                guiGraphics.blit(GUI, i + 147, j + 92, FRONT_BLIT_LAYER, 202, 160, 18, 18, 256, 256);
             }
         }
 
         if(!crowEntity.itemHandler.getStackInSlot(0).isEmpty())
-            guiGraphics.blit(GUI, i + 86, j + 50, 235, 31, 16, 16);
+            guiGraphics.blit(GUI, i + 86, j + 50, FRONT_BLIT_LAYER, 235, 31, 16, 16, 256, 256);
         if(!crowEntity.itemHandler.getStackInSlot(1).isEmpty())
-            guiGraphics.blit(GUI, i + 37, j + 50, 235, 31, 16, 16);
+            guiGraphics.blit(GUI, i + 37, j + 50, FRONT_BLIT_LAYER, 235, 31, 16, 16, 256, 256);
         if(!crowEntity.itemHandler.getStackInSlot(2).isEmpty())
-            guiGraphics.blit(GUI, i + 134, j + 50, 235, 31, 16, 16);
+            guiGraphics.blit(GUI, i + 134, j + 50, FRONT_BLIT_LAYER, 235, 31, 16, 16, 256, 256);
 
-        guiGraphics.blit(GUI, i + 81, j - 30, 230, 0, 26, 26);
+        guiGraphics.blit(GUI, i + 81, j - 30, FRONT_BLIT_LAYER, 230, 0, 26, 26, 256, 256);
 
-        RenderSystem.setShaderTexture(0, INVENTORY);
-        guiGraphics.blit(GUI, i + 6, j + 129, 0, 0, 176, 100);
+        guiGraphics.blit(INVENTORY, i + 6, j + 129, FRONT_BLIT_LAYER, 0, 0, 176, 100, 256, 256);
         Minecraft minecraft = Minecraft.getInstance();
         RenderSystem.setShaderTexture(0, GUI);
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
 
-        InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 94, j - 10, 40, (new Quaternionf()).rotationXYZ(0.43633232F, 0.0F, (float)Math.PI), (Quaternionf)null, CrowWhitelistEvent.whiteListingCrow);
+        if (crowEntity != null) {
 
+            float angle = 0.0f;
+            Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
+            Quaternionf quaternionf1 = (new Quaternionf()).rotateX(angle * 20.0F * ((float)Math.PI / 180F));
+            quaternionf.mul(quaternionf1);
+
+            InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 94, j - 10, 30, quaternionf, quaternionf1, crowEntity);
+        }
 
         RenderSystem.disableDepthTest();
 //        if(crowEntity.getCrowType() == CrowEntity.Type.MAHOGANY)
@@ -491,11 +502,11 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
 
 
 
-        drawFont(guiGraphics, hat, this.leftPos + 45 - (float)(font.width(hat.getVisualOrderText()) / 2), j + 32, 0xFF606060);
-        drawFont(guiGraphics, misc1, this.leftPos + 94 - (float)(font.width(misc1.getVisualOrderText()) / 2), j + 32, 0xFF606060);
-        drawFont(guiGraphics, misc2, this.leftPos + 142 - (float)(font.width(misc2.getVisualOrderText()) / 2), j + 32, 0xFF606060);
-        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, 0xFF606060);
-        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), j + 77, 0xFF606060);
+        drawFont(guiGraphics, hat, this.leftPos + 45 - (float)(font.width(hat.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
+        drawFont(guiGraphics, misc1, this.leftPos + 94 - (float)(font.width(misc1.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
+        drawFont(guiGraphics, misc2, this.leftPos + 142 - (float)(font.width(misc2.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
+        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
+        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), j + 77, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
 
 //        InventoryScreen.renderEntityInInventory(this.leftPos + 107, j + 88, 20, (float)(this.leftPos + 107 - x) , (float)(j + 88 - 30 - y), (LivingEntity) crowEntity);
 //

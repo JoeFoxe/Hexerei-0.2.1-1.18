@@ -5,7 +5,7 @@
 	"render_type": "cutout",
 	"texture_size": [64, 64],
 	"textures": {
-		"3": "hexerei:particle/broom_stand_horizontal",
+		"3": "hexerei:block/broom_stand_horizontal",
 		"particle": "hexerei:particle/altar_particle"
 	},
 	"elements": [

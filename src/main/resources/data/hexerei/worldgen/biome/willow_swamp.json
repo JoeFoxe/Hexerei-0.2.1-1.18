@@ -90,10 +90,7 @@
       "minecraft:cave_vines",
       "minecraft:rooted_azalea_tree",
       "minecraft:spore_blossom",
-      "minecraft:classic_vines_cave_feature",
-      "hexerei:flowering_lilypad_placed",
-      "hexerei:swamp_flowers_placed",
-      "hexerei:trees_willow_swamp_placed"
+      "minecraft:classic_vines_cave_feature"
     ],
     [
       "minecraft:freeze_top_layer"

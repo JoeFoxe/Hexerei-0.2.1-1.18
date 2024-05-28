@@ -30,23 +30,18 @@ public class ModBoatRenderer extends EntityRenderer<ModBoatEntity> {
 
     private final Map<ModBoatEntity.Type, Pair<ResourceLocation, BoatModel>> boatResources;
 
-    public ModBoatRenderer(EntityRendererProvider.Context p_234563_, boolean p_234564_) {
+    public ModBoatRenderer(EntityRendererProvider.Context p_234563_) {
         super(p_234563_);
         this.shadowRadius = 0.8F;
         this.boatResources = Stream.of(ModBoatEntity.Type.values()).collect(ImmutableMap.toImmutableMap((p_173938_) -> {
             return p_173938_;
         }, (p_234575_) -> {
-            return Pair.of(new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(p_234575_, p_234564_)), this.createBoatModel(p_234563_, p_234575_, p_234564_));
+            return Pair.of(new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(p_234575_)), this.createBoatModel(p_234563_, p_234575_));
         }));
     }
 
-    private BoatModel createBoatModel(EntityRendererProvider.Context p_234569_, ModBoatEntity.Type p_234570_, boolean p_234571_) {
-        new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/" + p_234570_.getName()), "main");
-
-
-        ModelLayerLocation modellayerlocation = p_234571_
-                ? new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/" + p_234570_.getName()), "main")
-                : new ModelLayerLocation(new ResourceLocation("hexerei", "boat/" + p_234570_.getName()), "main");
+    private BoatModel createBoatModel(EntityRendererProvider.Context p_234569_, ModBoatEntity.Type p_234570_) {
+        ModelLayerLocation modellayerlocation = new ModelLayerLocation(new ResourceLocation("hexerei", "boat/" + p_234570_.getName()), "main");
         return new BoatModel(p_234569_.bakeLayer(modellayerlocation));
     }
 
@@ -90,13 +85,13 @@ public class ModBoatRenderer extends EntityRenderer<ModBoatEntity> {
     @Override
     public ResourceLocation getTextureLocation(ModBoatEntity entity) {
 
-        return new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(entity.getModBoatType(), false));
+        return new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(entity.getModBoatType()));
     }
 
 
 
-    private static String getTextureLocation(ModBoatEntity.Type p_234566_, boolean p_234567_) {
-        return p_234567_ ? "textures/entity/chest_boat/" + p_234566_.getName() + ".png" : "textures/entity/boat/" + p_234566_.getName() + ".png";
+    private static String getTextureLocation(ModBoatEntity.Type p_234566_) {
+        return "textures/entity/boat/" + p_234566_.getName() + ".png";
     }
 
     public Pair<ResourceLocation, BoatModel> getModelWithLocation(ModBoatEntity boat) { return this.boatResources.get(boat.getModBoatType()); }

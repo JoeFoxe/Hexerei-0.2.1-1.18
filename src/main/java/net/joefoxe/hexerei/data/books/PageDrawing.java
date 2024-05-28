@@ -158,7 +158,10 @@ public class PageDrawing {
 
     protected static final Quaternionf ITEM_LIGHT_ROTATION_3D = Util.make(() -> {
         Quaternionf quaternion = new Quaternionf();
-        quaternion.setAngleAxis(-15 * Math.PI / 180, 1, 0, 1);
+//        quaternion.setAngleAxis(175 * Math.PI / 180, 1, 0, 1);
+        quaternion.setAngleAxis((65) * Math.PI / 180, 1, 0, 0);
+        quaternion.rotateAxis((float)((50) * Math.PI / 180), 0, 1, 0);
+
 
         return quaternion;
     });
@@ -318,8 +321,9 @@ public class PageDrawing {
         try {
             BakedModel itemModel = itemRenderer.getModel(itemStack, null, null, 0);
 
-            if (itemModel.isGui3d())
+            if (itemModel.isGui3d()) {
                 matrixStackIn.last().normal().rotate(ITEM_LIGHT_ROTATION_3D);
+            }
             else
                 matrixStackIn.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
 
@@ -1534,13 +1538,13 @@ public class PageDrawing {
         if (this.drawTooltipStack && tileEntityIn.turnPage == 0) {
             this.drawTooltipStackFlag = true;
             this.drawTooltipTextFlag = false;
-            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, 0.02f);
+            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, 0.004f);
         } else if (this.drawTooltipText && tileEntityIn.turnPage == 0) {
             this.drawTooltipTextFlag = true;
             this.drawTooltipStackFlag = false;
-            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, 0.02f);
+            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, 0.004f);
         } else {
-            this.drawTooltipScale = moveTo(this.drawTooltipScale, 0, 0.025f);
+            this.drawTooltipScale = moveTo(this.drawTooltipScale, 0, 0.005f);
             if (this.drawTooltipScale == 0) {
                 this.drawTooltipStackFlag = false;
                 this.drawTooltipTextFlag = false;
@@ -3848,7 +3852,7 @@ public class PageDrawing {
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/slot.png")));
 
-        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         int u = 0;
         int v = 0;
@@ -3908,7 +3912,7 @@ public class PageDrawing {
         if (showSlot) {
             VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/slot.png")));
 
-            matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//            matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
             Matrix3f normal = matrixStack.last().normal();
             int u = 0;
             int v = 0;
@@ -3961,12 +3965,12 @@ public class PageDrawing {
             scaledAmount = tiledHeight;
 
         drawTiledSprite(poseStack, bufferSource, tiledWidth, tiledHeight, fluidColor, scaledAmount, fluidStillSprite, capacity, amount, light, overlay, x_offset, y_offset, width, height);
+
     }
 
     @OnlyIn(Dist.CLIENT)
     private static void drawTiledSprite(PoseStack poseStack, MultiBufferSource bufferSource, final int tiledWidth, final int tiledHeight, int color, int scaledAmount, TextureAtlasSprite sprite, int capacity, int amount, int light, int overlay, float x_offset, float y_offset, float width, float height) {
         RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-        setGLColorFromInt(color);
 
         final int xTileCount = tiledWidth / TEXTURE_SIZE;
         final int xRemainder = tiledWidth - (xTileCount * TEXTURE_SIZE);
@@ -4165,7 +4169,7 @@ public class PageDrawing {
 
         RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
-        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
 
         this.renderTooltip(this.tooltipStack, bufferSource, matrixStack, this.tooltipText, Optional.empty(), 0, 0, overlay, light);
 
@@ -4383,7 +4387,7 @@ public class PageDrawing {
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(bookImage.imageLoc)));
 
-        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         int u = (int) bookImage.u;
         int v = (int) bookImage.v;
@@ -4648,7 +4652,7 @@ public class PageDrawing {
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(loc.get())));
 
-        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
 
         float u1 = (u.get() + 0.0F) / (float) imageWidth.get();
@@ -4740,7 +4744,7 @@ public class PageDrawing {
         Matrix4f matrix = matrixStack.last().pose();
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/title.png")));
 
-        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         int u = 0;
         int v = 0;
@@ -4800,7 +4804,7 @@ public class PageDrawing {
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.cutout());
 
 
-        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
+//        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
         Matrix3f normal = matrixStack.last().normal();
         buffer.vertex(matrix, -0.032f, -0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU0(), sprite.getV0()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
         buffer.vertex(matrix, 0.032f, -0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU0(), sprite.getV1()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();

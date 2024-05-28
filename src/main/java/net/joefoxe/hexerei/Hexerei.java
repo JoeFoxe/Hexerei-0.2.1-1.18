@@ -29,6 +29,7 @@ import net.joefoxe.hexerei.fluid.ModFluidTypes;
 import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.integration.HexereiModNameTooltipCompat;
 import net.joefoxe.hexerei.integration.jei.HexereiJeiCompat;
+import net.joefoxe.hexerei.item.ModItemGroup;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.light.LightManager;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
@@ -73,6 +74,7 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -206,6 +208,8 @@ public class Hexerei {
 		eventBus.addListener(this::processIMC);
 		// Register the doClientStuff method for modloading
 		eventBus.addListener(this::doClientStuff);
+
+		ModItemGroup.ITEM_GROUP.register(eventBus);
 
 
 		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> MODEL_SWAPPER.registerListeners(eventBus));

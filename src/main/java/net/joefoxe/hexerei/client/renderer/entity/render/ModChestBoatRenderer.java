@@ -7,7 +7,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.ModChestBoatEntity;
-import net.minecraft.client.model.BoatModel;
+import net.minecraft.client.model.ChestBoatModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -28,26 +28,21 @@ import java.util.stream.Stream;
 
 public class ModChestBoatRenderer extends EntityRenderer<ModChestBoatEntity> {
 
-    private final Map<ModChestBoatEntity.Type, Pair<ResourceLocation, BoatModel>> boatResources;
+    private final Map<ModChestBoatEntity.Type, Pair<ResourceLocation, ChestBoatModel>> boatResources;
 
-    public ModChestBoatRenderer(EntityRendererProvider.Context p_234563_, boolean p_234564_) {
+    public ModChestBoatRenderer(EntityRendererProvider.Context p_234563_) {
         super(p_234563_);
         this.shadowRadius = 0.8F;
         this.boatResources = Stream.of(ModChestBoatEntity.Type.values()).collect(ImmutableMap.toImmutableMap((p_173938_) -> {
             return p_173938_;
         }, (p_234575_) -> {
-            return Pair.of(new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(p_234575_, p_234564_)), this.createBoatModel(p_234563_, p_234575_, p_234564_));
+            return Pair.of(new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(p_234575_)), this.createBoatModel(p_234563_, p_234575_));
         }));
     }
 
-    private BoatModel createBoatModel(EntityRendererProvider.Context p_234569_, ModChestBoatEntity.Type p_234570_, boolean p_234571_) {
-        new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/" + p_234570_.getName()), "main");
-
-
-        ModelLayerLocation modellayerlocation = p_234571_
-                ? new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/" + p_234570_.getName()), "main")
-                : new ModelLayerLocation(new ResourceLocation("hexerei", "boat/" + p_234570_.getName()), "main");
-        return new BoatModel(p_234569_.bakeLayer(modellayerlocation));
+    private ChestBoatModel createBoatModel(EntityRendererProvider.Context p_234569_, ModChestBoatEntity.Type p_234570_) {
+        ModelLayerLocation modellayerlocation = new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/" + p_234570_.getName()), "main");
+        return new ChestBoatModel(p_234569_.bakeLayer(modellayerlocation));
     }
 
     @Override
@@ -70,9 +65,9 @@ public class ModChestBoatRenderer extends EntityRenderer<ModChestBoatEntity> {
             pMatrixStack.mulPose((new Quaternionf()).setAngleAxis(pEntity.getBubbleAngle(pPartialTicks) * ((float)Math.PI / 180F), 1.0F, 0.0F, 1.0F));
         }
 
-        Pair<ResourceLocation, BoatModel> pair = getModelWithLocation(pEntity);
+        Pair<ResourceLocation, ChestBoatModel> pair = getModelWithLocation(pEntity);
         ResourceLocation resourcelocation = pair.getFirst();
-        BoatModel boatmodel = pair.getSecond();
+        ChestBoatModel boatmodel = pair.getSecond();
         pMatrixStack.scale(-1.0F, -1.0F, 1.0F);
         pMatrixStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         boatmodel.setupAnim(pEntity, pPartialTicks, 0.0F, -0.1F, 0.0F, 0.0F);
@@ -90,14 +85,14 @@ public class ModChestBoatRenderer extends EntityRenderer<ModChestBoatEntity> {
     @Override
     public ResourceLocation getTextureLocation(ModChestBoatEntity entity) {
 
-        return new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(entity.getModBoatType(), false));
+        return new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(entity.getModBoatType()));
     }
 
 
 
-    private static String getTextureLocation(ModChestBoatEntity.Type p_234566_, boolean p_234567_) {
-        return p_234567_ ? "textures/entity/chest_boat/" + p_234566_.getName() + ".png" : "textures/entity/boat/" + p_234566_.getName() + ".png";
+    private static String getTextureLocation(ModChestBoatEntity.Type p_234566_) {
+        return "textures/entity/chest_boat/" + p_234566_.getName() + ".png";
     }
 
-    public Pair<ResourceLocation, BoatModel> getModelWithLocation(ModChestBoatEntity boat) { return this.boatResources.get(boat.getModBoatType()); }
+    public Pair<ResourceLocation, ChestBoatModel> getModelWithLocation(ModChestBoatEntity boat) { return this.boatResources.get(boat.getModBoatType()); }
 }
