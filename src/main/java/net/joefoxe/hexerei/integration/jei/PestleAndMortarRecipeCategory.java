@@ -66,7 +66,7 @@ public class PestleAndMortarRecipeCategory implements IRecipeCategory<PestleAndM
             builder.addSlot(RecipeIngredientRole.INPUT, 64, 36).addIngredients(recipe.getIngredients().get(3));
         if(recipe.getIngredients().size() > 4)
             builder.addSlot(RecipeIngredientRole.INPUT, 73, 14).addIngredients(recipe.getIngredients().get(4));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 117, 31).addItemStack(recipe.getResultItem());
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 117, 31).addItemStack(recipe.getOutput());
 
 //        builder.getItemStacks().set(ingredients);
     }
@@ -109,7 +109,7 @@ public class PestleAndMortarRecipeCategory implements IRecipeCategory<PestleAndM
         minecraft.font.drawInBatch(dip_time_1, 6*1.666f, 68.5f*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         minecraft.font.drawInBatch(dip_time_3, (58*1.666f), 68.5f*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
-        String outputName = recipe.getResultItem().getHoverName().getString();
+        String outputName = recipe.getOutput().getHoverName().getString();
         minecraft.font.drawInBatch(outputName, 5*1.666f, 4*1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
         guiGraphics.pose().popPose();

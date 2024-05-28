@@ -100,6 +100,10 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
     @Override
     public ItemStack getResultItem(RegistryAccess registryAccess) {
 
+        return getOutput();
+    }
+
+    public ItemStack getOutput(){
         return output.copy();
     }
 

@@ -216,7 +216,7 @@ public class DryingRackTile extends RandomizableContainerBlockEntity implements 
             if (blockEntity instanceof DryingRackTile) {
                 final int j = i;
                 recipe.ifPresent(iRecipe -> {
-                    ItemStack recipeOutput = iRecipe.getResultItem();
+                    ItemStack recipeOutput = iRecipe.getResultItem(this.level.registryAccess());
                     ItemStack input = iRecipe.getIngredients().get(0).getItems()[0];
 
                     if (input.getItem() == this.items.get(j).getItem()) {

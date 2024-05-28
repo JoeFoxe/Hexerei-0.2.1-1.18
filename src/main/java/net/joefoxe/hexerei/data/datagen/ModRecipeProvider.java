@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ModRecipeProvider extends RecipeProvider implements IConditionBuilder {
-    public ModRecipeProvider(DataGenerator pGenerator) {
-        super(pGenerator.getPackOutput());
+    public ModRecipeProvider(PackOutput packOutput) {
+        super(packOutput);
     }
 
 

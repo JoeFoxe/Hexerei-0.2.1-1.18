@@ -131,7 +131,7 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
             builder.addSlot(RecipeIngredientRole.INPUT,33, 55).addIngredients(recipe.getInputs().get(7));
         if(size > 8)
             builder.addSlot(RecipeIngredientRole.INPUT,51, 55).addIngredients(recipe.getInputs().get(8));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 109, 37).addItemStack(recipe.getResultItem());
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 109, 37).addItemStack(recipe.getOutput());
 
     }
 
@@ -144,7 +144,7 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
 
         Minecraft minecraft = Minecraft.getInstance();
 
-        Component outputName = recipe.getResultItem().getHoverName();// Component.translatable("Crow Flute");
+        Component outputName = recipe.getOutput().getHoverName();// Component.translatable("Crow Flute");
 
         int width = minecraft.font.width(outputName);
         float lineHeight = minecraft.font.lineHeight / 2f;

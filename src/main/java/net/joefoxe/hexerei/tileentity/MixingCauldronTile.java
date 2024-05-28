@@ -631,7 +631,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
 
         AtomicBoolean firstRecipe = new AtomicBoolean(false);
         recipe.ifPresent(iRecipe -> {
-            ItemStack output = iRecipe.getResultItem();
+            ItemStack output = iRecipe.getResultItem(this.level.registryAccess());
             //ask for delay
             FluidStack recipeFluid = iRecipe.getLiquid();
             FluidStack containerFluid = this.getFluidStack();
@@ -677,7 +677,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
 
         if (!firstRecipe.get() && !recipe2.isEmpty()) {
             for (FluidMixingRecipe fluidMixingRecipe : recipe2) {
-                ItemStack output = fluidMixingRecipe.getResultItem();
+                ItemStack output = fluidMixingRecipe.getResultItem(this.level.registryAccess());
                 //ask for delay
                 FluidStack recipeFluid = fluidMixingRecipe.getLiquid();
                 FluidStack containerFluid = this.getFluidStack();

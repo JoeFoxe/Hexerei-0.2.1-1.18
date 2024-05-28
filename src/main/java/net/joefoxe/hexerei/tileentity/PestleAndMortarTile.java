@@ -219,7 +219,7 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
         AtomicBoolean matches = new AtomicBoolean(false);
         if (blockEntity instanceof PestleAndMortarTile pestleAndMortarTile) {
             recipe.ifPresent(iRecipe -> {
-                this.output = iRecipe.getResultItem();
+                this.output = iRecipe.getResultItem(level.registryAccess());
 
                 matches.set(true);
                 if (pestleAndMortarTile.getItemInSlot(5) == Items.AIR && !this.crafting) {

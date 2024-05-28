@@ -16,7 +16,6 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraft.world.level.material.Material;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,7 +44,7 @@ public class DarkCovenLegProcessor extends StructureProcessor {
             // Generate vertical pillar down
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.getMaterial() == Material.WATER || currBlock.getMaterial() == Material.LAVA)) {
+            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, Blocks.DARK_OAK_LOG.defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);

@@ -17,7 +17,6 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
-import net.minecraft.world.level.material.Material;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -34,24 +33,24 @@ public class MangroveTreeLegProcessor extends StructureProcessor {
     @ParametersAreNonnullByDefault
     @Override
     public StructureTemplate.StructureBlockInfo process(LevelReader worldReader, BlockPos jigsawPiecePos, BlockPos jigsawPieceBottomCenterPos, StructureTemplate.StructureBlockInfo blockInfoLocal, StructureTemplate.StructureBlockInfo blockInfoGlobal, StructurePlaceSettings structurePlacementData, @Nullable StructureTemplate template) {
-        ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos);
+        ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
         ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
-        RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos);
+        RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
 
-        if(!(currentChunk.getBlockState(blockInfoGlobal.pos).getBlock() instanceof LeavesBlock || currentChunk.getBlockState(blockInfoGlobal.pos).getBlock() == Blocks.AIR ||  currentChunk.getBlockState(blockInfoGlobal.pos).getBlock() == Blocks.GRASS || currentChunk.getBlockState(blockInfoGlobal.pos).getMaterial().isReplaceable()))
+        if(!(currentChunk.getBlockState(blockInfoGlobal.pos()).getBlock() instanceof LeavesBlock || currentChunk.getBlockState(blockInfoGlobal.pos()).is(Blocks.AIR) ||  currentChunk.getBlockState(blockInfoGlobal.pos()).is(Blocks.GRASS) || currentChunk.getBlockState(blockInfoGlobal.pos()).canBeReplaced()))
         {
             return null;
         }
 
-        if (blockInfoGlobal.state.getBlock() == Blocks.YELLOW_STAINED_GLASS_PANE) {
+        if (blockInfoGlobal.state().getBlock() == Blocks.YELLOW_STAINED_GLASS_PANE) {
 
-            currentChunk.setBlockState(blockInfoGlobal.pos, Blocks.AIR.defaultBlockState(), false);
-            blockInfoGlobal = new StructureTemplate.StructureBlockInfo(blockInfoGlobal.pos, Blocks.AIR.defaultBlockState(), blockInfoGlobal.nbt);
+            currentChunk.setBlockState(blockInfoGlobal.pos(), Blocks.AIR.defaultBlockState(), false);
+            blockInfoGlobal = new StructureTemplate.StructureBlockInfo(blockInfoGlobal.pos(), Blocks.AIR.defaultBlockState(), blockInfoGlobal.nbt());
 
             // Generate vertical pillar down
-            BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos.below().mutable();
+            BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.getMaterial() == Material.AIR || currBlock.getMaterial() == Material.WATER || currBlock.getMaterial() == Material.LAVA)) {
+            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, Blocks.OAK_LOG.defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);

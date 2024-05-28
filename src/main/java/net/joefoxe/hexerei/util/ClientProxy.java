@@ -203,27 +203,27 @@ public class ClientProxy implements SidedProxy {
     public static final Map<Character, ResourceLocation> TEXT = Maps.newHashMap();
     public static final Map<Character, Float> TEXT_WIDTH = Maps.newHashMap();
 
-    @SubscribeEvent
-    public static void onTextureStitch(TextureStitchEvent.Pre event) {
-        if (!event.getAtlas().location().equals(TextureAtlas.LOCATION_BLOCKS)) {
-            return;
-        }
-        registerTextLocations();
-        TEXT.forEach((character, resourceLocation) -> {
-            event.addSprite(resourceLocation);
-        });
-        event.addSprite(PageDrawing.SLOT_ATLAS);
-        event.addSprite(PageDrawing.TITLE);
-
-        ResourceLocation atlasLocation = event.getAtlas().location();
-        List<StitchedSprite> sprites = ALL.get(atlasLocation);
-
-        if (sprites != null) {
-            for (StitchedSprite sprite : sprites) {
-                event.addSprite(sprite.getLocation());
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public static void onTextureStitch(TextureStitchEvent.Pre event) {
+//        if (!event.getAtlas().location().equals(TextureAtlas.LOCATION_BLOCKS)) {
+//            return;
+//        }
+//        registerTextLocations();
+//        TEXT.forEach((character, resourceLocation) -> {
+//            event.addSprite(resourceLocation);
+//        });
+//        event.addSprite(PageDrawing.SLOT_ATLAS);
+//        event.addSprite(PageDrawing.TITLE);
+//
+//        ResourceLocation atlasLocation = event.getAtlas().location();
+//        List<StitchedSprite> sprites = ALL.get(atlasLocation);
+//
+//        if (sprites != null) {
+//            for (StitchedSprite sprite : sprites) {
+//                event.addSprite(sprite.getLocation());
+//            }
+//        }
+//    }
     @SubscribeEvent
     public static void onTextureStitch(TextureStitchEvent.Post event) {
         TextureAtlas atlas = event.getAtlas();

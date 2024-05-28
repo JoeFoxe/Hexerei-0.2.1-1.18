@@ -75,9 +75,12 @@ public class DryingRackRecipe implements Recipe<SimpleContainer> {
     @Override
     public ItemStack getResultItem(RegistryAccess registryAccess) {
 
-        return output.copy();
+        return getOutput();
     }
 
+    public ItemStack getOutput(){
+        return output.copy();
+    }
     public int getDryingTime() { return this.dryingTime; }
 
     public ItemStack getToastSymbol() {

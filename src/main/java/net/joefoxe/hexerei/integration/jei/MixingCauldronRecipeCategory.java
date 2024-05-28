@@ -249,7 +249,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             builder.addSlot(RecipeIngredientRole.INPUT,52, 49).addIngredients(recipe.getIngredients().get(6));
         if(size > 7)
             builder.addSlot(RecipeIngredientRole.INPUT,61, 27).addIngredients(recipe.getIngredients().get(7));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 156, changesFluid ? 30 : 49).addItemStack(recipe.getResultItem());
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 156, changesFluid ? 30 : 49).addItemStack(recipe.getOutput());
 
     }
 
@@ -312,7 +312,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             boolean compare = NbtUtils.compareNbt(tag2, tag, true);
 
             Minecraft minecraft = Minecraft.getInstance();
-            Component outputName = recipe.getResultItem().getHoverName();
+            Component outputName = recipe.getOutput().getHoverName();
             int width = minecraft.font.width(outputName);
             float lineHeight = minecraft.font.lineHeight / 2f;
             if(width > 131){
@@ -421,7 +421,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                     }
 
                     // output item
-                    ItemStack item2 = recipe.getResultItem();
+                    ItemStack item2 = recipe.getOutput();
                     if (!item2.isEmpty()) {
 
                         guiGraphics.pose().pushPose();
@@ -497,7 +497,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
             boolean compare = NbtUtils.compareNbt(tag2, tag, true);
 
             Minecraft minecraft = Minecraft.getInstance();
-            Component outputName = recipe.getResultItem().getHoverName();
+            Component outputName = recipe.getOutput().getHoverName();
             int width = minecraft.font.width(outputName);
             float lineHeight = minecraft.font.lineHeight / 2f;
             if(width > 131){
@@ -597,7 +597,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                 }
 
                 // output item
-                ItemStack item2 = recipe.getResultItem();
+                ItemStack item2 = recipe.getOutput();
                 if (!item2.isEmpty()) {
 
                     guiGraphics.pose().pushPose();

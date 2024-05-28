@@ -286,7 +286,7 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
 
             recipes.forEach((iRecipe -> {
 
-                ItemStack output = iRecipe.getResultItem();
+                ItemStack output = iRecipe.getResultItem(this.level.registryAccess());
                 ItemStack input = iRecipe.getIngredients().get(0).getItems()[0];
                 boolean matchesFluid = iRecipe.getLiquid().getFluid().isSame(mixingCauldronTile.getFluidStack().getFluid()) && iRecipe.getFluidLevelsConsumed() <= mixingCauldronTile.getFluidStack().getAmount();
                 boolean hasFluidTag = iRecipe.getLiquid().hasTag();

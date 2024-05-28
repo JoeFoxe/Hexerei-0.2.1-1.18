@@ -34,7 +34,7 @@ public class ModRegion extends Region {
 
         @Override
         public void addBiomes(Registry<Biome> registry, Consumer<Pair<Climate.ParameterPoint, ResourceKey<Biome>>> mapper) {
-            this.addModifiedVanillaOverworldBiomes(mapper, (builder -> builder.replaceBiome(Biomes.SWAMP, ModBiomes.WILLOW_SWAMP.getKey())));
+            this.addModifiedVanillaOverworldBiomes(mapper, (builder -> builder.replaceBiome(Biomes.SWAMP, ModBiomes.WILLOW_SWAMP)));
         }
 
     }

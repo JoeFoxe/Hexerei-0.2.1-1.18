@@ -69,7 +69,7 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, DipperRecipe recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 15, 14).addIngredients(recipe.getIngredients().get(0));
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 69, 23).addItemStack(recipe.getResultItem());
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 69, 23).addItemStack(recipe.getOutput());
 
         FluidStack input = recipe.getLiquid();
         if(recipe.getFluidLevelsConsumed() != 0) {
@@ -122,7 +122,7 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
         minecraft.font.drawInBatch(dry_time_1, 6*1.666f, 80*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         minecraft.font.drawInBatch(dry_time_3, 65*1.666f, 80*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
-        String outputName = recipe.getResultItem().getHoverName().getString();
+        String outputName = recipe.getOutput().getHoverName().getString();
         minecraft.font.drawInBatch(outputName, 5*1.666f, 4*1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         guiGraphics.pose().popPose();
 

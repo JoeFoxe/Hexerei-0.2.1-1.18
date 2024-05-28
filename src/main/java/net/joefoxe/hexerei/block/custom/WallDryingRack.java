@@ -206,7 +206,7 @@ public class WallDryingRack extends HerbDryingRack {
 
     @Override
     public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
-        return pLevel.getBlockState(pPos.relative(pState.getValue(HorizontalDirectionalBlock.FACING))).getMaterial().isSolid();
+        return pLevel.getBlockState(pPos.relative(pState.getValue(HorizontalDirectionalBlock.FACING))).isSolid();
     }
 
     @Override

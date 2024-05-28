@@ -57,7 +57,7 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecip
     public void setRecipe(IRecipeLayoutBuilder builder, DryingRackRecipe recipe, IFocusGroup focuses) {
 
         builder.addSlot(RecipeIngredientRole.INPUT,14, 16).addIngredients(recipe.getIngredients().get(0));
-        builder.addSlot(RecipeIngredientRole.OUTPUT,70, 16).addItemStack(recipe.getResultItem());
+        builder.addSlot(RecipeIngredientRole.OUTPUT,70, 16).addItemStack(recipe.getOutput());
     }
 
     @Override
@@ -75,7 +75,7 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecip
         minecraft.font.drawInBatch(dip_time_1, 6*1.666f, 41*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         minecraft.font.drawInBatch(dip_time_3, 55*1.666f, 41*1.666f, 0xFF808080, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
 
-        String outputName = recipe.getResultItem().getHoverName().getString();
+        String outputName = recipe.getOutput().getHoverName().getString();
         minecraft.font.drawInBatch(outputName, 5*1.666f, 4*1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
         guiGraphics.pose().popPose();
 

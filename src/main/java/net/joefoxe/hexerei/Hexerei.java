@@ -53,6 +53,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
@@ -90,6 +91,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static net.joefoxe.hexerei.util.ClientProxy.MODEL_SWAPPER;
 
@@ -183,7 +185,6 @@ public class Hexerei {
 		ModRecipeTypes.register(eventBus);
 		ModParticleTypes.PARTICLES.register(eventBus);
 		ModFeatures.register(eventBus);
-		ModPlacedFeatures.register(eventBus);
 		ModStructures.DEFERRED_REGISTRY_STRUCTURE.register(eventBus);
 		ModSounds.register(eventBus);
 		ModEntityTypes.register(eventBus);
@@ -224,9 +225,10 @@ public class Hexerei {
 	public void gatherData(GatherDataEvent event) {
 		DataGenerator gen = event.getGenerator();
 		PackOutput output = gen.getPackOutput();
+		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
 		gen.addProvider(true, new ModRecipeProvider(output));
-		gen.addProvider(event.includeServer(), new ModBiomeTagsProvider(gen, event.getExistingFileHelper()));
+		gen.addProvider(event.includeServer(), new ModBiomeTagsProvider(output, lookupProvider, event.getExistingFileHelper()));
 		gen.addProvider(event.includeServer(), new WorldGenProvider(output, event.getLookupProvider()));
 //		gen.addProvider(event.includeServer(), new HexereiRecipeProvider(gen));
 	}

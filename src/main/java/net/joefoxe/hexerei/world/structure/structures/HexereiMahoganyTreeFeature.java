@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import net.joefoxe.hexerei.Hexerei;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -130,7 +131,7 @@ public class HexereiMahoganyTreeFeature extends Feature<TreeConfiguration> {
         BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos().set(pos);
 
         StructurePlaceSettings placementsettings = (new StructurePlaceSettings()).setRotation(rotation).setRotationPivot(halfLengths).setIgnoreEntities(false);
-        Optional<StructureProcessorList> processor = reader.getLevel().getServer().registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).get().getOptional(
+        Optional<StructureProcessorList> processor = reader.getLevel().getServer().registryAccess().registry(Registries.PROCESSOR_LIST).get().getOptional(
                 new ResourceLocation(Hexerei.MOD_ID, "mangrove_tree/mangrove_tree_legs"));
         // add all processors
         processor.ifPresent(structureProcessorList -> structureProcessorList.list().forEach(placementsettings::addProcessor));

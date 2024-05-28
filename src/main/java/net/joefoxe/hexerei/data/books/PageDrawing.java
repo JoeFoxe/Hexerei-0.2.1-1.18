@@ -178,6 +178,9 @@ public class PageDrawing {
         return ItemStack.EMPTY;
 //        return Registry.ITEM.getTag(TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(loc))).flatMap(tag -> tag.getRandomElement(new Random())).map(Holder::value);
     }
+    public static Optional<Item> getTagStackStatic(TagKey<Item> key){
+        return ForgeRegistries.ITEMS.tags().getTag(key).getRandomElement(RandomSource.create());
+    }
 
 
     @OnlyIn(Dist.CLIENT)

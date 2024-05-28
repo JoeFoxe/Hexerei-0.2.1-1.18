@@ -49,6 +49,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nonnull;
@@ -174,7 +175,7 @@ public class HerbJar extends Block implements ITileEntity<HerbJarTile>, EntityBl
 
     @Override
     public void attack(BlockState state, Level worldIn, BlockPos pos, Player playerIn) {
-        BlockHitResult rayResult = rayTraceEyeLevel(worldIn, playerIn, playerIn.getAttribute(net.minecraftforge.common.ForgeMod.REACH_DISTANCE.get()).getValue() + 1);
+        BlockHitResult rayResult = rayTraceEyeLevel(worldIn, playerIn, playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue() + 1);
         if (rayResult.getType() == HitResult.Type.MISS)
             return;
 

@@ -141,6 +141,11 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
 
     @Override
     public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
+
+        return getOutput();
+    }
+
+    public ItemStack getOutput(){
         return output.copy();
     }
 

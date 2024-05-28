@@ -2,6 +2,8 @@ package net.joefoxe.hexerei.world.biome;
 
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.world.gen.ModConfiguredFeatures;
+import net.joefoxe.hexerei.world.gen.ModPlacedFeatures;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
 import net.minecraft.data.worldgen.BootstapContext;
@@ -15,6 +17,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.*;
 import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -30,6 +33,7 @@ public class ModBiomes {
 
 	private static Biome makeWillowSwampBiome(BootstapContext<Biome> context) {
 		MobSpawnSettings.Builder mobSpawnSettingsBuilder = new MobSpawnSettings.Builder();
+		HolderGetter<PlacedFeature> placedFeature = context.lookup(Registries.PLACED_FEATURE);
 
 		BiomeDefaultFeatures.farmAnimals(mobSpawnSettingsBuilder);
 		BiomeDefaultFeatures.commonSpawns(mobSpawnSettingsBuilder);
@@ -58,8 +62,8 @@ public class ModBiomes {
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, CavePlacements.ROOTED_AZALEA_TREE);
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, CavePlacements.SPORE_BLOSSOM);
 		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, CavePlacements.CLASSIC_VINES);
-		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, ModConfiguredFeatures.COMMON_SWAMP_FLOWERS);
-		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, ModConfiguredFeatures.TREES_WILLOW_SWAMP);
+		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, placedFeature.getOrThrow(ModPlacedFeatures.COMMON_SWAMP_FLOWERS_PLACED_KEY));
+		genSettingsBuilder.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, placedFeature.getOrThrow(ModPlacedFeatures.TREES_WILLOW_SWAMP_PLACED_KEY));
 
 		BiomeSpecialEffects.Builder specialEffectsBuilder = new BiomeSpecialEffects.Builder();
 		specialEffectsBuilder.waterColor(6388580)

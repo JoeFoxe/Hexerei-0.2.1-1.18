@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
@@ -154,7 +155,7 @@ public class BookItemsAndFluids {
         this.x = x;
         this.y = y;
         this.tag = tag;
-        this.key = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(tag));
+        this.key = TagKey.create(Registries.ITEM, new ResourceLocation(tag));
         this.item = new ItemStack(PageDrawing.getTagStackStatic(this.key).orElseGet(ItemStack.EMPTY::getItem));
         this.type = "tag";
         this.show_slot = true;
@@ -167,7 +168,7 @@ public class BookItemsAndFluids {
         this.x = x;
         this.y = y;
         this.tag = tag;
-        this.key = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(tag));
+        this.key = TagKey.create(Registries.ITEM, new ResourceLocation(tag));
         this.item = new ItemStack(PageDrawing.getTagStackStatic(this.key).orElseGet(ItemStack.EMPTY::getItem));
         this.type = "tag";
         this.show_slot = showSlot;
@@ -180,7 +181,7 @@ public class BookItemsAndFluids {
         this.x = x;
         this.y = y;
         this.tag = tag;
-        this.key = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(tag));
+        this.key = TagKey.create(Registries.ITEM, new ResourceLocation(tag));
         this.item = new ItemStack(PageDrawing.getTagStackStatic(this.key).orElseGet(ItemStack.EMPTY::getItem));
         this.type = "tag";
         this.show_slot = showSlot;
