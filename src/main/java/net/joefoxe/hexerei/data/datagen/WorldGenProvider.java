@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.data.datagen;
 
-import com.hollingsworth.arsnouveau.setup.registry.BiomeRegistry;
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.world.biome.ModBiomes;
 import net.joefoxe.hexerei.world.gen.ModConfiguredFeatures;
 import net.joefoxe.hexerei.world.gen.ModPlacedFeatures;
 import net.minecraft.core.HolderLookup;
@@ -19,7 +19,7 @@ public class WorldGenProvider extends DatapackBuiltinEntriesProvider {
 	private static final RegistrySetBuilder BUILDER = new RegistrySetBuilder()
 			.add(Registries.CONFIGURED_FEATURE, ModConfiguredFeatures::bootstrap)
 			.add(Registries.PLACED_FEATURE, ModPlacedFeatures::bootstrap)
-			.add(ForgeRegistries.Keys.BIOMES, BiomeRegistry::bootstrap);
+			.add(ForgeRegistries.Keys.BIOMES, ModBiomes::bootstrap);
 
 	public WorldGenProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
 		super(output, registries, BUILDER, Set.of(Hexerei.MOD_ID));
