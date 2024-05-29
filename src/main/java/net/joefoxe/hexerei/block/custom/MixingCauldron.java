@@ -6,6 +6,7 @@ import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.fluid.PotionFluid;
 import net.joefoxe.hexerei.fluid.PotionFluidHandler;
 import net.joefoxe.hexerei.item.ModItems;
+import net.joefoxe.hexerei.particle.CauldronParticleData;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
@@ -685,18 +686,18 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
             if (cauldronTile.getFluidStack().getAmount() > 0) {
                 for (int i = 0; i < Mth.floor(cauldronTile.getFluidStack().getAmount() / 666f + 0.5f); i++) {
                     if (rand.nextDouble() > 0.5f)
-                        world.addParticle(ModParticleTypes.CAULDRON.get(), pos.getX() + 0.2d + (0.6d * rand.nextDouble()), pos.getY() + height, pos.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.004d, (rand.nextDouble() - 0.5d) / 50d);
+                        world.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), cauldronTile.getFluidStack()), pos.getX() + 0.2d + (0.6d * rand.nextDouble()), pos.getY() + height, pos.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.004d, (rand.nextDouble() - 0.5d) / 50d);
                 }
                 for (int i = 0; i < num; i++) {
                     if (rand.nextDouble() > 0.5f)
-                        world.addParticle(ModParticleTypes.CAULDRON.get(), pos.getX() + 0.2d + (0.6d * rand.nextDouble()), pos.getY() + height, pos.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.004d, (rand.nextDouble() - 0.5d) / 50d);
+                        world.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), cauldronTile.getFluidStack()), pos.getX() + 0.2d + (0.6d * rand.nextDouble()), pos.getY() + height, pos.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.004d, (rand.nextDouble() - 0.5d) / 50d);
                 }
 
                 BlockState heatSource = world.getBlockState(pos.below());
                 if(heatSource.is(HexereiTags.Blocks.HEAT_SOURCES)){
                     for (int i = 0; i < num + 5; i++) {
                         if (rand.nextDouble() > 0.5f)
-                            world.addParticle(ModParticleTypes.CAULDRON.get(), pos.getX() + 0.2d + (0.6d * rand.nextDouble()), pos.getY() + height, pos.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.014d, (rand.nextDouble() - 0.5d) / 50d);
+                            world.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), cauldronTile.getFluidStack()), pos.getX() + 0.2d + (0.6d * rand.nextDouble()), pos.getY() + height, pos.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.014d, (rand.nextDouble() - 0.5d) / 50d);
                     }
                 }
 

@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -196,6 +197,15 @@ public class HexereiUtil {
 
     public static <V> ResourceLocation getKeyOrThrow(Fluid value) {
         IForgeRegistry<Fluid> registry = ForgeRegistries.FLUIDS;
+        ResourceLocation key = registry.getKey(value);
+        if (key == null) {
+            throw new IllegalArgumentException("Could not get key for value " + value + "!");
+        }
+        return key;
+    }
+
+    public static <V> ResourceLocation getKeyOrThrow(ParticleType<?> value) {
+        IForgeRegistry<ParticleType<?>> registry = ForgeRegistries.PARTICLE_TYPES;
         ResourceLocation key = registry.getKey(value);
         if (key == null) {
             throw new IllegalArgumentException("Could not get key for value " + value + "!");

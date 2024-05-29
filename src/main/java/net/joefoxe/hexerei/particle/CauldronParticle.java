@@ -214,7 +214,7 @@ public class CauldronParticle extends TextureSheetParticle {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Factory implements ParticleProvider<SimpleParticleType> {
+    public static class Factory implements ParticleProvider<CauldronParticleData> {
         private final SpriteSet spriteSet;
 
         public Factory(SpriteSet sprite) {
@@ -223,87 +223,47 @@ public class CauldronParticle extends TextureSheetParticle {
 
         @Nullable
         @Override
-        public Particle createParticle(SimpleParticleType typeIn, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+        public Particle createParticle(CauldronParticleData data, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             CauldronParticle cauldronParticle = new CauldronParticle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed);
             Random random = new Random();
 
 //            this.spriteSet = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(IClientFluidTypeExtensions.of(fluidStack.getFluid()).getStillTexture(fluidStack));
             MixingCauldronTile mixingCauldronTile = null;
-            FluidStack fluidStack = FluidStack.EMPTY;
+            FluidStack fluidStack = data.fluid;
 
-            if (worldIn.getBlockEntity(new BlockPos((int) Math.floor(x), (int) Math.floor(y - 0.1), (int) Math.floor(z))) instanceof MixingCauldronTile) {
-                mixingCauldronTile = (MixingCauldronTile) worldIn.getBlockEntity(new BlockPos((int) Math.floor(x), (int) Math.floor(y - 0.1), (int) Math.floor(z)));
-                fluidStack = mixingCauldronTile.getFluidStack();
-            }
-            if (!fluidStack.isEmpty()) {
+            Color color = new Color(BiomeColors.getAverageWaterColor(worldIn, new BlockPos((int) x, (int) (y), (int) z)));
 
-                Color color = new Color(BiomeColors.getAverageWaterColor(worldIn, new BlockPos((int) x, (int) (y), (int) z)));
+            BlockState blockStateAtPos = worldIn.getBlockState(new BlockPos((int) x, (int) (y - 0.1), (int) z));
 
-                BlockState blockStateAtPos = worldIn.getBlockState(new BlockPos((int) x, (int) (y - 0.1), (int) z));
+            cauldronParticle.clientFluid = IClientFluidTypeExtensions.of(fluidStack.getFluid());
 
-                cauldronParticle.clientFluid = IClientFluidTypeExtensions.of(fluidStack.getFluid());
+            Function<ResourceLocation, TextureAtlasSprite> textureAtlasSpriteFunction = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
 
-                Function<ResourceLocation, TextureAtlasSprite> textureAtlasSpriteFunction = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
+            ResourceLocation stillLoc = cauldronParticle.clientFluid.getStillTexture(fluidStack);
 
-                ResourceLocation stillLoc = cauldronParticle.clientFluid.getStillTexture(fluidStack);
+            TextureAtlasSprite sprite = textureAtlasSpriteFunction.apply(stillLoc);
 
-                TextureAtlasSprite sprite1 = textureAtlasSpriteFunction.apply(stillLoc);
+            int colorInt = IClientFluidTypeExtensions.of(fluidStack.getFluid()).getTintColor(fluidStack);
+            float alpha = (colorInt >> 24 & 255) / 275f;
+            float red = (colorInt >> 16 & 255) / 275f;
+            float green = (colorInt >> 8 & 255) / 275f;
+            float blue = (colorInt & 255) / 275f;
+            colorInt = sprite.getPixelRGBA(0, random.nextInt(sprite.contents().width()), random.nextInt(sprite.contents().height()));
+            float alpha2 = (colorInt >> 24 & 255) / 275f;
+            float blue2 = (colorInt >> 16 & 255) / 275f;
+            float green2 = (colorInt >> 8 & 255) / 275f;
+            float red2 = (colorInt & 255) / 275f;
 
-                cauldronParticle.setSprite(sprite1);
+            float colorOffset = (random.nextFloat() * 0.15f);
+            if (red > 0.75f && blue > 0.75f && green > 0.75f)
+                cauldronParticle.setColor(Mth.clamp(red2 + colorOffset, 0, 1), Mth.clamp(green2 + colorOffset, 0, 1), Mth.clamp(blue2 + colorOffset, 0, 1));
+            else
+                cauldronParticle.setColor(Mth.clamp(red + colorOffset, 0, 1), Mth.clamp(green + colorOffset, 0, 1), Mth.clamp(blue + colorOffset, 0, 1));
 
+            if (fluidStack.isFluidEqual(new FluidStack(Fluids.WATER, 1)))
+                cauldronParticle.setColor(color.getRed() / 450f + colorOffset, color.getGreen() / 450f + colorOffset, color.getBlue() / 450f + colorOffset);
 
-    //            TextureAtlasSprite sprite = Minecraft.getInstance().particleEngine.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(IClientFluidTypeExtensions.of(fluidStack.getFluid()).getStillTexture());
-
-                int colorInt = IClientFluidTypeExtensions.of(fluidStack.getFluid()).getTintColor(fluidStack);
-                float alpha = (colorInt >> 24 & 255) / 275f;
-                float red = (colorInt >> 16 & 255) / 275f;
-                float green = (colorInt >> 8 & 255) / 275f;
-                float blue = (colorInt & 255) / 275f;
-                colorInt = cauldronParticle.sprite.getPixelRGBA(0, 8, 8);
-                float alpha2 = (colorInt >> 24 & 255) / 275f;
-                float blue2 = (colorInt >> 16 & 255) / 275f;
-                float green2 = (colorInt >> 8 & 255) / 275f;
-                float red2 = (colorInt & 255) / 275f;
-
-                float colorOffset = (random.nextFloat() * 0.15f);
-                if (red > 0.75f && blue > 0.75f && green > 0.75f)
-                    cauldronParticle.setColor(Mth.clamp(red2 + colorOffset, 0, 1), Mth.clamp(green2 + colorOffset, 0, 1), Mth.clamp(blue2 + colorOffset, 0, 1));
-                else
-                    cauldronParticle.setColor(Mth.clamp(red + colorOffset, 0, 1), Mth.clamp(green + colorOffset, 0, 1), Mth.clamp(blue + colorOffset, 0, 1));
-
-                if (fluidStack.isFluidEqual(new FluidStack(Fluids.WATER, 1)))
-                    cauldronParticle.setColor(color.getRed() / 450f + colorOffset, color.getGreen() / 450f + colorOffset, color.getBlue() / 450f + colorOffset);
-    //            //set the particle color based off the fluid in the cauldron below
-    //            if(blockStateAtPos.getBlock() == ModBlocks.MIXING_CAULDRON.get()){
-    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.WATER) {
-    //                    float colorOffset = (random.nextFloat() * 0.1f);
-    //                    cauldronParticle.setColor(color.getRed()/450f + colorOffset,color.getGreen()/450f + colorOffset,color.getBlue()/450f + colorOffset);}
-    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.MILK) {
-    //                    float colorOffset = (random.nextFloat() * 0.05f);
-    //                    cauldronParticle.setColor(0.85f + colorOffset, 0.85f + colorOffset, 0.85f + colorOffset);}
-    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.TALLOW) {
-    //                    float colorOffset = (random.nextFloat() * 0.05f);
-    //                    cauldronParticle.setColor(0.53f + colorOffset, 0.53f + colorOffset, 0.41f + colorOffset);}
-    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.LAVA) {
-    //                    cauldronParticle.setColor(0.8f + (random.nextFloat() * 0.1f), 0.24f + (random.nextFloat() * 0.5f), (random.nextFloat() * 0.3f));}
-    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.QUICKSILVER) {
-    //                    float colorOffset = (random.nextFloat() * 0.15f);
-    //                    cauldronParticle.setColor(0.12f + colorOffset, 0.12f + colorOffset, 0.12f + colorOffset);
-    //                }
-    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.BLOOD) {
-    //                    float colorOffset = (random.nextFloat() * 0.25f);
-    //                    cauldronParticle.setColor(0.12f + colorOffset, 0.0f, 0.0f);
-    //                }
-    //            }
-
-
-                cauldronParticle.setAlpha(1.0f);
-            }
-            else{
-
-                cauldronParticle.setAlpha(0.0f);
-            }
-
+            cauldronParticle.setAlpha(1.0f);
 
             cauldronParticle.pickSprite(this.spriteSet);
             return cauldronParticle;

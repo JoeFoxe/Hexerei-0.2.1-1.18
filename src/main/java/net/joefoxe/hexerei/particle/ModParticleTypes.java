@@ -1,18 +1,29 @@
 package net.joefoxe.hexerei.particle;
 
+import com.mojang.serialization.Codec;
 import net.joefoxe.hexerei.Hexerei;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import javax.annotation.Nonnull;
+
 public class ModParticleTypes {
-    public static ParticleType<CauldronParticleData> cauldronParticleType;
-
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, Hexerei.MOD_ID);
+//    public static final RegistryObject<ParticleType<CauldronParticleData>> CAULDRON = register(REGISTRY, "divine_altar_consume", CauldronParticleData.DESERIALIZER, CauldronParticleData.CODEC, true);
 
-    public static final RegistryObject<SimpleParticleType> CAULDRON = PARTICLES.register("cauldron_particle", () -> new SimpleParticleType(true));
+
+    public static final RegistryObject<ParticleType<CauldronParticleData>> CAULDRON = PARTICLES.register("cauldron_particle", () -> new ParticleType<>(true, CauldronParticleData.DESERIALIZER) {
+        @Nonnull
+        @Override
+        public Codec<CauldronParticleData> codec() {
+
+            return CauldronParticleData.codec(this);
+        }
+    });
     public static final RegistryObject<SimpleParticleType> BLOOD = PARTICLES.register("blood_particle", () -> new SimpleParticleType(true));
     public static final RegistryObject<SimpleParticleType> BLOOD_BIT = PARTICLES.register("blood_bit_particle", () -> new SimpleParticleType(true));
     public static final RegistryObject<SimpleParticleType> BROOM = PARTICLES.register("broom_particle_1", () -> new SimpleParticleType(true));

@@ -9,6 +9,7 @@ import net.joefoxe.hexerei.data.recipes.MoonPhases;
 import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.fluid.PotionMixingRecipes;
 import net.joefoxe.hexerei.item.ModItems;
+import net.joefoxe.hexerei.particle.CauldronParticleData;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
@@ -831,15 +832,15 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
                         level.addParticle(ParticleTypes.SMOKE, worldPosition.getX() + 0.5f, worldPosition.getY() + height, worldPosition.getZ() + 0.5f, (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.045d, (rand.nextDouble() - 0.5d) / 50d);
                 }
                 if(rand.nextInt(3) == 0)
-                    level.addParticle(ModParticleTypes.CAULDRON.get(), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
+                    level.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), fluidStack), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
                 if(rand.nextInt(3) == 0)
-                    level.addParticle(ModParticleTypes.CAULDRON.get(), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
+                    level.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), fluidStack), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
                 if(rand.nextInt(3) == 0)
-                    level.addParticle(ModParticleTypes.CAULDRON.get(), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
+                    level.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), fluidStack), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
                 if(rand.nextInt(3) == 0)
-                    level.addParticle(ModParticleTypes.CAULDRON.get(), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
+                    level.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), fluidStack), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
                 if(rand.nextInt(3) == 0)
-                    level.addParticle(ModParticleTypes.CAULDRON.get(), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
+                    level.addParticle(new CauldronParticleData(ModParticleTypes.CAULDRON.get(), fluidStack), worldPosition.getX() + 0.2d + (0.6d * rand.nextDouble()), worldPosition.getY() + height, worldPosition.getZ() + 0.2d + (0.6d * rand.nextDouble()), (rand.nextDouble() - 0.5d) / 50d, (rand.nextDouble() + 0.5d) * 0.024d, (rand.nextDouble() - 0.5d) / 50d);
             }
             this.emitParticles--;
         }

@@ -139,7 +139,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         }
 
         //gives the wobble
-        tileEntityIn.degrees++;
+        tileEntityIn.degrees += partialTicks * 0.5f;
 
         if (tileEntityIn.getItemInSlot(9) == ModItems.BLOOD_SIGIL.get()) {
             if(tileEntityIn.getItemInSlot(9).asItem() == ModItems.BLOOD_SIGIL.get())

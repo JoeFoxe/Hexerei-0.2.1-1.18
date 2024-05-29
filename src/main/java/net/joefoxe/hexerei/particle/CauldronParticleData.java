@@ -4,10 +4,14 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraftforge.fluids.FluidStack;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -26,52 +30,36 @@ import java.util.Locale;
  * 2) transmit it between server and client (write and read methods), and
  * 3) parse it from a command string i.e. the /particle params
  */
-public class CauldronParticleData implements ParticleOptions {
+public class CauldronParticleData extends ParticleType<CauldronParticleData> implements ParticleOptions {
 
-    public CauldronParticleData(Color tint, double diameter) {
-        this.tint = tint;
-        this.diameter = constrainDiameterToValidRange(diameter);
+    ParticleType<CauldronParticleData> type;
+    FluidStack fluid;
+
+    @SuppressWarnings("unchecked")
+    public CauldronParticleData(ParticleType<?> type, FluidStack fluid){
+        super(true, DESERIALIZER);
+        this.type = (ParticleType<CauldronParticleData>)type;
+        this.fluid = fluid;
+
     }
-
-    public Color getTint() {
-        return tint;
-    }
-
-    public double getDiameter() {
-        return diameter;
-    }
-
     @Nonnull
     @Override
     public ParticleType<CauldronParticleData> getType() {
-        return ModParticleTypes.cauldronParticleType;
+        return type;
     }
 
     // write the particle information to a FriendlyByteBuf, ready for transmission to a client
     @Override
     public void writeToNetwork(FriendlyByteBuf buf) {
-        buf.writeInt(tint.getRed());
-        buf.writeInt(tint.getGreen());
-        buf.writeInt(tint.getBlue());
-        buf.writeDouble(diameter);
+        buf.writeFluidStack(fluid);
     }
 
     // used for debugging I think; prints the data in human-readable format
-    @Nonnull
+
     @Override
     public String writeToString() {
-        return String.format(Locale.ROOT, "%s %.2f %i %i %i",
-                this.getType(), diameter, tint.getRed(), tint.getGreen(), tint.getBlue());
+        return HexereiUtil.getKeyOrThrow(type) + " " + HexereiUtil.getKeyOrThrow(fluid.getFluid());
     }
-
-    private static double constrainDiameterToValidRange(double diameter) {
-        final double MIN_DIAMETER = 0.05;
-        final double MAX_DIAMETER = 1.0;
-        return Mth.clamp(diameter, MIN_DIAMETER, MAX_DIAMETER);
-    }
-
-    private Color tint;
-    private double diameter;
 
     // --------- these remaining methods are used to serialize the Particle Data.
     //  I'm not yet sure what the Codec is used for, given that the DESERIALIZER already deserializes using read.
@@ -83,57 +71,47 @@ public class CauldronParticleData implements ParticleOptions {
     //  a) In order to serialise it, it reads the 'tint' member variable (type: INT) and the 'diameter' member variable (type: DOUBLE)
     //  b) In order to deserialise it, call the matching constructor FlameParticleData(INT, DOUBLE)
 
-    public static final Codec<CauldronParticleData> CODEC = RecordCodecBuilder.create(
-            instance -> instance.group(
-                    Codec.INT.fieldOf("tint").forGetter(d -> d.tint.getRGB()),
-                    Codec.DOUBLE.fieldOf("diameter").forGetter(d -> d.diameter)
-            ).apply(instance, CauldronParticleData::new)
-    );
 
-    private CauldronParticleData(int tintRGB, double diameter) {
-        this.tint = new Color(tintRGB);
-        this.diameter = constrainDiameterToValidRange(diameter);
+    //public static final Codec<CauldronParticleData> CODEC = RecordCodecBuilder.create(
+    //        instance -> instance.group(
+    //                Codec.INT.fieldOf("tint").forGetter(d -> d.tint.getRGB()),
+    //                Codec.DOUBLE.fieldOf("diameter").forGetter(d -> d.diameter)
+    //        ).apply(instance, CauldronParticleData::new)
+    //);
+
+
+
+//    public static Codec<AltarParticleOptions> codec(ParticleType<AltarParticleOptions> particleType) {
+//        return RecordCodecBuilder.create(c -> c.group(
+//                Vector3f.CODEC.fieldOf("color").forGetter(data -> data.color)
+//        ).apply(c, (color) -> new AltarParticleOptions(particleType, color)));
+//    }
+
+    public static Codec<CauldronParticleData> codec(ParticleType<CauldronParticleData> particleType) {
+        return RecordCodecBuilder.create(c -> c
+            .group(FluidStack.CODEC.fieldOf("fluid")
+                .forGetter(p -> p.fluid))
+            .apply(c, (color) -> new CauldronParticleData(particleType, color)));
     }
 
     // The DESERIALIZER is used to construct CauldronParticleData from either command line parameters or from a network packet
 
-    public static final Deserializer<CauldronParticleData> DESERIALIZER = new Deserializer<>() {
+    public static final ParticleOptions.Deserializer<CauldronParticleData> DESERIALIZER =
+            new ParticleOptions.Deserializer<>() {
 
-        // parse the parameters for this particle from a /particle command
-        @Nonnull
-        @Override
-        public CauldronParticleData fromCommand(@Nonnull ParticleType<CauldronParticleData> type, @Nonnull StringReader reader) throws CommandSyntaxException {
-            reader.expect(' ');
-            double diameter = constrainDiameterToValidRange(reader.readDouble());
+                // TODO Fluid particles on command
+                public CauldronParticleData fromCommand(ParticleType<CauldronParticleData> particleTypeIn, StringReader reader)
+                        throws CommandSyntaxException {
+                    return new CauldronParticleData(particleTypeIn, new FluidStack(Fluids.WATER, 1));
+                }
 
-            final int MIN_COLOUR = 0;
-            final int MAX_COLOUR = 255;
-            reader.expect(' ');
-            int red = Mth.clamp(reader.readInt(), MIN_COLOUR, MAX_COLOUR);
-            reader.expect(' ');
-            int green = Mth.clamp(reader.readInt(), MIN_COLOUR, MAX_COLOUR);
-            reader.expect(' ');
-            int blue = Mth.clamp(reader.readInt(), MIN_COLOUR, MAX_COLOUR);
-            Color color = new Color(red, green, blue);
+                public CauldronParticleData fromNetwork(ParticleType<CauldronParticleData> particleTypeIn, FriendlyByteBuf buffer) {
+                    return new CauldronParticleData(particleTypeIn, buffer.readFluidStack());
+                }
+            };
 
-            return new CauldronParticleData(color, diameter);
-        }
-
-        // read the particle information from a FriendlyByteBuf after the client has received it from the server
-        @Override
-        public CauldronParticleData fromNetwork(@Nonnull ParticleType<CauldronParticleData> type, FriendlyByteBuf buf) {
-            // warning! never trust the data read in from a packet buffer.
-
-            final int MIN_COLOUR = 0;
-            final int MAX_COLOUR = 255;
-            int red = Mth.clamp(buf.readInt(), MIN_COLOUR, MAX_COLOUR);
-            int green = Mth.clamp(buf.readInt(), MIN_COLOUR, MAX_COLOUR);
-            int blue = Mth.clamp(buf.readInt(), MIN_COLOUR, MAX_COLOUR);
-            Color color = new Color(red, green, blue);
-
-            double diameter = constrainDiameterToValidRange(buf.readDouble());
-
-            return new CauldronParticleData(color, diameter);
-        }
-    };
+    @Override
+    public Codec<CauldronParticleData> codec() {
+        return codec(this);
+    }
 }
