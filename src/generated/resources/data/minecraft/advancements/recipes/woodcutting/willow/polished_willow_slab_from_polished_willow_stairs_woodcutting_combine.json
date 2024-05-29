@@ -38,5 +38,6 @@
     "recipes": [
       "minecraft:woodcutting/willow/polished_willow_slab_from_polished_willow_stairs_woodcutting_combine"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/acacia/chest_from_acacia_planks_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

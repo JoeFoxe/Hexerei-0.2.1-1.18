@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
@@ -28,6 +29,7 @@ import net.minecraftforge.fluids.FluidStack;
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Random;
+import java.util.function.Function;
 
 @OnlyIn(Dist.CLIENT)
 public class CauldronParticle extends TextureSheetParticle {
@@ -109,6 +111,7 @@ public class CauldronParticle extends TextureSheetParticle {
     protected float scale;
     protected float rotationDirection;
     protected float rotation;
+    private IClientFluidTypeExtensions clientFluid;
 
     public CauldronParticle(ClientLevel world, double x, double y, double z, double motionX, double motionY, double motionZ) {
         super(world, x, y, z);
@@ -228,61 +231,78 @@ public class CauldronParticle extends TextureSheetParticle {
             MixingCauldronTile mixingCauldronTile = null;
             FluidStack fluidStack = FluidStack.EMPTY;
 
-            if(worldIn.getBlockEntity(new BlockPos((int)x, (int)(y-0.1), (int)z)) instanceof MixingCauldronTile) {
-                mixingCauldronTile = (MixingCauldronTile) worldIn.getBlockEntity(new BlockPos((int)x, (int)(y-0.1), (int)z));
+            if (worldIn.getBlockEntity(new BlockPos((int) Math.floor(x), (int) Math.floor(y - 0.1), (int) Math.floor(z))) instanceof MixingCauldronTile) {
+                mixingCauldronTile = (MixingCauldronTile) worldIn.getBlockEntity(new BlockPos((int) Math.floor(x), (int) Math.floor(y - 0.1), (int) Math.floor(z)));
                 fluidStack = mixingCauldronTile.getFluidStack();
             }
+            if (!fluidStack.isEmpty()) {
 
-            Color color = new Color(BiomeColors.getAverageWaterColor(worldIn, new BlockPos((int)x, (int)(y), (int)z)));
+                Color color = new Color(BiomeColors.getAverageWaterColor(worldIn, new BlockPos((int) x, (int) (y), (int) z)));
 
-            BlockState blockStateAtPos = worldIn.getBlockState(new BlockPos((int)x, (int)(y-0.1), (int)z));
+                BlockState blockStateAtPos = worldIn.getBlockState(new BlockPos((int) x, (int) (y - 0.1), (int) z));
 
-            TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(IClientFluidTypeExtensions.of(fluidStack.getFluid()).getStillTexture(fluidStack));
+                cauldronParticle.clientFluid = IClientFluidTypeExtensions.of(fluidStack.getFluid());
 
-            int colorInt = IClientFluidTypeExtensions.of(fluidStack.getFluid()).getTintColor(fluidStack);
-            float alpha = (colorInt >> 24 & 255) / 275f;
-            float red = (colorInt >> 16 & 255) / 275f;
-            float green = (colorInt >> 8 & 255) / 275f;
-            float blue = (colorInt & 255) / 275f;
-            colorInt = sprite.getPixelRGBA(0, 8, 8);
-            float alpha2 = (colorInt >> 24 & 255) / 275f;
-            float blue2 = (colorInt >> 16 & 255) / 275f;
-            float green2 = (colorInt >> 8 & 255) / 275f;
-            float red2 = (colorInt & 255) / 275f;
+                Function<ResourceLocation, TextureAtlasSprite> textureAtlasSpriteFunction = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS);
 
-            float colorOffset = (random.nextFloat() * 0.15f);
-            if(red > 0.75f && blue > 0.75f && green > 0.75f)
-                cauldronParticle.setColor(Mth.clamp(red2 + colorOffset,0, 1),Mth.clamp(green2 + colorOffset,0, 1),Mth.clamp(blue2 + colorOffset,0, 1));
-            else
-                cauldronParticle.setColor(Mth.clamp(red + colorOffset,0, 1),Mth.clamp(green + colorOffset,0, 1),Mth.clamp(blue + colorOffset,0, 1));
+                ResourceLocation stillLoc = cauldronParticle.clientFluid.getStillTexture(fluidStack);
 
-            if(fluidStack.isFluidEqual(new FluidStack(Fluids.WATER, 1)))
-                cauldronParticle.setColor(color.getRed()/450f + colorOffset,color.getGreen()/450f + colorOffset,color.getBlue()/450f + colorOffset);
-//            //set the particle color based off the fluid in the cauldron below
-//            if(blockStateAtPos.getBlock() == ModBlocks.MIXING_CAULDRON.get()){
-//                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.WATER) {
-//                    float colorOffset = (random.nextFloat() * 0.1f);
-//                    cauldronParticle.setColor(color.getRed()/450f + colorOffset,color.getGreen()/450f + colorOffset,color.getBlue()/450f + colorOffset);}
-//                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.MILK) {
-//                    float colorOffset = (random.nextFloat() * 0.05f);
-//                    cauldronParticle.setColor(0.85f + colorOffset, 0.85f + colorOffset, 0.85f + colorOffset);}
-//                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.TALLOW) {
-//                    float colorOffset = (random.nextFloat() * 0.05f);
-//                    cauldronParticle.setColor(0.53f + colorOffset, 0.53f + colorOffset, 0.41f + colorOffset);}
-//                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.LAVA) {
-//                    cauldronParticle.setColor(0.8f + (random.nextFloat() * 0.1f), 0.24f + (random.nextFloat() * 0.5f), (random.nextFloat() * 0.3f));}
-//                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.QUICKSILVER) {
-//                    float colorOffset = (random.nextFloat() * 0.15f);
-//                    cauldronParticle.setColor(0.12f + colorOffset, 0.12f + colorOffset, 0.12f + colorOffset);
-//                }
-//                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.BLOOD) {
-//                    float colorOffset = (random.nextFloat() * 0.25f);
-//                    cauldronParticle.setColor(0.12f + colorOffset, 0.0f, 0.0f);
-//                }
-//            }
+                TextureAtlasSprite sprite1 = textureAtlasSpriteFunction.apply(stillLoc);
+
+                cauldronParticle.setSprite(sprite1);
 
 
-            cauldronParticle.setAlpha(1.0f);
+    //            TextureAtlasSprite sprite = Minecraft.getInstance().particleEngine.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(IClientFluidTypeExtensions.of(fluidStack.getFluid()).getStillTexture());
+
+                int colorInt = IClientFluidTypeExtensions.of(fluidStack.getFluid()).getTintColor(fluidStack);
+                float alpha = (colorInt >> 24 & 255) / 275f;
+                float red = (colorInt >> 16 & 255) / 275f;
+                float green = (colorInt >> 8 & 255) / 275f;
+                float blue = (colorInt & 255) / 275f;
+                colorInt = cauldronParticle.sprite.getPixelRGBA(0, 8, 8);
+                float alpha2 = (colorInt >> 24 & 255) / 275f;
+                float blue2 = (colorInt >> 16 & 255) / 275f;
+                float green2 = (colorInt >> 8 & 255) / 275f;
+                float red2 = (colorInt & 255) / 275f;
+
+                float colorOffset = (random.nextFloat() * 0.15f);
+                if (red > 0.75f && blue > 0.75f && green > 0.75f)
+                    cauldronParticle.setColor(Mth.clamp(red2 + colorOffset, 0, 1), Mth.clamp(green2 + colorOffset, 0, 1), Mth.clamp(blue2 + colorOffset, 0, 1));
+                else
+                    cauldronParticle.setColor(Mth.clamp(red + colorOffset, 0, 1), Mth.clamp(green + colorOffset, 0, 1), Mth.clamp(blue + colorOffset, 0, 1));
+
+                if (fluidStack.isFluidEqual(new FluidStack(Fluids.WATER, 1)))
+                    cauldronParticle.setColor(color.getRed() / 450f + colorOffset, color.getGreen() / 450f + colorOffset, color.getBlue() / 450f + colorOffset);
+    //            //set the particle color based off the fluid in the cauldron below
+    //            if(blockStateAtPos.getBlock() == ModBlocks.MIXING_CAULDRON.get()){
+    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.WATER) {
+    //                    float colorOffset = (random.nextFloat() * 0.1f);
+    //                    cauldronParticle.setColor(color.getRed()/450f + colorOffset,color.getGreen()/450f + colorOffset,color.getBlue()/450f + colorOffset);}
+    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.MILK) {
+    //                    float colorOffset = (random.nextFloat() * 0.05f);
+    //                    cauldronParticle.setColor(0.85f + colorOffset, 0.85f + colorOffset, 0.85f + colorOffset);}
+    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.TALLOW) {
+    //                    float colorOffset = (random.nextFloat() * 0.05f);
+    //                    cauldronParticle.setColor(0.53f + colorOffset, 0.53f + colorOffset, 0.41f + colorOffset);}
+    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.LAVA) {
+    //                    cauldronParticle.setColor(0.8f + (random.nextFloat() * 0.1f), 0.24f + (random.nextFloat() * 0.5f), (random.nextFloat() * 0.3f));}
+    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.QUICKSILVER) {
+    //                    float colorOffset = (random.nextFloat() * 0.15f);
+    //                    cauldronParticle.setColor(0.12f + colorOffset, 0.12f + colorOffset, 0.12f + colorOffset);
+    //                }
+    //                if(blockStateAtPos.getValue(MixingCauldron.FLUID) == LiquidType.BLOOD) {
+    //                    float colorOffset = (random.nextFloat() * 0.25f);
+    //                    cauldronParticle.setColor(0.12f + colorOffset, 0.0f, 0.0f);
+    //                }
+    //            }
+
+
+                cauldronParticle.setAlpha(1.0f);
+            }
+            else{
+
+                cauldronParticle.setAlpha(0.0f);
+            }
 
 
             cauldronParticle.pickSprite(this.spriteSet);

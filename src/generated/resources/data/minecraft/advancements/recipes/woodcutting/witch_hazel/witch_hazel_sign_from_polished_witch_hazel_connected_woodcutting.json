@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/witch_hazel/witch_hazel_sign_from_polished_witch_hazel_connected_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

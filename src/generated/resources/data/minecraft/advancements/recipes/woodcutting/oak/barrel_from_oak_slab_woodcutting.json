@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/oak/barrel_from_oak_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

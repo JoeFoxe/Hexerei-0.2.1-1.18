@@ -321,10 +321,10 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
 
     }
 
-    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int z, int color){
+    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int z, int color, boolean shadow){
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x, y, z);
-        guiGraphics.drawString(minecraft.font, component, 0, 0, color, true);
+        guiGraphics.drawString(minecraft.font, component, 0, 0, color, shadow);
         guiGraphics.pose().popPose();
     }
 
@@ -359,7 +359,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
         if(rangeSliderClicked)
             component = Component.literal(String.valueOf(Mth.clamp(crowEntity.interactionRange + (int) (this.rangeSliderClickedPos - y), 0, 24)));
         if(minecraft != null)
-            drawFont(guiGraphics, component, i - 5 + 22.5f - (int)leftPanelOffset - (float)(font.width(component.getVisualOrderText()) / 2), j + 102 - font.lineHeight / 2f, BACK_OVERLAY_BLIT_LAYER, 0xFF303030);
+            drawFont(guiGraphics, component, i - 5 + 22.5f - (int)leftPanelOffset - (float)(font.width(component.getVisualOrderText()) / 2), j + 102 - font.lineHeight / 2f, BACK_OVERLAY_BLIT_LAYER, 0xFF303030, false);
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -502,11 +502,11 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
 
 
 
-        drawFont(guiGraphics, hat, this.leftPos + 45 - (float)(font.width(hat.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
-        drawFont(guiGraphics, misc1, this.leftPos + 94 - (float)(font.width(misc1.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
-        drawFont(guiGraphics, misc2, this.leftPos + 142 - (float)(font.width(misc2.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
-        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
-        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), j + 77, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060);
+        drawFont(guiGraphics, hat, this.leftPos + 45 - (float)(font.width(hat.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060, false);
+        drawFont(guiGraphics, misc1, this.leftPos + 94 - (float)(font.width(misc1.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060, false);
+        drawFont(guiGraphics, misc2, this.leftPos + 142 - (float)(font.width(misc2.getVisualOrderText()) / 2), j + 32, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060, false);
+        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), j + 77, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060, false);
+        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), j + 77, FRONT_OVERLAY_BLIT_LAYER, 0xFF606060, false);
 
 //        InventoryScreen.renderEntityInInventory(this.leftPos + 107, j + 88, 20, (float)(this.leftPos + 107 - x) , (float)(j + 88 - 30 - y), (LivingEntity) crowEntity);
 //

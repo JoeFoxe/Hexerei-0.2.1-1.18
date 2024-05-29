@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/jungle/jungle_pressure_plate_from_jungle_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

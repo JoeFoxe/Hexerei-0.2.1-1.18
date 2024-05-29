@@ -103,7 +103,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
     public float fluidRenderLevel = 0;
     public FluidStack renderedFluid;
 
-    boolean checkCraft = true;
+    public boolean checkCraft = true;
 
 
     public MixingCauldronTile(BlockEntityType<?> tileEntityTypeIn, BlockPos blockPos, BlockState blockState) {

@@ -38,5 +38,6 @@
     "recipes": [
       "minecraft:woodcutting/mangrove/mangrove_slab_from_mangrove_stairs_woodcutting_combine"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

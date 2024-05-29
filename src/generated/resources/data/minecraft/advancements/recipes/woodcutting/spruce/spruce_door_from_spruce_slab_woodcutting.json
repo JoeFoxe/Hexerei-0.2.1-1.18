@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/spruce/spruce_door_from_spruce_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

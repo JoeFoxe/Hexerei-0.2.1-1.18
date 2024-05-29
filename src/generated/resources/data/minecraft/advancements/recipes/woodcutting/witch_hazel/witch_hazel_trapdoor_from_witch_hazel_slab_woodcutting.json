@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/witch_hazel/witch_hazel_trapdoor_from_witch_hazel_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

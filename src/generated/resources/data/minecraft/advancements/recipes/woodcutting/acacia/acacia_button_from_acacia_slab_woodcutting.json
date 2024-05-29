@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/acacia/acacia_button_from_acacia_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

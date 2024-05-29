@@ -390,23 +390,23 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
         if(this.menu.getCommandMode() == 1)
         {
             crowSelect = Component.translatable("entity.hexerei.crow_flute_select");
-            drawFont(guiGraphics, crowSelect, this.leftPos + 62 - (float)(font.width(crowSelect.getVisualOrderText()) / 2), this.topPos + 91, 0xFFCCCCCC);
+            drawFont(guiGraphics, crowSelect, this.leftPos + 62 - (float)(font.width(crowSelect.getVisualOrderText()) / 2), this.topPos + 91, 0xFFCCCCCC, true);
         } else
         {
             crowSelect = Component.translatable("entity.hexerei.crow_flute_select");
-            drawFont(guiGraphics, crowSelect, this.leftPos + 62 - (float)(font.width(crowSelect.getVisualOrderText()) / 2), this.topPos + 91, 0xFFAAAAAA);
+            drawFont(guiGraphics, crowSelect, this.leftPos + 62 - (float)(font.width(crowSelect.getVisualOrderText()) / 2), this.topPos + 91, 0xFFAAAAAA, true);
         }
 
-        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), this.topPos + 63 - 14, 0xFF606060);
-        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), this.topPos + 63 - 14, 0xFF606060);
-        drawFont(guiGraphics, Component.translatable("entity.hexerei.crow_flute_perch"), this.leftPos + 128 - (float)(font.width(Component.translatable("entity.hexerei.crow_flute_perch").getVisualOrderText()) / 2), this.topPos + 91, 0xFFAAAAAA);
+        drawFont(guiGraphics, command, this.leftPos + 56 - (float)(font.width(command.getVisualOrderText()) / 2), this.topPos + 63 - 14, 0xFF606060, false);
+        drawFont(guiGraphics, helpCommand, this.leftPos + 131 - (float)(font.width(helpCommand.getVisualOrderText()) / 2), this.topPos + 63 - 14, 0xFF606060, false);
+        drawFont(guiGraphics, Component.translatable("entity.hexerei.crow_flute_perch"), this.leftPos + 128 - (float)(font.width(Component.translatable("entity.hexerei.crow_flute_perch").getVisualOrderText()) / 2), this.topPos + 91, 0xFFAAAAAA, true);
 
     }
 
-    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int color){
+    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int color, boolean shadow){
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x, y, 1);
-        guiGraphics.drawString(minecraft.font, component, 0, 0, color, true);
+        guiGraphics.drawString(minecraft.font, component, 0, 0, color, shadow);
         guiGraphics.pose().popPose();
     }
 

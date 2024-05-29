@@ -82,7 +82,6 @@ public class CofferScreen extends AbstractContainerScreen<CofferContainer> {
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int x, int y) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI);
 
         int i = this.leftPos;
         int j = this.topPos - OFFSET;
@@ -92,13 +91,10 @@ public class CofferScreen extends AbstractContainerScreen<CofferContainer> {
         {
             guiGraphics.blit(GUI, i + 188, j + 130, 230, 44, 18, 18);
         }
-        RenderSystem.setShaderTexture(0, INVENTORY);
-        guiGraphics.blit(GUI, i + 3, j + 129, 0, 0, 176, 100);
+        guiGraphics.blit(INVENTORY, i + 3, j + 129, 0, 0, 176, 100);
 
         //Rendering the coffer item on the top of the screen
         Minecraft minecraft = Minecraft.getInstance();
-
-        RenderSystem.setShaderTexture(0, GUI);
 
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
 

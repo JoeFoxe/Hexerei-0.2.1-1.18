@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/mahogany/polished_mahogany_boat_from_polished_mahogany_layered_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

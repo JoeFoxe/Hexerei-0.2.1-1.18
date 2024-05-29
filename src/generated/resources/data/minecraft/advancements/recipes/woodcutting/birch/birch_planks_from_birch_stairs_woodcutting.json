@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/birch/birch_planks_from_birch_stairs_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

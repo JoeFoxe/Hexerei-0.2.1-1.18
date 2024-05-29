@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/willow/willow_slab_from_polished_willow_pillar_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

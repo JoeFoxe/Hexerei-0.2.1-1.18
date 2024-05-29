@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/witch_hazel/witch_hazel_stairs_from_polished_witch_hazel_layered_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

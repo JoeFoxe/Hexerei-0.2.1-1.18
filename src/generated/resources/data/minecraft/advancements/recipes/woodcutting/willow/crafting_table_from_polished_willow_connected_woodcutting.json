@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/willow/crafting_table_from_polished_willow_connected_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

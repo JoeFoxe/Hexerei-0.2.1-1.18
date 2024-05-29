@@ -38,5 +38,6 @@
     "recipes": [
       "minecraft:woodcutting/dark_oak/dark_oak_slab_from_dark_oak_stairs_woodcutting_combine"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/birch/birch_planks_from_stripped_birch_wood_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

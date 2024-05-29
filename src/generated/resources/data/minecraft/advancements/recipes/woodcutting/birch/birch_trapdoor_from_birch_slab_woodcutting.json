@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/birch/birch_trapdoor_from_birch_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

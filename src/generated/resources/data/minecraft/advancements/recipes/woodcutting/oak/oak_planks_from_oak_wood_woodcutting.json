@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/oak/oak_planks_from_oak_wood_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

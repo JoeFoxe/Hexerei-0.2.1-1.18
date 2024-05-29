@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/mahogany/polished_mahogany_stairs_from_mahogany_planks_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

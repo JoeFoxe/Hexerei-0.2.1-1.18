@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/jungle/jungle_door_from_jungle_planks_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

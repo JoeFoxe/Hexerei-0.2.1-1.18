@@ -38,5 +38,6 @@
     "recipes": [
       "minecraft:woodcutting/mahogany/mahogany_slab_from_polished_mahogany_stairs_woodcutting_combine"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

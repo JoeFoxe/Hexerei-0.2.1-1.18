@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/spruce/spruce_button_from_spruce_planks_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

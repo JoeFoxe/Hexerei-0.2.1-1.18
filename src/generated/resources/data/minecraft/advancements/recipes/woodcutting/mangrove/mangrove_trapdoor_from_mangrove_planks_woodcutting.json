@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/mangrove/mangrove_trapdoor_from_mangrove_planks_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

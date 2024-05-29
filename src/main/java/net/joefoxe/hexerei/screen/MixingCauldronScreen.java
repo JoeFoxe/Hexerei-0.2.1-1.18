@@ -64,14 +64,17 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
         return (mouseX >= x && mouseX <= x + sizeX) && (mouseY >= y && mouseY <= y + sizeY);
     }
 
-    private void drawFont(GuiGraphics guiGraphics, Component component, float x, float y, int color, float scalePercent){
+    private void drawFont(GuiGraphics guiGraphics, Component component, float x, float y, int z, int color, float scalePercent, boolean shadow){
         guiGraphics.pose().pushPose();
         if (scalePercent != 0)
             guiGraphics.pose().scale(1/scalePercent, 1/scalePercent, 1/scalePercent);
-        guiGraphics.pose().translate(x, y, 1);
-        guiGraphics.drawString(minecraft.font, component, 0, 0, color, true);
+        guiGraphics.pose().translate(x, y, z);
+        guiGraphics.drawString(minecraft.font, component, 0, 0, color, shadow);
         guiGraphics.pose().popPose();
     }
+
+    private final int FRONT_BLIT_LAYER = 1;
+    private final int BACK_BLIT_LAYER = 1;
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int pMouseX, int pMouseY) {
@@ -94,29 +97,29 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
 
         Component component = Component.translatable("Dump");
         float width = font.width(component.getVisualOrderText());
-        guiGraphics.blit(GUI, i + 20 - (int)dumpOffset, j + 56, 216, 61, 40, 32);
+        guiGraphics.blit(GUI, i + 20 - (int)dumpOffset, j + 56, BACK_BLIT_LAYER, 216, 61, 40, 32, 256, 256);
         if(clickedDump)
-            guiGraphics.blit(GUI, i + 20 - (int)dumpOffset + 9, j + 56 + 9, 226, 47, 30, 14);
+            guiGraphics.blit(GUI, i + 20 - (int)dumpOffset + 9, j + 56 + 9, BACK_BLIT_LAYER, 226, 47, 30, 14, 256, 256);
 
         float lineHeight = minecraft.font.lineHeight / 2f;
         if(width > 20){
             float percent = width/20;
-            drawFont(guiGraphics, component, (i + 44.5f - ((width / percent) / 2f) - (int)dumpOffset) * percent + (clickedDump ? 1f : 0), (j + 68 + lineHeight) * percent - 4.5f + (clickedDump ? 1f : 0), 0xFF404040, percent);
+            drawFont(guiGraphics, component, (i + 44.5f - ((width / percent) / 2f) - (int)dumpOffset) * percent + (clickedDump ? 1f : 0), (j + 68 + lineHeight) * percent - 4.5f + (clickedDump ? 1f : 0), BACK_BLIT_LAYER, 0xFF404040, percent, false);
         } else
-            drawFont(guiGraphics, component, i + 44.5f - (width / 2f) - (int)dumpOffset + (clickedDump ? 1f : 0), j + 68 + lineHeight - 4.5f + (clickedDump ? 1f : 0), 0xFF606060, 1);
+            drawFont(guiGraphics, component, i + 44.5f - (width / 2f) - (int)dumpOffset + (clickedDump ? 1f : 0), j + 68 + lineHeight - 4.5f + (clickedDump ? 1f : 0), BACK_BLIT_LAYER, 0xFF606060, 1, false);
 
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUI);
-        guiGraphics.blit(GUI, i, j, 0, 0, 207, 127);
-        guiGraphics.blit(GUI, i + 150, j + 52, 220, 0, (int)(22 * this.menu.getCraftPercent()), 8);
-        guiGraphics.blit(GUI, i + 109, j + 46, 242, 0, 8, (int)(22 * this.menu.getCraftPercent()));
+        guiGraphics.blit(GUI, i, j, FRONT_BLIT_LAYER, 0, 0, 207, 127, 256, 256);
+        guiGraphics.blit(GUI, i + 150, j + 52, FRONT_BLIT_LAYER, 220, 0, (int)(22 * this.menu.getCraftPercent()), 8, 256, 256);
+        guiGraphics.blit(GUI, i + 109, j + 46, FRONT_BLIT_LAYER, 242, 0, 8, (int)(22 * this.menu.getCraftPercent()), 256, 256);
 
 
 
         RenderSystem.setShaderTexture(0, INVENTORY);
-        guiGraphics.blit(INVENTORY, i + 6, j + 102, 0, 0, 176, 100);
+        guiGraphics.blit(INVENTORY, i + 6, j + 102, FRONT_BLIT_LAYER, 0, 0, 176, 100, 256, 256);
         if(menu.getRenderedFluid() != null) {
             FluidStack stack = menu.getRenderedFluid().copy();
             renderer.render(guiGraphics, i + 42, j + 56, stack);
@@ -128,9 +131,9 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
                 this.topPos - 25);
         RenderSystem.enableDepthTest();
         RenderSystem.setShaderTexture(0, GUI);
-        guiGraphics.blit(GUI, i + 81, j - 30, 230, 21, 26, 26);
+        guiGraphics.blit(GUI, i + 81, j - 30, FRONT_BLIT_LAYER, 230, 21, 26, 26, 256, 256);
 
-        guiGraphics.blit(GUI, i + 42,j + 56, 208, 12, 16, 32);
+        guiGraphics.blit(GUI, i + 42,j + 56, FRONT_BLIT_LAYER, 208, 12, 16, 32, 256, 256);
 
 
 

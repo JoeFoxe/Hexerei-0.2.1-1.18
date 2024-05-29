@@ -66,7 +66,6 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
         this.renderBackground(guiGraphics);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI);
         int i = this.leftPos;
         int j = this.topPos;
         guiGraphics.blit(GUI, i, j, 0, 0, 184, 122);
@@ -87,8 +86,7 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
         }
 
         this.renderButtons(guiGraphics, pX, pY, l, i1, j1,true);
-        RenderSystem.setShaderTexture(0, INVENTORY);
-        guiGraphics.blit(GUI, i + 4, j + 97, 0, 0, 176, 100);
+        guiGraphics.blit(INVENTORY, i + 4, j + 97, 0, 0, 176, 100);
     }
 
     protected void renderTooltip(GuiGraphics guiGraphics, int pX, int pY) {

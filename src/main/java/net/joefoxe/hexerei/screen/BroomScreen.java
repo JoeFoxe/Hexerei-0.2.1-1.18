@@ -237,16 +237,16 @@ public class BroomScreen extends AbstractContainerScreen<BroomContainer> {
         MutableComponent satchel = Component.translatable("tooltip.hexerei.broom_satchel");
         MutableComponent brush = Component.translatable("tooltip.hexerei.broom_brush");
 
-        drawFont(guiGraphics, misc, this.leftPos + 34, this.topPos + 29 - OFFSET, 0xFF606060);
-        drawFont(guiGraphics, satchel, this.leftPos + 89, this.topPos + 29 - OFFSET, 0xFF606060);
-        drawFont(guiGraphics, brush, this.leftPos + 154, this.topPos + 29 - OFFSET, 0xFF606060);
+        drawFont(guiGraphics, misc, this.leftPos + 34, this.topPos + 29 - OFFSET, 0xFF606060, false);
+        drawFont(guiGraphics, satchel, this.leftPos + 89, this.topPos + 29 - OFFSET, 0xFF606060, false);
+        drawFont(guiGraphics, brush, this.leftPos + 154, this.topPos + 29 - OFFSET, 0xFF606060, false);
 
     }
 
-    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int color){
+    private void drawFont(GuiGraphics guiGraphics, MutableComponent component, float x, float y, int color, boolean shadow){
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x, y, 1);
-        guiGraphics.drawString(minecraft.font, component, 0, 0, color, true);
+        guiGraphics.drawString(minecraft.font, component, 0, 0, color, shadow);
         guiGraphics.pose().popPose();
     }
 

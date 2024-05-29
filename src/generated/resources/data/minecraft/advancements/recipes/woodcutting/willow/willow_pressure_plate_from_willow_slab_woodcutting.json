@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/willow/willow_pressure_plate_from_willow_slab_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

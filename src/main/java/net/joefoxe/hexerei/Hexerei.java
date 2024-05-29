@@ -20,6 +20,7 @@ import net.joefoxe.hexerei.container.ModContainers;
 import net.joefoxe.hexerei.data.books.PageDrawing;
 import net.joefoxe.hexerei.data.datagen.ModRecipeProvider;
 import net.joefoxe.hexerei.data.datagen.WorldGenProvider;
+import net.joefoxe.hexerei.data.recipes.HexereiRecipeProvider;
 import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.data.tags.ModBiomeTagsProvider;
 import net.joefoxe.hexerei.event.ClientEvents;
@@ -231,7 +232,7 @@ public class Hexerei {
 		PackOutput output = gen.getPackOutput();
 		CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-//		gen.addProvider(true, new ModRecipeProvider(output));
+		gen.addProvider(true, new ModRecipeProvider(output));
 		gen.addProvider(event.includeServer(), new WorldGenProvider(output, event.getLookupProvider()));
 		gen.addProvider(event.includeServer(), new ModBiomeTagsProvider(output, lookupProvider, event.getExistingFileHelper()));
 //		gen.addProvider(event.includeServer(), new HexereiRecipeProvider(gen));

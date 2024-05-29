@@ -38,5 +38,6 @@
     "recipes": [
       "minecraft:woodcutting/witch_hazel/polished_witch_hazel_slab_from_witch_hazel_stairs_woodcutting_combine"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

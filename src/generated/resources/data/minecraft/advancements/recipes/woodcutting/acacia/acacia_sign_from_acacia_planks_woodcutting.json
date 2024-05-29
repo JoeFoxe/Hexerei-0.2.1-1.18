@@ -23,5 +23,6 @@
     "recipes": [
       "minecraft:woodcutting/acacia/acacia_sign_from_acacia_planks_woodcutting"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

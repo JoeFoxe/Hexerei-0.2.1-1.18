@@ -43,6 +43,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.PointedDripstoneBlock;
@@ -615,6 +616,17 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
             if (worldIn.getBlockEntity(pos) instanceof MixingCauldronTile mixingCauldronTile)
                 mixingCauldronTile.customName = stack.getHoverName();
         }
+
+    }
+
+    @Override
+    public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
+        super.onNeighborChange(state, level, pos, neighbor);
+
+        withTileEntityDo(level, pos, te -> {
+            if (level.getBlockState(neighbor).is(HexereiTags.Blocks.HEAT_SOURCES))
+                te.checkCraft = true;
+        });
 
     }
 
