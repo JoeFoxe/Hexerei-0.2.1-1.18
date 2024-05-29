@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.block.connected;
 import net.joefoxe.hexerei.Hexerei;
 import net.minecraft.resources.ResourceLocation;
 
+
 import java.util.Locale;
 
 // CREDIT: https://github.com/Creators-of-Create/Create/tree/mc1.19/dev by simibubi & team (edited by JoeFoxe)
@@ -28,8 +29,6 @@ public enum AllCTTypes implements CTType {
         }
     },
     OMNIDIRECTIONAL(8, ConnectedTextureBehaviour.ContextRequirement.builder().all().build()) {
-
-
         @Override
         public int getTextureIndex(ConnectedTextureBehaviour.CTContext context) {
             return omni(context);
@@ -50,8 +49,6 @@ public enum AllCTTypes implements CTType {
             return omni(context);
         }
     },
-
-
     CROSS(4, ConnectedTextureBehaviour.ContextRequirement.builder().axisAligned().build()) {
         @Override
         public int getTextureIndex(ConnectedTextureBehaviour.CTContext context) {
@@ -66,14 +63,6 @@ public enum AllCTTypes implements CTType {
             return x + y * 4;
         }
     };
-
-    private final ResourceLocation id;
-    private final int sheetSize;
-    private final ConnectedTextureBehaviour.ContextRequirement contextRequirement;
-
-    private final int extraFaceVariations;
-    private final float percentChanceFromBase;
-
     public static int omni(ConnectedTextureBehaviour.CTContext context) {
         ConnectedTextureBehaviour.CTContext c = context;
         int tileX = 0, tileY = 0;
@@ -135,6 +124,13 @@ public enum AllCTTypes implements CTType {
         return tileX + 8 * tileY;
     }
 
+    private final ResourceLocation id;
+    private final int sheetSize;
+    private final ConnectedTextureBehaviour.ContextRequirement contextRequirement;
+
+    private final int extraFaceVariations;
+    private final float percentChanceFromBase;
+
     AllCTTypes(int sheetSize, ConnectedTextureBehaviour.ContextRequirement contextRequirement) {
         this.id = new ResourceLocation(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
         this.sheetSize = sheetSize;
@@ -171,6 +167,16 @@ public enum AllCTTypes implements CTType {
     @Override
     public int getSheetSize() {
         return sheetSize;
+    }
+
+    @Override
+    public int getExtraFaceVariations() {
+        return extraFaceVariations;
+    }
+
+    @Override
+    public float getPercent() {
+        return percentChanceFromBase;
     }
 
     @Override

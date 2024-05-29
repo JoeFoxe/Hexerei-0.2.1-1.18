@@ -84,11 +84,9 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
                 this.topPos - 25 - OFFSET);
         RenderSystem.enableDepthTest();
 
-        RenderSystem.setShaderTexture(0, INVENTORY);
-        guiGraphics.blit(GUI, i + 3, j + 129 - OFFSET, 0, 0, 176, 100);
+        guiGraphics.blit(INVENTORY, i + 3, j + 129 - OFFSET, 0, 0, 176, 100);
 
 
-        RenderSystem.setShaderTexture(0, GUI);
 
 
 

@@ -14,4 +14,12 @@ public interface CTType {
     ConnectedTextureBehaviour.ContextRequirement getContextRequirement();
 
     int getTextureIndex(ConnectedTextureBehaviour.CTContext context);
+
+    default int getExtraFaceVariations() {
+        return 0;
+    }
+
+    default float getPercent() {
+        return 1;
+    }
 }

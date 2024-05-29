@@ -229,12 +229,12 @@ public class ClientProxy implements SidedProxy {
         TextureAtlas atlas = event.getAtlas();
         ResourceLocation atlasLocation = atlas.location();
 
-//        List<StitchedSprite> sprites = ALL.get(atlasLocation);
-//        if (sprites != null) {
-//            for (StitchedSprite sprite : sprites) {
-//                sprite.loadSprite(atlas);
-//            }
-//        }
+        List<StitchedSprite> sprites = ALL.get(atlasLocation);
+        if (sprites != null) {
+            for (StitchedSprite sprite : sprites) {
+                sprite.loadSprite(atlas);
+            }
+        }
     }
 
 
