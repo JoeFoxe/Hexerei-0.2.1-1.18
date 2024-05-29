@@ -61,6 +61,7 @@ public class ModBlockColors {
         blockColors.register((state, reader, pos, color) -> {
                     return reader != null && pos != null ? ConnectingCarpetDyed.getColorValue(state, pos, reader) : 0x442013;
                 },
+                ModBlocks.CARPET_SLAB.get(),
                 ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get(),
                 ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE.get(),
                 ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(),
@@ -141,7 +142,24 @@ public class ModBlockColors {
                 ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_STAIRS.get(),
                 ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_STAIRS.get(),
                 ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_STAIRS.get()
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_STAIRS.get(),
+
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get()
         );
 
         blockColors.register((state, reader, pos, color) -> {

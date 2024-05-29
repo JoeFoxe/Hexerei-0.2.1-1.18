@@ -1535,34 +1535,6 @@ public class ModItems {
 	public static final RegistryObject<Item> CANDLE = ITEMS.register("candle",
 			() -> new CandleItem(ModBlocks.CANDLE.get(), new Item.Properties()));
 
-	public static final RegistryObject<Item> CANDLE_BLUE = ITEMS.register("candle_blue",
-			() -> new CandleItem(ModBlocks.CANDLE_BLUE.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_BLACK = ITEMS.register("candle_black",
-			() -> new CandleItem(ModBlocks.CANDLE_BLACK.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_LIME = ITEMS.register("candle_lime",
-			() -> new CandleItem(ModBlocks.CANDLE_LIME.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_ORANGE = ITEMS.register("candle_orange",
-			() -> new CandleItem(ModBlocks.CANDLE_ORANGE.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_PINK = ITEMS.register("candle_pink",
-			() -> new CandleItem(ModBlocks.CANDLE_PINK.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_PURPLE = ITEMS.register("candle_purple",
-			() -> new CandleItem(ModBlocks.CANDLE_PURPLE.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_RED = ITEMS.register("candle_red",
-			() -> new CandleItem(ModBlocks.CANDLE_RED.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_CYAN = ITEMS.register("candle_cyan",
-			() -> new CandleItem(ModBlocks.CANDLE_CYAN.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> CANDLE_YELLOW = ITEMS.register("candle_yellow",
-			() -> new CandleItem(ModBlocks.CANDLE_YELLOW.get(), new Item.Properties()));
-
-
 	public static final RegistryObject<Item> SEED_MIXTURE = ITEMS.register("seed_mixture",
 			() -> new SeedMixtureItem(new Item.Properties()));
 

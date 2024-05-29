@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.ToolAction;
@@ -43,7 +44,17 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
                                   EAST = BooleanProperty.create("east");
     public static final EnumProperty<North> NORTH = EnumProperty.create("north", North.class);
     public static final EnumProperty<South> SOUTH = EnumProperty.create("south", South.class);
+    public Block parentBlock;
 
+    public ConnectingCarpetSlab(Properties pProperties, Block parentBlock){
+        super(pProperties.noOcclusion());
+        registerDefaultState(super.defaultBlockState()
+                .setValue(WEST, false)
+                .setValue(EAST, false)
+                .setValue(NORTH, North.NONE)
+                .setValue(SOUTH, South.NONE));
+        this.parentBlock = parentBlock;
+    }
     @Override
     public VoxelShape getShape(BlockState p_152917_, BlockGetter p_152918_, BlockPos p_152919_, CollisionContext p_152920_) {
         return SHAPE;
@@ -225,7 +236,7 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
 
     public static Block getBlockByColor(@Nullable DyeColor pColor) {
         if (pColor == null) {
-            return Blocks.SHULKER_BOX;
+            return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get();
         } else {
             return switch (pColor) {
                 case WHITE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get();
@@ -248,18 +259,15 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
         }
     }
 
+    @Override
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player) {
+        return new ItemStack(parentBlock);
+    }
+
     @Nullable
     @Override
     public BlockState getToolModifiedState(BlockState state, UseOnContext context, ToolAction toolAction, boolean simulate) {
         return getUnWaxed(state, context, toolAction);
-    }
-    public ConnectingCarpetSlab(Properties pProperties){
-        super(pProperties.noOcclusion());
-        registerDefaultState(super.defaultBlockState()
-                .setValue(WEST, false)
-                .setValue(EAST, false)
-                .setValue(NORTH, North.NONE)
-                .setValue(SOUTH, South.NONE));
     }
 
 

@@ -11,7 +11,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:air"
+          "name": "hexerei:infused_fabric_carpet_dyed_white"
         }
       ],
       "rolls": 1.0

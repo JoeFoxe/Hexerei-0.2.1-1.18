@@ -54,7 +54,38 @@ public class DyeableCarpetItem extends BlockItem {
     @Override
     protected BlockState getPlacementState(BlockPlaceContext pContext) {
         if(pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof SlabBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.SLAB_TYPE) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.SLAB_TYPE) == SlabType.BOTTOM)
-            return ModBlocks.CARPET_SLAB.get().defaultBlockState();
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get().getStateForPlacement(pContext);
         if(pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof StairBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.HALF) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.HALF) == Half.BOTTOM) {
             if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get().parentBlock == this.getBlock())
                 return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get().getStateForPlacement(pContext);

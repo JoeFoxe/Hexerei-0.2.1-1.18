@@ -17,6 +17,7 @@ import net.joefoxe.hexerei.util.HexereiTags;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.EmitParticlesPacket;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -44,6 +45,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
@@ -70,9 +72,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT;
 
@@ -586,18 +591,22 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
             PotionMixingRecipes.BY_ITEM = PotionMixingRecipes.sortRecipesByItem(PotionMixingRecipes.ALL);
         }
 
-        Optional<MixingCauldronRecipe> recipe = level.getRecipeManager()
-                .getRecipeFor(MixingCauldronRecipe.Type.INSTANCE, inv, level);
-        List<FluidMixingRecipe> recipe2 = PotionMixingRecipes.ALL.stream().filter((potionRecipe) -> {
+        RecipeManager rm = level.getRecipeManager();
+        Optional<MixingCauldronRecipe> recipe = rm.getRecipeFor(MixingCauldronRecipe.Type.INSTANCE, inv, level);
+        List<FluidMixingRecipe> non_potion_mixing = rm.getAllRecipesFor(FluidMixingRecipe.Type.INSTANCE).stream().filter((potionRecipe) -> potionRecipe.matches(inv, level)).toList();
+        List<FluidMixingRecipe> potion_mixing = PotionMixingRecipes.ALL.stream().filter((potionRecipe) -> {
             if (potionRecipe.getIngredients().isEmpty()) {
                 PotionMixingRecipes.ALL = null;
                 return false;
-
             }
             return potionRecipe.matches(inv, level);
 //            return inv.getItem(0).is(potionRecipe.getIngredients().get(0).getItems()[0].getItem());
 
         }).toList();
+
+        List<FluidMixingRecipe> recipe2 = Stream.concat(non_potion_mixing.stream(), potion_mixing.stream())
+                .collect(Collectors.toList());
+
         boolean matchesRecipe = false;
 
         ResourceLocation fl2 = ForgeRegistries.FLUIDS.getKey(this.fluidStack.getFluid());

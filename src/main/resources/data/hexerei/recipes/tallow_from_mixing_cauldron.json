@@ -1,6 +1,6 @@
 {
-  "type": "hexerei:mixingcauldron",
-  "liquid": {
+  "type": "hexerei:fluid_mixing",
+  "input": {
     "fluid": "minecraft:water"
   },
   "ingredients": [
@@ -30,11 +30,7 @@
     }
   ],
   "output": {
-    "item": "hexerei:tallow_impurity"
-  },
-  "liquidOutput": {
     "fluid": "hexerei:tallow_fluid"
   },
-  "heatRequirement": "heated",
-  "fluidLevelsConsumed": 0
+  "heatRequirement": "heated"
 }

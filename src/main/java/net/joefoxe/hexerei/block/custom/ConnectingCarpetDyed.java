@@ -282,8 +282,11 @@ public class ConnectingCarpetDyed extends CarpetBlock implements DyeableLeatherI
             return HexereiUtil.getColorValue(ctDyable.getDyeColor());
         else if(state.getBlock() instanceof ConnectingCarpetStairs stairs && stairs.parentBlock instanceof ConnectingCarpetDyed connectingCarpetDyed)
             return HexereiUtil.getColorValue(connectingCarpetDyed.dyeColor);
-        else
+        else if(state.getBlock() instanceof ConnectingCarpetSlab slab && slab.parentBlock instanceof ConnectingCarpetDyed connectingCarpetDyed)
+            return HexereiUtil.getColorValue(connectingCarpetDyed.dyeColor);
+        else if(state.getBlock() instanceof FabricBlock)
             return HexereiUtil.getColorValue(((FabricBlock)state.getBlock()).dyeColor);
+        return HexereiUtil.getColorValue(DyeColor.BLACK);
     }
 
 
