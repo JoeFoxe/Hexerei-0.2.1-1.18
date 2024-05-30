@@ -43,6 +43,7 @@ public class GlassesCurioRender implements ICurioRenderer {
             playerModel.getHead().translateAndRotate(matrixStack);
         }
         matrixStack.scale(0.60f, 0.60f, 0.60f);
+        matrixStack.mulPose(Axis.XP.rotationDegrees(180));
         matrixStack.mulPose(Axis.YP.rotationDegrees(180));
         matrixStack.translate(0.0D, 0.4D, 0.0D);
         Minecraft.getInstance().getItemRenderer().renderStatic(stack,

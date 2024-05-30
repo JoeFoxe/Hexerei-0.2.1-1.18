@@ -1,11 +1,17 @@
 package net.joefoxe.hexerei.item.custom;
 
+import com.google.common.base.Stopwatch;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.datafixers.util.Pair;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
+import net.joefoxe.hexerei.util.ResourceOrTag;
 import net.joefoxe.hexerei.util.message.DowsingRodUpdatePositionPacket;
+import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.ResourceOrTagArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -126,20 +132,33 @@ public class DowsingRodItem extends Item {
     public void findSwamp(Level worldIn, Entity entity)
     {
         if(worldIn instanceof ServerLevel serverLevel){
-            Predicate<Holder<Biome>> SWAMP = (p_211672_) -> ForgeRegistries.BIOMES.getHolder(BT_SWAMP.location()).isPresent();
-            Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(SWAMP, entity.blockPosition(), 6400, 32, 64);
+            ResourceOrTag<Biome> key = ResourceOrTag.get("#forge:is_swamp", Registries.BIOME);
+            Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(key.holderPredicate(), entity.blockPosition(), 6400, 32, 64);
             if(pair != null)
                 this.nearestPos = pair.getFirst();
         }
     }
 
+//
+//    private static int locateBiome(CommandSourceStack pSource, ResourceOrTagArgument.Result<Biome> pBiome) throws CommandSyntaxException {
+//        BlockPos blockpos = BlockPos.containing(pSource.getPosition());
+//        Stopwatch stopwatch = Stopwatch.createStarted(Util.TICKER);
+//        ResourceOrTag<Biome> rot = ResourceOrTag.get("#forge:is_swamp", Registries.BIOME);
+//        Pair<BlockPos, Holder<Biome>> pair = pSource.getLevel().findClosestBiome3d(rot.asHolderPredicate(), blockpos, 6400, 32, 64);
+//        stopwatch.stop();
+//        if (pair == null) {
+//            throw ERROR_BIOME_NOT_FOUND.create(pBiome.asPrintable());
+//        } else {
+//            return showLocateResult(pSource, pBiome, blockpos, pair, "commands.locate.biome.success", true, stopwatch.elapsed());
+//        }
+//    }
 
 
     public void findJungle(Level worldIn, Entity entity)
     {
         if(worldIn instanceof ServerLevel serverLevel){
-            Predicate<Holder<Biome>> JUNGLE = (p_211672_) ->  ForgeRegistries.BIOMES.getHolder(BiomeTags.IS_JUNGLE.location()).isPresent();
-            Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(JUNGLE, entity.blockPosition(), 6400, 32, 64);
+            ResourceOrTag<Biome> key = ResourceOrTag.get("#minecraft:is_jungle", Registries.BIOME);
+            Pair<BlockPos, Holder<Biome>> pair = serverLevel.findClosestBiome3d(key.holderPredicate(), entity.blockPosition(), 6400, 32, 64);
             if(pair != null)
                 this.nearestPos = pair.getFirst();
         }

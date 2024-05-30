@@ -11,7 +11,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "hexerei:infused_fabric_carpet_dyed"
+          "name": "hexerei:infused_fabric_carpet"
         }
       ],
       "rolls": 1.0

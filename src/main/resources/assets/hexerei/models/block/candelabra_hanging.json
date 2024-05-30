@@ -4,7 +4,7 @@
 	"render_type": "cutout",
 	"textures": {
 		"0": "hexerei:block/candelabra",
-		"particle": "hexerei:block/candelabra"
+		"particle": "hexerei:block/candelabra_particle"
 	},
 	"elements": [
 		{

@@ -98,54 +98,6 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
     }
 
     @Override
-    public void inventoryTick(ItemStack pStack, Level pLevel, Entity pEntity, int pSlotId, boolean pIsSelected) {
-        super.inventoryTick(pStack, pLevel, pEntity, pSlotId, pIsSelected);
-        if(pStack.getItem() instanceof BlockItem blockItem && blockItem != ModItems.CANDLE.get()){
-            if(blockItem.getBlock() == ModBlocks.CANDLE_BLUE.get()
-                || blockItem.getBlock() == (ModBlocks.CANDLE_BLACK.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_LIME.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_ORANGE.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_PINK.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_PURPLE.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_RED.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_CYAN.get())
-                    || blockItem.getBlock() == (ModBlocks.CANDLE_YELLOW.get())){
-                CompoundTag tag = new CompoundTag();
-                if(pStack.hasTag()){
-                    tag = pStack.getTag();
-                }
-
-                ItemStack stack = new ItemStack(ModItems.CANDLE.get());
-
-                if(tag != null && !tag.isEmpty())
-                    stack.setTag(tag);
-
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_BLUE.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.BLUE));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_BLACK.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.BLACK));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_LIME.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.LIME));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_ORANGE.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.ORANGE));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_PINK.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.PINK));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_PURPLE.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.PURPLE));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_RED.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.RED));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_CYAN.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.CYAN));
-                if(blockItem.getBlock() == (ModBlocks.CANDLE_YELLOW.get()))
-                    CandleItem.setColorStatic(stack, HexereiUtil.getColorValue(DyeColor.YELLOW));
-
-                pEntity.getSlot(pSlotId).set(stack);
-
-            }
-        }
-    }
-
-    @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         super.initializeClient(consumer);
         CustomItemRenderer renderer = createItemRenderer();

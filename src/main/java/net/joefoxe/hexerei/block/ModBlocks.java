@@ -1069,33 +1069,6 @@ public class ModBlocks {
 	public static final RegistryObject<Candle> CANDLE = registerBlockNoItem("candle",
 					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
 
-	public static final RegistryObject<Candle> CANDLE_BLUE = registerBlockNoItem("candle_blue",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_BLACK = registerBlockNoItem("candle_black",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_LIME = registerBlockNoItem("candle_lime",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_ORANGE = registerBlockNoItem("candle_orange",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_PINK = registerBlockNoItem("candle_pink",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_PURPLE = registerBlockNoItem("candle_purple",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_RED = registerBlockNoItem("candle_red",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_CYAN = registerBlockNoItem("candle_cyan",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
-	public static final RegistryObject<Candle> CANDLE_YELLOW = registerBlockNoItem("candle_yellow",
-					() -> new Candle(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().noOcclusion().strength(1).explosionResistance(0.5f).lightLevel(state -> Math.min(state.getValue(Candle.CANDLES_LIT) * 12, 15))));
-
 // MAHOGANY
 	public static final RegistryObject<MahoganyLog> MAHOGANY_LOG = registerBlock("mahogany_log",
 					() -> new MahoganyLog(BlockBehaviour.Properties.copy(Blocks.OAK_LOG)));
