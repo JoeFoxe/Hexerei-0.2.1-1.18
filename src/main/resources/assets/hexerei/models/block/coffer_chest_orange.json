@@ -4,7 +4,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"1": "hexerei:block/coffer_orange",
-		"particle": "hexerei:particle/coffer_particle"
+		"particle": "hexerei:block/coffer_particle"
 	},
 	"elements": [
 		{

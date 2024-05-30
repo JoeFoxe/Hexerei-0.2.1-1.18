@@ -5,7 +5,7 @@
 	"textures": {
 		"1": "hexerei:block/coffer",
 		"2": "hexerei:block/coffer_dye_layer",
-		"particle": "hexerei:particle/coffer_particle"
+		"particle": "hexerei:block/coffer_particle"
 	},
 	"elements": [
 		{

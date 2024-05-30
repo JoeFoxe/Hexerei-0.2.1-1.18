@@ -5,7 +5,7 @@
 	"texture_size": [32, 32],
 	"textures": {
 		"4": "hexerei:block/willow_altar_top_connected",
-		"particle": "hexerei:particle/willow_altar_particle"
+		"particle": "hexerei:block/willow_altar_particle"
 	},
 	"elements": [
 		{

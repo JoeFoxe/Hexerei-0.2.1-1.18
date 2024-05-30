@@ -3,7 +3,7 @@
   "parent": "block/thin_block",
   "textures": {
     "all": "hexerei:block/blank",
-    "particle": "hexerei:particle/cauldron_particle"
+    "particle": "hexerei:block/cauldron_particle"
   },
   "elements": [
     {   "from": [ 8, 0, 8 ],

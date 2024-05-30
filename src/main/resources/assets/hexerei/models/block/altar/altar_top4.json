@@ -6,7 +6,7 @@
 	"textures": {
 		"3": "hexerei:block/altar_parts",
 		"4": "hexerei:block/altar_top_connected",
-		"particle": "hexerei:particle/altar_particle"
+		"particle": "hexerei:block/altar_particle"
 	},
 	"elements": [
 		{

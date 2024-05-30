@@ -73,8 +73,8 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
         guiGraphics.pose().popPose();
     }
 
-    private final int FRONT_BLIT_LAYER = 1;
-    private final int BACK_BLIT_LAYER = 1;
+    private static final int FRONT_BLIT_LAYER = 1;
+    private static final int BACK_BLIT_LAYER = 0;
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int pMouseX, int pMouseY) {

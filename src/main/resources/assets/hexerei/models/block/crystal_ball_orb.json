@@ -6,7 +6,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "hexerei:block/crystal_ball",
-		"particle": "hexerei:particle/cauldron_particle"
+		"particle": "hexerei:block/cauldron_particle"
 	},
 	"elements": [
 		{

@@ -6,7 +6,7 @@
 	"textures": {
 		"3": "hexerei:block/witch_hazel_altar_parts",
 		"4": "hexerei:block/witch_hazel_altar_top_connected",
-		"particle": "hexerei:particle/witch_hazel_altar_particle"
+		"particle": "hexerei:block/witch_hazel_altar_particle"
 	},
 	"elements": [
 		{

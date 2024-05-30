@@ -6,7 +6,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"2": "hexerei:block/broom_stand_wall",
-		"particle": "hexerei:particle/altar_particle"
+		"particle": "hexerei:block/altar_particle"
 	},
 	"elements": [
 		{

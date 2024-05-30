@@ -5,7 +5,7 @@
 	"texture_size": [32, 32],
 	"textures": {
 		"4": "hexerei:block/witch_hazel_altar_top_connected",
-		"particle": "hexerei:particle/witch_hazel_altar_particle"
+		"particle": "hexerei:block/witch_hazel_altar_particle"
 	},
 	"elements": [
 		{

@@ -7,7 +7,7 @@
 	"textures": {
 		"1": "hexerei:block/herb_jar",
 		"2": "hexerei:block/blank",
-		"particle": "hexerei:particle/herb_jar_particle"
+		"particle": "hexerei:block/herb_jar_particle"
 	},
 	"elements": [
 		{

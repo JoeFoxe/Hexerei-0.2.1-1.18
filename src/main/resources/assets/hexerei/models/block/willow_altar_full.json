@@ -6,7 +6,7 @@
 	"textures": {
 		"2": "hexerei:block/willow_altar_top",
 		"3": "hexerei:block/willow_altar_parts",
-		"particle": "hexerei:particle/willow_altar_particle"
+		"particle": "hexerei:block/willow_altar_particle"
 	},
 	"elements": [
 		{

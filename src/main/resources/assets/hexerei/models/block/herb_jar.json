@@ -5,7 +5,7 @@
 	"render_type": "translucent",
 	"textures": {
 		"1": "hexerei:block/herb_jar",
-		"particle": "hexerei:particle/herb_jar_particle"
+		"particle": "hexerei:block/herb_jar_particle"
 	},
 	"elements": [
 		{

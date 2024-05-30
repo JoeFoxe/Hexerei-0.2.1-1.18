@@ -1,7 +1,7 @@
 {
   "parent": "builtin/entity",
   "textures": {
-    "particle": "hexerei:particle/cauldron_particle"
+    "particle": "hexerei:block/cauldron_particle"
   },
   "display": {
     "thirdperson_righthand": {

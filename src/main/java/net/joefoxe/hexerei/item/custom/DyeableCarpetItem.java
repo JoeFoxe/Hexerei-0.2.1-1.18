@@ -53,7 +53,9 @@ public class DyeableCarpetItem extends BlockItem {
     @org.jetbrains.annotations.Nullable
     @Override
     protected BlockState getPlacementState(BlockPlaceContext pContext) {
-        if(pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof SlabBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.SLAB_TYPE) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.SLAB_TYPE) == SlabType.BOTTOM)
+        BlockState blockState = pContext.getLevel().getBlockState(pContext.getClickedPos().below());
+        Block block = blockState.getBlock();
+        if(block instanceof SlabBlock && blockState.hasProperty(BlockStateProperties.SLAB_TYPE) && blockState.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.BOTTOM) {
             if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get().parentBlock == this.getBlock())
                 return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get().getStateForPlacement(pContext);
             if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get().parentBlock == this.getBlock())
@@ -86,7 +88,8 @@ public class DyeableCarpetItem extends BlockItem {
                 return ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get().getStateForPlacement(pContext);
             if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get().parentBlock == this.getBlock())
                 return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get().getStateForPlacement(pContext);
-        if(pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof StairBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.HALF) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.HALF) == Half.BOTTOM) {
+        }
+        if(block instanceof StairBlock && blockState.hasProperty(BlockStateProperties.HALF) && blockState.getValue(BlockStateProperties.HALF) == Half.BOTTOM) {
             if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get().parentBlock == this.getBlock())
                 return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get().getStateForPlacement(pContext);
             if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_STAIRS.get().parentBlock == this.getBlock())

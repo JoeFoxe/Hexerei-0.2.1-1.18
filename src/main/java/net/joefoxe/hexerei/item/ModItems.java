@@ -956,15 +956,6 @@ public class ModItems {
 	public static final RegistryObject<Item> MAHOGANY_HANGING_SIGN = ITEMS.register("mahogany_hanging_sign",
 			() -> new HangingSignItem(ModBlocks.MAHOGANY_HANGING_SIGN.get(), ModBlocks.MAHOGANY_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
 
-	public static final RegistryObject<Item> POLISHED_WILLOW_HANGING_SIGN = ITEMS.register("polished_willow_hanging_sign",
-			() -> new HangingSignItem(ModBlocks.POLISHED_WILLOW_HANGING_SIGN.get(), ModBlocks.POLISHED_WILLOW_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
-
-	public static final RegistryObject<Item> POLISHED_WITCH_HAZEL_HANGING_SIGN = ITEMS.register("polished_witch_hazel_hanging_sign",
-			() -> new HangingSignItem(ModBlocks.POLISHED_WITCH_HAZEL_HANGING_SIGN.get(), ModBlocks.POLISHED_WITCH_HAZEL_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
-
-	public static final RegistryObject<Item> POLISHED_MAHOGANY_HANGING_SIGN = ITEMS.register("polished_mahogany_hanging_sign",
-			() -> new HangingSignItem(ModBlocks.POLISHED_MAHOGANY_HANGING_SIGN.get(), ModBlocks.POLISHED_MAHOGANY_WALL_HANGING_SIGN.get(), new Item.Properties().stacksTo(16)));
-
 	public static final RegistryObject<Item> MAHOGANY_WINDOW_PANE = ITEMS.register("mahogany_window_pane",
 			() -> new BlockItem(ModBlocks.MAHOGANY_WINDOW_PANE.get(), new Item.Properties()));
 
@@ -1586,7 +1577,7 @@ public class ModItems {
 			() -> new Item(new Item.Properties()));
 
 	public static final RegistryObject<StandingAndWallBlockItem> MAHOGANY_BROOM_STAND = ITEMS.register("mahogany_broom_stand",
-			() -> new StandingAndWallBlockItem(ModBlocks.MAHOGANY_BROOM_STAND.get(), ModBlocks.MAHOGANY_BROOM_STAND_WALL.get(), (new Item.Properties()), Direction.UP) {
+			() -> new StandingAndWallBlockItem(ModBlocks.MAHOGANY_BROOM_STAND.get(), ModBlocks.MAHOGANY_BROOM_STAND_WALL.get(), (new Item.Properties()), Direction.DOWN) {
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
 					if (Screen.hasShiftDown()) {
@@ -1600,7 +1591,7 @@ public class ModItems {
 
 
 	public static final RegistryObject<StandingAndWallBlockItem> WILLOW_BROOM_STAND = ITEMS.register("willow_broom_stand",
-			() -> new StandingAndWallBlockItem(ModBlocks.WILLOW_BROOM_STAND.get(), ModBlocks.WILLOW_BROOM_STAND_WALL.get(), (new Item.Properties()), Direction.UP) {
+			() -> new StandingAndWallBlockItem(ModBlocks.WILLOW_BROOM_STAND.get(), ModBlocks.WILLOW_BROOM_STAND_WALL.get(), (new Item.Properties()), Direction.DOWN) {
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
 					if (Screen.hasShiftDown()) {
@@ -1614,7 +1605,7 @@ public class ModItems {
 
 
 	public static final RegistryObject<StandingAndWallBlockItem> WITCH_HAZEL_BROOM_STAND = ITEMS.register("witch_hazel_broom_stand",
-			() -> new StandingAndWallBlockItem(ModBlocks.WITCH_HAZEL_BROOM_STAND.get(), ModBlocks.WITCH_HAZEL_BROOM_STAND_WALL.get(), (new Item.Properties()), Direction.UP) {
+			() -> new StandingAndWallBlockItem(ModBlocks.WITCH_HAZEL_BROOM_STAND.get(), ModBlocks.WITCH_HAZEL_BROOM_STAND_WALL.get(), (new Item.Properties()), Direction.DOWN) {
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
 					if (Screen.hasShiftDown()) {

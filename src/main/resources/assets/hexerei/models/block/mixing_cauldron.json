@@ -6,7 +6,7 @@
 	"textures": {
 		"3": "hexerei:block/mixing_cauldron",
 		"5": "hexerei:block/mixing_cauldron_dye",
-		"particle": "hexerei:particle/cauldron_particle"
+		"particle": "hexerei:block/cauldron_particle"
 	},
 	"elements": [
 		{
