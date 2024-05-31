@@ -224,10 +224,10 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
         @Nullable
         @Override
         public FluidMixingRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            NonNullList<Ingredient> inputs = NonNullList.withSize(8, Ingredient.EMPTY);
+            NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
 
-            for (int i = 0; i < buffer.readInt(); i++) {
-                inputs.add(Ingredient.fromNetwork(buffer));
+            for (int i = 0; i < inputs.size(); i++) {
+                inputs.set(i, Ingredient.fromNetwork(buffer));
             }
 
             FluidStack inputFluid = buffer.readFluidStack();

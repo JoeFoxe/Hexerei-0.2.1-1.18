@@ -176,6 +176,7 @@ dependencies {
 
 	implementation (fg.deobf("curse.maven:terrablender-563928:$terraBlenderVersion")) // Terra Blender
 	implementation(fg.deobf("curse.maven:cyanide-541676:$cyanideVersion")) // Cyanide
+//	implementation(fg.deobf("curse.maven:spit-it-out-857141:4888754")) // Spit It Out
 
 	/*implementation*/ compileOnly(fg.deobf("com.hollingsworth.ars_nouveau:ars_nouveau-${minecraftVersion}:${arsNouveauVersion}"))
 	compileOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${curiosVersion}:api"))
