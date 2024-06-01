@@ -13,7 +13,7 @@
       "item": "minecraft:leather"
     },
     "A": {
-      "item": "hexerei:animal_fat"
+      "tag": "hexerei:tallow_meltable"
     },
     "B": {
       "item": "minecraft:book"
