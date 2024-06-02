@@ -218,7 +218,8 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                 return InteractionResult.sidedSuccess(world.isClientSide);
             }
             return InteractionResult.SUCCESS;
-        } else if (stack.getItem() == Items.GLASS_BOTTLE) {
+        }
+        if (stack.getItem() == Items.GLASS_BOTTLE) {
             if (cauldronTile.getFluidStack().getAmount() >= 333) {
                 if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(Fluids.WATER, 1))) {
                     ItemStack itemstack4 = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
