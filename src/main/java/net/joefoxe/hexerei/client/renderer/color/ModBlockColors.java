@@ -3,9 +3,11 @@ package net.joefoxe.hexerei.client.renderer.color;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.Coffer;
 import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.GrassColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
@@ -55,111 +57,17 @@ public class ModBlockColors {
                 ModBlocks.COFFER.get()
         );
 
-//        SatchelItem.ItemHandlerConsumer items = event.getBlockColors()::register;
-//        // s = stack, t = tint-layer
-//        items.register((s, t) -> t == 1 ? ConnectingCarpetDyed.getColorValue(s) : -1, ModItems.INFUSED_FABRIC_CARPET_DYED.get());
         blockColors.register((state, reader, pos, color) -> {
-                    return reader != null && pos != null ? ConnectingCarpetDyed.getColorValue(state, pos, reader) : 0x442013;
+                    return reader != null && pos != null ? ConnectingCarpetDyed.getColorValue(state, pos, reader) : HexereiUtil.getColorValue(DyeColor.BLACK);
                 },
-                ModBlocks.CARPET_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_WHITE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_ORANGE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_YELLOW.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIME.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PINK.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GRAY.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_CYAN.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PURPLE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLUE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BROWN.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GREEN.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_RED.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLACK.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_WHITE.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIME.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PINK.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GRAY.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_CYAN.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLUE.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BROWN.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GREEN.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_RED.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLACK.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_WHITE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIME.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PINK.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GRAY.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_CYAN.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLUE.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BROWN.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GREEN.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_RED.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLACK.get(),
-
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_STAIRS.get(),
-
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get()
+                ModBlocks.INFUSED_FABRIC_CARPET.get(),
+                ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(),
+                ModBlocks.INFUSED_FABRIC_BLOCK.get(),
+                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get(),
+                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get(),
+                ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get(),
+                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get()
         );
 
         blockColors.register((state, reader, pos, color) -> {

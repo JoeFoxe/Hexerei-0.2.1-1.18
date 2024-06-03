@@ -1,0 +1,9 @@
+{
+	"parent": "hexerei:block/infused_fabric_carpet/slab/special_carpet_middle",
+	"textures": {
+		"face": "hexerei:block/waxed_infused_fabric_ornate",
+		"outer": "hexerei:block/infused_fabric_outter",
+		"particle": "hexerei:block/waxed_infused_fabric_ornate"
+	},
+	"render_type": "cutout_mipped"
+}

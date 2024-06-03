@@ -3,8 +3,10 @@ package net.joefoxe.hexerei.item.custom;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
 import net.joefoxe.hexerei.item.ModItems;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.BlockItem;
@@ -31,6 +33,8 @@ import net.minecraftforge.fml.common.Mod;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed.COLOR;
+
 public class DyeableCarpetItem extends BlockItem {
     public DyeableCarpetItem(Block pBlock, Properties pProperties) {
         super(pBlock, pProperties);
@@ -55,105 +59,39 @@ public class DyeableCarpetItem extends BlockItem {
     protected BlockState getPlacementState(BlockPlaceContext pContext) {
         BlockState blockState = pContext.getLevel().getBlockState(pContext.getClickedPos().below());
         Block block = blockState.getBlock();
+
         if(block instanceof SlabBlock && blockState.hasProperty(BlockStateProperties.SLAB_TYPE) && blockState.getValue(BlockStateProperties.SLAB_TYPE) == SlabType.BOTTOM) {
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_SLAB.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get().getStateForPlacement(pContext);
         }
         if(block instanceof StairBlock && blockState.hasProperty(BlockStateProperties.HALF) && blockState.getValue(BlockStateProperties.HALF) == Half.BOTTOM) {
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_STAIRS.get().getStateForPlacement(pContext);
-            if (ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_STAIRS.get().parentBlock == this.getBlock())
-                return ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_STAIRS.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get().getStateForPlacement(pContext);
+            if (ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get().parentBlock == this.getBlock())
+                return ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get().getStateForPlacement(pContext);
+            if (ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get().parentBlock == this.getBlock())
+                return ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get().getStateForPlacement(pContext);
+            if (ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get().parentBlock == this.getBlock())
+                return ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get().getStateForPlacement(pContext);
         }
         return super.getPlacementState(pContext);
     }
 
 
+    @Override
+    public Component getName(ItemStack pStack) {
+        DyeColor color = DyeColor.WHITE;
 
-
-    public static Block getBlockByColor(@Nullable DyeColor pColor) {
-        if (pColor == null) {
-            return Blocks.SHULKER_BOX;
-        } else {
-            return switch (pColor) {
-                case WHITE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_STAIRS.get();
-                case ORANGE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE_STAIRS.get();
-                case MAGENTA -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA_STAIRS.get();
-                case LIGHT_BLUE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE_STAIRS.get();
-                case YELLOW -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW_STAIRS.get();
-                case LIME -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME_STAIRS.get();
-                case PINK -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK_STAIRS.get();
-                case GRAY -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY_STAIRS.get();
-                case LIGHT_GRAY -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY_STAIRS.get();
-                case CYAN -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN_STAIRS.get();
-                case PURPLE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE_STAIRS.get();
-                case BLUE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE_STAIRS.get();
-                case BROWN -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN_STAIRS.get();
-                case GREEN -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN_STAIRS.get();
-                case RED -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED_STAIRS.get();
-                case BLACK -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK_STAIRS.get();
-            };
-        }
+        if (pStack.hasTag() && pStack.getTag() != null && pStack.getTag().contains("color"))
+            color = DyeColor.byName(pStack.getOrCreateTag().getString("color"), DyeColor.WHITE);
+        if (color == DyeColor.WHITE)
+            return super.getName(pStack);
+        return Component.translatable("color.minecraft." + color.getName()).append(" ").append(super.getName(pStack));
     }
-
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = "hexerei", bus = Mod.EventBusSubscriber.Bus.MOD)
     static class ColorRegisterHandler
@@ -165,73 +103,13 @@ public class DyeableCarpetItem extends BlockItem {
             // s = stack, t = tint-layer
             items.register((s, t) -> t == 0 ? ConnectingCarpetDyed.getColorValue(s) : -1,
 
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_WHITE.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_ORANGE.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_YELLOW.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_LIME.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_PINK.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_GRAY.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_CYAN.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_PURPLE.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_BLUE.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_BROWN.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_GREEN.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_RED.get(),
-                    ModItems.INFUSED_FABRIC_CARPET_DYED_BLACK.get(),
+                    ModItems.INFUSED_FABRIC_CARPET.get(),
 
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_WHITE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_ORANGE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_YELLOW.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_LIME.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_PINK.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_GRAY.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_CYAN.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_PURPLE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_BLUE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_BROWN.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_GREEN.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_RED.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_CARPET_DYED_BLACK.get(),
+                    ModItems.WAXED_INFUSED_FABRIC_CARPET.get(),
 
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_WHITE.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_LIME.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_PINK.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_GRAY.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_CYAN.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_BLUE.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_BROWN.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_GREEN.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_RED.get(),
-                    ModItems.INFUSED_FABRIC_BLOCK_DYED_BLACK.get(),
+                    ModItems.INFUSED_FABRIC_BLOCK.get(),
 
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_WHITE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIME.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_PINK.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_GRAY.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_CYAN.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLUE.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_BROWN.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_GREEN.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_RED.get(),
-                    ModItems.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLACK.get());
+                    ModItems.WAXED_INFUSED_FABRIC_BLOCK.get());
         }
     }
 

@@ -13,34 +13,44 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.ToolAction;
 
 import javax.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed.COLOR;
+
 public class FabricBlock extends WaxedLayeredBlock implements CTDyable {
 
-	public FabricBlock(Properties p_55926_, DyeColor dyeColor) {
-		super(p_55926_);
-		this.dyeColor = dyeColor;
-	}
 	public FabricBlock(Properties p_55926_) {
 		super(p_55926_);
-		this.dyeColor = null;
 	}
 
-	public DyeColor dyeColor;
+	@Override
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+		super.createBlockStateDefinition(pBuilder);
+		pBuilder.add(COLOR);
+	}
 
 
 	@Override
-	public DyeColor getDyeColor() {
-		return dyeColor;
+	public DyeColor getDyeColor(BlockState blockState) {
+		if (blockState.hasProperty(COLOR))
+			return blockState.getValue(COLOR);
+		return DyeColor.WHITE;
 	}
 
 	@Nullable
@@ -49,17 +59,50 @@ public class FabricBlock extends WaxedLayeredBlock implements CTDyable {
 		return getUnWaxed(state, context, toolAction);
 	}
 
+
+	@Nullable
+	@Override
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		BlockState state = super.getStateForPlacement(context);
+		ItemStack stack = context.getItemInHand();
+		if (state != null && state.hasProperty(COLOR)){
+			if (stack.hasTag()) {
+				String colorName = stack.getOrCreateTag().getString("color");
+				DyeColor color = DyeColor.byName(colorName, DyeColor.WHITE); // Default to WHITE if the colorName is invalid
+				return state.setValue(COLOR, color);
+			}
+		}
+		return super.getStateForPlacement(context);
+	}
+
+	@Override
+	public List<ItemStack> getDrops(BlockState pState, LootParams.Builder pParams) {
+		List<ItemStack> drops = super.getDrops(pState, pParams);
+		if (!pState.hasProperty(COLOR))
+			return drops;
+		List<ItemStack> updated_drops = new ArrayList<>();
+		for (ItemStack stack : drops){
+			if (stack.getItem() == ModBlocks.INFUSED_FABRIC_BLOCK.get().asItem() || stack.getItem() == ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get().asItem()){
+				DyeColor color = pState.getValue(COLOR);
+				stack.getOrCreateTag().putString("color", color.getName());
+			}
+			updated_drops.add(stack);
+		}
+		return updated_drops;
+	}
 	@Override
 	public InteractionResult use(BlockState pState, Level pLevel, BlockPos blockpos, Player player, InteractionHand pHand, BlockHitResult pHit) {
 		if(player.getItemInHand(pHand).getItem() instanceof DyeItem dyeItem) {
 			DyeColor dyecolor = dyeItem.getDyeColor();
-			if(this.dyeColor == dyecolor)
+			if(pState.getBlock() == ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get())
+				return InteractionResult.FAIL;
+			if(this.getDyeColor(pState) == dyecolor)
 				return InteractionResult.FAIL;
 
 			if (player instanceof ServerPlayer) {
 				CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, player.getItemInHand(pHand));
 			}
-			BlockState newBlockstate = getBlockByColor(dyecolor).defaultBlockState();
+			BlockState newBlockstate = pLevel.getBlockState(blockpos).setValue(COLOR, dyecolor);
 
 			if(!player.isCreative())
 				player.getItemInHand(pHand).shrink(1);
@@ -91,36 +134,6 @@ public class FabricBlock extends WaxedLayeredBlock implements CTDyable {
 		}
 
 		return super.use(pState, pLevel, blockpos, player, pHand, pHit);
-	}
-
-	//                    if(player.getItemInHand(pHand).getItem() instanceof DyeItem)
-//	{
-//		DyeColor dyecolor = ((DyeItem)itemstack.getItem()).getDyeColor();
-
-
-	public static Block getBlockByColor(@Nullable DyeColor pColor) {
-		if (pColor == null) {
-			return Blocks.SHULKER_BOX;
-		} else {
-			return switch (pColor) {
-				case WHITE -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_WHITE.get();
-				case ORANGE -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_ORANGE.get();
-				case MAGENTA -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get();
-				case LIGHT_BLUE -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get();
-				case YELLOW -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_YELLOW.get();
-				case LIME -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIME.get();
-				case PINK -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PINK.get();
-				case GRAY -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GRAY.get();
-				case LIGHT_GRAY -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get();
-				case CYAN -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_CYAN.get();
-				case PURPLE -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PURPLE.get();
-				case BLUE -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLUE.get();
-				case BROWN -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BROWN.get();
-				case GREEN -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GREEN.get();
-				case RED -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_RED.get();
-				case BLACK -> ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLACK.get();
-			};
-		}
 	}
 
 }

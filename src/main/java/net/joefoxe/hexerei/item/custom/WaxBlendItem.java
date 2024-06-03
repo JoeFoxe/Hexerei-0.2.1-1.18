@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -49,39 +50,45 @@ public class WaxBlendItem extends Item {
                 .put(ModBlocks.WILLOW_WINDOW.get(), ModBlocks.WAXED_WILLOW_WINDOW.get())
                 .put(ModBlocks.WITCH_HAZEL_WINDOW.get(), ModBlocks.WAXED_WITCH_HAZEL_WINDOW.get())
                 .put(ModBlocks.INFUSED_FABRIC_CARPET.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_WHITE.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_ORANGE.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_MAGENTA.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_YELLOW.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIME.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PINK.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GRAY.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_CYAN.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PURPLE.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLUE.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BROWN.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GREEN.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_RED.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLACK.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_WHITE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_WHITE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_ORANGE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_YELLOW.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIME.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIME.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PINK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PINK.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GRAY.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_CYAN.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_CYAN.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PURPLE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLUE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BROWN.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BROWN.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GREEN.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GREEN.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_RED.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_RED.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLACK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLACK.get()).build();
+                .put(ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get())
+                .put(ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get())
+                .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE.get())
+                .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_SLAB.get())
+                .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_WHITE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_ORANGE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_MAGENTA.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_YELLOW.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIME.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PINK.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GRAY.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_CYAN.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PURPLE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLUE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BROWN.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GREEN.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_RED.get())
+//                .put(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLACK.get())
+                .put(ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_ORNATE.get())
+                .put(ModBlocks.INFUSED_FABRIC_BLOCK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get()).build();
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_WHITE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_WHITE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_ORANGE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_YELLOW.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIME.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIME.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PINK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PINK.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GRAY.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_CYAN.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_CYAN.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PURPLE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLUE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLUE.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BROWN.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BROWN.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GREEN.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GREEN.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_RED.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_RED.get())
+//                .put(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLACK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLACK.get()).build();
     });
     public static final Supplier<BiMap<Block, Block>> WAX_OFF_BY_BLOCK = Suppliers.memoize(() -> {
         return WAXABLES.get().inverse();
@@ -96,6 +103,8 @@ public class WaxBlendItem extends Item {
         BlockPos blockpos = pContext.getClickedPos();
         BlockState blockstate = level.getBlockState(blockpos);
         return getWaxed(blockstate).map((newBlockstate) -> {
+            if (blockstate.hasProperty(ConnectingCarpetDyed.COLOR))
+                newBlockstate.setValue(ConnectingCarpetDyed.COLOR, blockstate.getValue(ConnectingCarpetDyed.COLOR));
             Player player = pContext.getPlayer();
             ItemStack itemstack = pContext.getItemInHand();
             if (player instanceof ServerPlayer) {
@@ -106,9 +115,8 @@ public class WaxBlendItem extends Item {
             itemstack.shrink(1);
             if(blockstate.getBlock() instanceof CrossCollisionBlock) {
                 BlockState changeTo = newBlockstate.setValue(CrossCollisionBlock.NORTH, blockstate.getValue(CrossCollisionBlock.NORTH)).setValue(CrossCollisionBlock.SOUTH, blockstate.getValue(CrossCollisionBlock.SOUTH)).setValue(CrossCollisionBlock.EAST, blockstate.getValue(CrossCollisionBlock.EAST)).setValue(CrossCollisionBlock.WEST, blockstate.getValue(CrossCollisionBlock.WEST)).setValue(CrossCollisionBlock.WATERLOGGED, blockstate.getValue(CrossCollisionBlock.WATERLOGGED));
+
                 level.setBlockAndUpdate(blockpos, changeTo);
-//                level.updateNeighborsAt(blockpos, changeTo.getBlock());
-//                level.updateNeighborsAt(blockpos, blockstate.getBlock());
             }
             else
                 level.setBlock(blockpos, newBlockstate, 11);

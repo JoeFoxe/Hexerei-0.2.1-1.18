@@ -29,12 +29,15 @@ public class DyedFullBlockCTBehaviour extends ConnectedTextureBehaviour.Base {
         if (isBeingBlocked(state, reader, pos, otherPos, face))
             return false;
         if(state.getBlock() instanceof CTDyable waxedLayeredBlockDyed && other.getBlock() instanceof CTDyable otherLayeredBlockDyed){
-            if(!waxedLayeredBlockDyed.getDyeColor().equals(otherLayeredBlockDyed.getDyeColor()))
+            if(!waxedLayeredBlockDyed.getDyeColor(state).equals(otherLayeredBlockDyed.getDyeColor(other)))
                 return false;
         }
         BlockConnectivity cc = ClientProxy.BLOCK_CONNECTIVITY;
         BlockConnectivity.Entry entry = cc.get(state);
         BlockConnectivity.Entry otherEntry = cc.get(other);
+
+        if (state.getBlock() != other.getBlock())
+            return false;
         if (entry == null || otherEntry == null)
             return false;
         if (!entry.isSideValid(state, face) || !otherEntry.isSideValid(other, face))

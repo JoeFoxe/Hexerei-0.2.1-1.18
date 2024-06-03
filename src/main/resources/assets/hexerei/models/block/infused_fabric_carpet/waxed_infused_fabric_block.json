@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"parent": "block/cube_all",
 	"textures": {
-		"0": "hexerei:block/waxed_infused_fabric",
-		"particle": "hexerei:block/waxed_infused_fabric"
+		"0": "hexerei:block/infused_fabric_dyed",
+		"particle": "hexerei:block/infused_fabric_dyed"
 	},
 	"elements": [
 		{

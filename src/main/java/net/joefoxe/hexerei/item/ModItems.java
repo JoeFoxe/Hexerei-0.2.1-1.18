@@ -1025,8 +1025,10 @@ public class ModItems {
 	public static final RegistryObject<Item> WAXED_WITCH_HAZEL_WINDOW = ITEMS.register("waxed_witch_hazel_window",
 			() -> new BlockItem(ModBlocks.WAXED_WITCH_HAZEL_WINDOW.get(), new Item.Properties()));
 
+
+
 	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_ORNATE = ITEMS.register("infused_fabric_carpet_ornate",
-			() -> new BlockItem(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get(), new Item.Properties()) {
+			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get(), new Item.Properties()) {
 
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
@@ -1034,15 +1036,16 @@ public class ModItems {
 					tooltip.add(Component.translatable("tooltip.hexerei.infused_fabric_ornate").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 					super.appendHoverText(stack, world, tooltip, flagIn);
 				}
+			});
 
-				@org.jetbrains.annotations.Nullable
+	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_ORNATE = ITEMS.register("waxed_infused_fabric_carpet_ornate",
+			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE.get(), new Item.Properties()) {
+
 				@Override
-				protected BlockState getPlacementState(BlockPlaceContext pContext) {
-					if (pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof SlabBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.SLAB_TYPE) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.SLAB_TYPE) == SlabType.BOTTOM)
-						return ModBlocks.CARPET_SLAB.get().defaultBlockState();
-					if (pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof StairBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.HALF) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.HALF) == Half.BOTTOM)
-						return ModBlocks.CARPET_STAIRS.get().getStateForPlacement(pContext);
-					return super.getPlacementState(pContext);
+				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+					tooltip.add(Component.translatable("tooltip.hexerei.connected_texture").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					tooltip.add(Component.translatable("tooltip.hexerei.infused_fabric_ornate").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					super.appendHoverText(stack, world, tooltip, flagIn);
 				}
 			});
 
@@ -1057,34 +1060,31 @@ public class ModItems {
 				}
 			});
 
+	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_ORNATE = ITEMS.register("waxed_infused_fabric_block_ornate",
+			() -> new BlockItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_ORNATE.get(), new Item.Properties()) {
+
+				@Override
+				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+					tooltip.add(Component.translatable("tooltip.hexerei.connected_texture").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					tooltip.add(Component.translatable("tooltip.hexerei.infused_fabric_ornate").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					super.appendHoverText(stack, world, tooltip, flagIn);
+				}
+			});
+
 	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET = ITEMS.register("infused_fabric_carpet",
-			() -> new BlockItem(ModBlocks.INFUSED_FABRIC_CARPET.get(), new Item.Properties()) {
+			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET.get(), new Item.Properties()) {
 
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
 					tooltip.add(Component.translatable("tooltip.hexerei.connected_texture").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 					tooltip.add(Component.translatable("tooltip.hexerei.can_be_dyed").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-
-
-				@org.jetbrains.annotations.Nullable
-				@Override
-				protected BlockState getPlacementState(BlockPlaceContext pContext) {
-					if (pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof SlabBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.SLAB_TYPE) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.SLAB_TYPE) == SlabType.BOTTOM)
-						return ModBlocks.CARPET_SLAB.get().defaultBlockState();
-					if (pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getBlock() instanceof StairBlock && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).hasProperty(BlockStateProperties.HALF) && pContext.getLevel().getBlockState(pContext.getClickedPos().below()).getValue(BlockStateProperties.HALF) == Half.BOTTOM)
-						return ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get().getStateForPlacement(pContext);
-					return super.getPlacementState(pContext);
 				}
 
 			});
 
 	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET = ITEMS.register("waxed_infused_fabric_carpet",
-			() -> new BlockItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK = ITEMS.register("infused_fabric_block",
-			() -> new BlockItem(ModBlocks.INFUSED_FABRIC_BLOCK.get(), new Item.Properties()) {
+			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(), new Item.Properties()) {
 
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
@@ -1092,211 +1092,14 @@ public class ModItems {
 					tooltip.add(Component.translatable("tooltip.hexerei.can_be_dyed").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 					super.appendHoverText(stack, world, tooltip, flagIn);
 				}
+
 			});
+
+	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK = ITEMS.register("infused_fabric_block",
+			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK.get(), new Item.Properties()));
 
 	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK = ITEMS.register("waxed_infused_fabric_block",
-			() -> new BlockItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_WHITE = ITEMS.register("infused_fabric_carpet_dyed_white",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_ORANGE = ITEMS.register("infused_fabric_carpet_dyed_orange",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_MAGENTA = ITEMS.register("infused_fabric_carpet_dyed_magenta",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE = ITEMS.register("infused_fabric_carpet_dyed_light_blue",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_YELLOW = ITEMS.register("infused_fabric_carpet_dyed_yellow",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_LIME = ITEMS.register("infused_fabric_carpet_dyed_lime",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_PINK = ITEMS.register("infused_fabric_carpet_dyed_pink",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_GRAY = ITEMS.register("infused_fabric_carpet_dyed_gray",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY = ITEMS.register("infused_fabric_carpet_dyed_light_gray",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_CYAN = ITEMS.register("infused_fabric_carpet_dyed_cyan",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_PURPLE = ITEMS.register("infused_fabric_carpet_dyed_purple",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_BLUE = ITEMS.register("infused_fabric_carpet_dyed_blue",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_BROWN = ITEMS.register("infused_fabric_carpet_dyed_brown",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_GREEN = ITEMS.register("infused_fabric_carpet_dyed_green",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_RED = ITEMS.register("infused_fabric_carpet_dyed_red",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_CARPET_DYED_BLACK = ITEMS.register("infused_fabric_carpet_dyed_black",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK.get(), new Item.Properties()));
-
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_WHITE = ITEMS.register("waxed_infused_fabric_carpet_dyed_white",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_WHITE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_ORANGE = ITEMS.register("waxed_infused_fabric_carpet_dyed_orange",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_ORANGE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_MAGENTA = ITEMS.register("waxed_infused_fabric_carpet_dyed_magenta",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_MAGENTA.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE = ITEMS.register("waxed_infused_fabric_carpet_dyed_light_blue",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_YELLOW = ITEMS.register("waxed_infused_fabric_carpet_dyed_yellow",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_YELLOW.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_LIME = ITEMS.register("waxed_infused_fabric_carpet_dyed_lime",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIME.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_PINK = ITEMS.register("waxed_infused_fabric_carpet_dyed_pink",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PINK.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_GRAY = ITEMS.register("waxed_infused_fabric_carpet_dyed_gray",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GRAY.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY = ITEMS.register("waxed_infused_fabric_carpet_dyed_light_gray",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_CYAN = ITEMS.register("waxed_infused_fabric_carpet_dyed_cyan",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_CYAN.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_PURPLE = ITEMS.register("waxed_infused_fabric_carpet_dyed_purple",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_PURPLE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_BLUE = ITEMS.register("waxed_infused_fabric_carpet_dyed_blue",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLUE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_BROWN = ITEMS.register("waxed_infused_fabric_carpet_dyed_brown",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BROWN.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_GREEN = ITEMS.register("waxed_infused_fabric_carpet_dyed_green",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_GREEN.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_RED = ITEMS.register("waxed_infused_fabric_carpet_dyed_red",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_RED.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_CARPET_DYED_BLACK = ITEMS.register("waxed_infused_fabric_carpet_dyed_black",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_CARPET_DYED_BLACK.get(), new Item.Properties()) {
+			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get(), new Item.Properties()) {
 				@Override
 				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
 					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
@@ -1307,215 +1110,7 @@ public class ModItems {
 				}
 			});
 
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_WHITE = ITEMS.register("infused_fabric_block_dyed_white",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_WHITE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_ORANGE = ITEMS.register("infused_fabric_block_dyed_orange",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_MAGENTA = ITEMS.register("infused_fabric_block_dyed_magenta",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE = ITEMS.register("infused_fabric_block_dyed_light_blue",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_YELLOW = ITEMS.register("infused_fabric_block_dyed_yellow",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_LIME = ITEMS.register("infused_fabric_block_dyed_lime",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIME.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_PINK = ITEMS.register("infused_fabric_block_dyed_pink",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PINK.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_GRAY = ITEMS.register("infused_fabric_block_dyed_gray",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GRAY.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY = ITEMS.register("infused_fabric_block_dyed_light_gray",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_CYAN = ITEMS.register("infused_fabric_block_dyed_cyan",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_CYAN.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_PURPLE = ITEMS.register("infused_fabric_block_dyed_purple",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_BLUE = ITEMS.register("infused_fabric_block_dyed_blue",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLUE.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_BROWN = ITEMS.register("infused_fabric_block_dyed_brown",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BROWN.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_GREEN = ITEMS.register("infused_fabric_block_dyed_green",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_GREEN.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_RED = ITEMS.register("infused_fabric_block_dyed_red",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_RED.get(), new Item.Properties()));
-	public static final RegistryObject<Item> INFUSED_FABRIC_BLOCK_DYED_BLACK = ITEMS.register("infused_fabric_block_dyed_black",
-			() -> new DyeableCarpetItem(ModBlocks.INFUSED_FABRIC_BLOCK_DYED_BLACK.get(), new Item.Properties()));
 
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_WHITE = ITEMS.register("waxed_infused_fabric_block_dyed_white",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_WHITE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_ORANGE = ITEMS.register("waxed_infused_fabric_block_dyed_orange",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_ORANGE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_MAGENTA = ITEMS.register("waxed_infused_fabric_block_dyed_magenta",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_MAGENTA.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE = ITEMS.register("waxed_infused_fabric_block_dyed_light_blue",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_BLUE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_YELLOW = ITEMS.register("waxed_infused_fabric_block_dyed_yellow",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_YELLOW.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_LIME = ITEMS.register("waxed_infused_fabric_block_dyed_lime",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIME.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_PINK = ITEMS.register("waxed_infused_fabric_block_dyed_pink",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PINK.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_GRAY = ITEMS.register("waxed_infused_fabric_block_dyed_gray",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GRAY.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY = ITEMS.register("waxed_infused_fabric_block_dyed_light_gray",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_LIGHT_GRAY.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_CYAN = ITEMS.register("waxed_infused_fabric_block_dyed_cyan",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_CYAN.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_PURPLE = ITEMS.register("waxed_infused_fabric_block_dyed_purple",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_PURPLE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_BLUE = ITEMS.register("waxed_infused_fabric_block_dyed_blue",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLUE.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_BROWN = ITEMS.register("waxed_infused_fabric_block_dyed_brown",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BROWN.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_GREEN = ITEMS.register("waxed_infused_fabric_block_dyed_green",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_GREEN.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_RED = ITEMS.register("waxed_infused_fabric_block_dyed_red",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_RED.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
-	public static final RegistryObject<Item> WAXED_INFUSED_FABRIC_BLOCK_DYED_BLACK = ITEMS.register("waxed_infused_fabric_block_dyed_black",
-			() -> new DyeableCarpetItem(ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_DYED_BLACK.get(), new Item.Properties()) {
-				@Override
-				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-					Component cloth = Component.translatable(ModItems.CLOTH.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					Component waxing_kit = Component.translatable(ModItems.WAXING_KIT.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture", cloth, waxing_kit).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					tooltip.add(Component.translatable("tooltip.hexerei.waxed_connected_texture_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-			});
 
 	public static final RegistryObject<Item> COFFER = ITEMS.register("coffer",
 			() -> new CofferItem(ModBlocks.COFFER.get(), new Item.Properties()));

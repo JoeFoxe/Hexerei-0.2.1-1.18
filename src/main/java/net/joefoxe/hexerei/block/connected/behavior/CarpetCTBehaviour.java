@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.block.connected.behavior;
 
 import net.joefoxe.hexerei.block.connected.CTSpriteShiftEntry;
 import net.joefoxe.hexerei.block.connected.ConnectedTextureBehaviour;
+import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +25,9 @@ public class CarpetCTBehaviour extends ConnectedTextureBehaviour.Base {
     @Override
     public boolean connectsTo(BlockState state, BlockState other, BlockAndTintGetter reader, BlockPos pos, BlockPos otherPos,
                               Direction face) {
+        if (state.hasProperty(ConnectingCarpetDyed.COLOR) && other.hasProperty(ConnectingCarpetDyed.COLOR))
+            if (state.getValue(ConnectingCarpetDyed.COLOR) != other.getValue(ConnectingCarpetDyed.COLOR))
+                return false;
         return state.getBlock() == other.getBlock() && pos.getY() == otherPos.getY();
     }
 

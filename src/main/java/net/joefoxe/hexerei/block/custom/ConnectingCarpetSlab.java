@@ -1,6 +1,7 @@
 package net.joefoxe.hexerei.block.custom;
 
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.block.connected.CTDyable;
 import net.joefoxe.hexerei.block.connected.Waxed;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
@@ -27,15 +28,20 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.ToolAction;
 
 import javax.annotation.Nullable;
 
-public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
+import java.util.ArrayList;
+import java.util.List;
+
+import static net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed.COLOR;
+
+public class ConnectingCarpetSlab extends CarpetBlock implements Waxed, CTDyable {
 
 
     protected static final VoxelShape SHAPE = Block.box(0.0D, -8.0D, 0.0D, 16.0D, -7.0D, 16.0D);
@@ -44,6 +50,7 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
                                   EAST = BooleanProperty.create("east");
     public static final EnumProperty<North> NORTH = EnumProperty.create("north", North.class);
     public static final EnumProperty<South> SOUTH = EnumProperty.create("south", South.class);
+    public static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
     public Block parentBlock;
 
     public ConnectingCarpetSlab(Properties pProperties, Block parentBlock){
@@ -58,6 +65,28 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
     @Override
     public VoxelShape getShape(BlockState p_152917_, BlockGetter p_152918_, BlockPos p_152919_, CollisionContext p_152920_) {
         return SHAPE;
+    }
+    @Override
+    public DyeColor getDyeColor(BlockState blockState) {
+        if (blockState.hasProperty(COLOR))
+            return blockState.getValue(COLOR);
+        return DyeColor.WHITE;
+    }
+
+    @Override
+    public List<ItemStack> getDrops(BlockState pState, LootParams.Builder pParams) {
+        List<ItemStack> drops = super.getDrops(pState, pParams);
+        if (!pState.hasProperty(COLOR))
+            return drops;
+        List<ItemStack> updated_drops = new ArrayList<>();
+        for (ItemStack stack : drops){
+            if (stack.getItem() == ModBlocks.INFUSED_FABRIC_CARPET.get().asItem() || stack.getItem() == ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get().asItem()){
+                DyeColor color = pState.getValue(COLOR);
+                stack.getOrCreateTag().putString("color", color.getName());
+            }
+            updated_drops.add(stack);
+        }
+        return updated_drops;
     }
 
     public BlockState rotate(BlockState pState, Rotation pRot) {
@@ -190,11 +219,15 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos blockpos, Player player, InteractionHand pHand, BlockHitResult pHit) {
         if(player.getItemInHand(pHand).getItem() instanceof DyeItem dyeItem) {
             DyeColor dyecolor = dyeItem.getDyeColor();
+            if(this.parentBlock == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get())
+                return InteractionResult.FAIL;
+            if(this.getDyeColor(pState) == dyecolor)
+                return InteractionResult.FAIL;
 
             if (player instanceof ServerPlayer) {
                 CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, player.getItemInHand(pHand));
             }
-            BlockState newBlockstate = getBlockByColor(dyecolor).defaultBlockState();
+            BlockState newBlockstate = pLevel.getBlockState(blockpos).setValue(COLOR, dyecolor);
 
             if(!player.isCreative())
                 player.getItemInHand(pHand).shrink(1);
@@ -229,39 +262,13 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
         return super.use(pState, pLevel, blockpos, player, pHand, pHit);
     }
 
-    //                    if(player.getItemInHand(pHand).getItem() instanceof DyeItem)
-//	{
-//		DyeColor dyecolor = ((DyeItem)itemstack.getItem()).getDyeColor();
-
-
-    public static Block getBlockByColor(@Nullable DyeColor pColor) {
-        if (pColor == null) {
-            return ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE_SLAB.get();
-        } else {
-            return switch (pColor) {
-                case WHITE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_WHITE.get();
-                case ORANGE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_ORANGE.get();
-                case MAGENTA -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_MAGENTA.get();
-                case LIGHT_BLUE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_BLUE.get();
-                case YELLOW -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_YELLOW.get();
-                case LIME -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIME.get();
-                case PINK -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_PINK.get();
-                case GRAY -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_GRAY.get();
-                case LIGHT_GRAY -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_LIGHT_GRAY.get();
-                case CYAN -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_CYAN.get();
-                case PURPLE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_PURPLE.get();
-                case BLUE -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLUE.get();
-                case BROWN -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_BROWN.get();
-                case GREEN -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_GREEN.get();
-                case RED -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_RED.get();
-                case BLACK -> ModBlocks.INFUSED_FABRIC_CARPET_DYED_BLACK.get();
-            };
-        }
-    }
-
     @Override
-    public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player) {
-        return new ItemStack(parentBlock);
+    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
+        ItemStack stack = this.parentBlock.asItem().getDefaultInstance();
+        DyeColor color = getDyeColor(pState);
+        if (color != DyeColor.WHITE)
+            stack.getOrCreateTag().putString("color", color.getName());
+        return stack;
     }
 
     @Nullable
@@ -270,49 +277,14 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
         return getUnWaxed(state, context, toolAction);
     }
 
-
-//    @Override
-//    public VoxelShape getShape(BlockState state, BlockGetter p_220053_2_, BlockPos p_220053_3_, CollisionContext p_220053_4_){
-//        boolean west = state.getValue(WEST),
-//                east = state.getValue(EAST);
-//        North north = state.getValue(NORTH);
-//        South south = state.getValue(SOUTH);
-//
-//        List<VoxelShape> list = new ArrayList<>();
-//        list.add(TOP);
-//
-//        if(north.equals(North.NONE) || north.equals(North.JUST_NORTH_WEST) || north.equals(North.JUST_NORTH_EAST) || north.equals(North.NORTH_EAST_AND_NORTH_WEST))
-//            list.add(END);
-//        if(!east)
-//            list.add(END_90);
-//        if(south.equals(South.NONE) || south.equals(South.JUST_SOUTH_WEST) || south.equals(South.JUST_SOUTH_EAST) || south.equals(South.SOUTH_EAST_AND_SOUTH_WEST))
-//            list.add(END_180);
-//        if(!west)
-//            list.add(END_270);
-//
-//        if(!east && north != North.JUST_NORTH && north != North.NORTH_AND_NORTH_EAST && north != North.NORTH_AND_NORTH_WEST && north != North.ALL)
-//            list.add(CORNER);
-//        if(!east && south != South.JUST_SOUTH && south != South.SOUTH_AND_SOUTH_EAST && south != South.SOUTH_AND_SOUTH_WEST && south != South.ALL)
-//            list.add(CORNER_90);
-//
-//        if(!west && north != North.JUST_NORTH && north != North.NORTH_AND_NORTH_EAST && north != North.NORTH_AND_NORTH_WEST && north != North.ALL)
-//            list.add(CORNER_270);
-//        if(!west && south != South.JUST_SOUTH && south != South.SOUTH_AND_SOUTH_EAST && south != South.SOUTH_AND_SOUTH_WEST && south != South.ALL)
-//            list.add(CORNER_180);
-//
-//        if(west && (north == North.JUST_NORTH || north == North.NORTH_AND_NORTH_EAST))
-//            list.add(INSIDE_CORNER_270);
-//        if(west && (south == South.JUST_SOUTH || south == South.SOUTH_AND_SOUTH_EAST))
-//            list.add(INSIDE_CORNER_180);
-//
-//        if(east && (north == North.JUST_NORTH || north == North.NORTH_AND_NORTH_WEST))
-//            list.add(INSIDE_CORNER);
-//        if(east && (south == South.JUST_SOUTH || south == South.SOUTH_AND_SOUTH_WEST))
-//            list.add(INSIDE_CORNER_90);
-//
-//        return list.stream().reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
-//    }
-
+    private static boolean canConnect(BlockState state1, BlockState state2){
+        if (state1.getBlock() == state2.getBlock()){
+            if (state1.hasProperty(COLOR) && state2.hasProperty(COLOR)){
+                return state1.getValue(COLOR) == state2.getValue(COLOR);
+            }
+        }
+        return false;
+    }
     protected BlockState updateCorners(BlockGetter world, BlockPos pos, BlockState state) {
         BlockState bs_north = world.getBlockState(pos.north());
         BlockState bs_north_east = world.getBlockState(pos.north().east());
@@ -325,48 +297,48 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
         North north = North.NONE;
         South south = South.NONE;
 
-        if(bs_north.getBlock() == this){
+        if(canConnect(state, bs_north)){
             north = North.JUST_NORTH;
-            if(bs_north_west.getBlock() == this && bs_north_east.getBlock() != this){
+            if(canConnect(state, bs_north_west) && !canConnect(state, bs_north_east)){
                 north = North.NORTH_AND_NORTH_WEST;
             }
-            if(bs_north_west.getBlock() != this && bs_north_east.getBlock() == this){
+            if(!canConnect(state, bs_north_west) && canConnect(state, bs_north_east)){
                 north = North.NORTH_AND_NORTH_EAST;
             }
-            if(bs_north_west.getBlock() == this && bs_north_east.getBlock() == this){
+            if(canConnect(state, bs_north_west) && canConnect(state, bs_north_east)){
                 north = North.ALL;
             }
         }else{
-            if(bs_north_west.getBlock() == this && bs_north_east.getBlock() != this){
+            if(canConnect(state, bs_north_west) && !canConnect(state, bs_north_east)){
                 north = North.JUST_NORTH_WEST;
             }
-            if(bs_north_west.getBlock() != this && bs_north_east.getBlock() == this){
+            if(!canConnect(state, bs_north_west) && canConnect(state, bs_north_east)){
                 north = North.JUST_NORTH_EAST;
             }
         }
-        if(bs_south.getBlock() == this){
+        if(canConnect(state, bs_south)){
             south = South.JUST_SOUTH;
-            if(bs_south_west.getBlock() == this && bs_south_east.getBlock() != this){
+            if(canConnect(state, bs_south_west) && !canConnect(state, bs_south_east)){
                 south = South.SOUTH_AND_SOUTH_WEST;
             }
-            if(bs_south_west.getBlock() != this && bs_south_east.getBlock() == this){
+            if(!canConnect(state, bs_south_west) && canConnect(state, bs_south_east)){
                 south = South.SOUTH_AND_SOUTH_EAST;
             }
-            if(bs_south_west.getBlock() == this && bs_south_east.getBlock() == this){
+            if(canConnect(state, bs_south_west) && canConnect(state, bs_south_east)){
                 south = South.ALL;
             }
         }else{
-            if(bs_south_west.getBlock() == this && bs_south_east.getBlock() != this){
+            if(canConnect(state, bs_south_west) && !canConnect(state, bs_south_east)){
                 south = South.JUST_SOUTH_WEST;
             }
-            if(bs_south_west.getBlock() != this && bs_south_east.getBlock() == this){
+            if(!canConnect(state, bs_south_west) && canConnect(state, bs_south_east)){
                 south = South.JUST_SOUTH_EAST;
             }
         }
 
 
-        boolean east = bs_east.getBlock() == this,
-                west = bs_west.getBlock() == this;
+        boolean east = canConnect(state, bs_east),
+                west = canConnect(state, bs_west);
         return state
                 .setValue(NORTH, north).setValue(EAST, east)
                 .setValue(SOUTH, south).setValue(WEST, west);
@@ -381,13 +353,20 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockGetter iblockreader = context.getLevel();
+        ItemStack stack = context.getItemInHand();
         BlockPos blockpos = context.getClickedPos();
-        return updateCorners(iblockreader, blockpos, super.getStateForPlacement(context));
+        if (stack.hasTag()) {
+            String colorName = stack.getOrCreateTag().getString("color");
+            DyeColor color = DyeColor.byName(colorName, DyeColor.WHITE); // Default to WHITE if the colorName is invalid
+            return updateCorners(iblockreader, blockpos, super.getStateForPlacement(context)).setValue(COLOR, color);
+        } else {
+            return updateCorners(iblockreader, blockpos, super.getStateForPlacement(context));
+        }
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(WEST, EAST, NORTH, SOUTH);
+        builder.add(WEST, EAST, NORTH, SOUTH, COLOR);
     }
 
     @Override

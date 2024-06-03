@@ -1,0 +1,8 @@
+{
+	"parent": "hexerei:block/infused_fabric_carpet/slab/special_carpet_end_180",
+	"textures": {
+		"face": "hexerei:block/waxed_infused_fabric_ornate",
+		"outer": "hexerei:block/infused_fabric_outter"
+	},
+	"render_type": "cutout_mipped"
+}

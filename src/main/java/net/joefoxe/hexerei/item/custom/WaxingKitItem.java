@@ -1,5 +1,6 @@
 package net.joefoxe.hexerei.item.custom;
 
+import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.gui.screens.Screen;
@@ -26,6 +27,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static net.joefoxe.hexerei.block.custom.ConnectingCarpetStairs.COLOR;
 import static net.joefoxe.hexerei.item.custom.CleaningClothItem.getCleanedState;
 import static net.joefoxe.hexerei.item.custom.WaxBlendItem.getWaxed;
 
@@ -93,6 +95,8 @@ public class WaxingKitItem extends Item {
 
         if(this.isCreative || (itemstack.hasTag() && itemstack.getOrCreateTag().contains("waxCount") && itemstack.getOrCreateTag().getInt("waxCount") > 0)){
             result = getWaxed(blockstate).map((newBlockstate) -> {
+                if (blockstate.hasProperty(ConnectingCarpetDyed.COLOR))
+                    newBlockstate.setValue(ConnectingCarpetDyed.COLOR, blockstate.getValue(ConnectingCarpetDyed.COLOR));
                 if (player instanceof ServerPlayer) {
                     CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, itemstack);
                 }
@@ -101,6 +105,8 @@ public class WaxingKitItem extends Item {
                     itemstack.getOrCreateTag().putInt("waxCount", itemstack.getOrCreateTag().getInt("waxCount") - 1);
                 if(blockstate.getBlock() instanceof CrossCollisionBlock) {
                     BlockState changeTo = newBlockstate.setValue(CrossCollisionBlock.NORTH, blockstate.getValue(CrossCollisionBlock.NORTH)).setValue(CrossCollisionBlock.SOUTH, blockstate.getValue(CrossCollisionBlock.SOUTH)).setValue(CrossCollisionBlock.EAST, blockstate.getValue(CrossCollisionBlock.EAST)).setValue(CrossCollisionBlock.WEST, blockstate.getValue(CrossCollisionBlock.WEST)).setValue(CrossCollisionBlock.WATERLOGGED, blockstate.getValue(CrossCollisionBlock.WATERLOGGED));
+                    if (blockstate.hasProperty(ConnectingCarpetDyed.COLOR))
+                        changeTo.setValue(ConnectingCarpetDyed.COLOR, blockstate.getValue(ConnectingCarpetDyed.COLOR));
                     level.setBlockAndUpdate(blockpos, changeTo);
                 }
                 else
@@ -117,12 +123,12 @@ public class WaxingKitItem extends Item {
             if (cleanedState != null) {
                 level.playSound(player, blockpos, SoundEvents.AXE_WAX_OFF, SoundSource.BLOCKS, 1.0F, 1.0F);
                 level.levelEvent(player, 3004, blockpos, 0);
-            }
-            if (cleanedState != null) {
                 if (player instanceof ServerPlayer) {
                     CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer) player, blockpos, itemstack);
                 }
 
+                if (blockstate.hasProperty(COLOR))
+                    cleanedState = cleanedState.trySetValue(COLOR, blockstate.getValue(COLOR));
                 level.setBlock(blockpos, cleanedState, 11);
                 level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, cleanedState));
                 if (player != null) {

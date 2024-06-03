@@ -2,7 +2,7 @@
   "multipart": [
     {
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_middle"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_middle"
       }
     },
 
@@ -29,7 +29,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner"
       }
     },
     {
@@ -55,7 +55,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner_90"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner_90"
       }
     },
 
@@ -83,7 +83,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner_270"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner_270"
       }
     },
     {
@@ -109,7 +109,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner_180"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner_180"
       }
     },
 
@@ -130,7 +130,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner_270"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner_270"
       }
     },
     {
@@ -148,7 +148,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner_180"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner_180"
       }
     },
     {
@@ -166,7 +166,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner"
       }
     },
     {
@@ -184,7 +184,7 @@
 
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_corner_90"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_corner_90"
       }
     },
 
@@ -210,7 +210,7 @@
         ]
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_end"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_end"
       }
     },
 
@@ -219,7 +219,7 @@
         "east": "false"
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_end_90"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_end_90"
       }
     },
 
@@ -241,7 +241,7 @@
         ]
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_end_180"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_end_180"
       }
     },
 
@@ -250,7 +250,7 @@
         "west": "false"
       },
       "apply": {
-        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_end_270"
+        "model": "hexerei:block/infused_fabric_carpet/infused_fabric_carpet_dyed_end_270"
       }
     }
 

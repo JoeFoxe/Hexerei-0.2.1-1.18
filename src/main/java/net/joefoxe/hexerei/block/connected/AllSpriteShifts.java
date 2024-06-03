@@ -35,7 +35,8 @@ public class AllSpriteShifts {
     public static final CTSpriteShiftEntry INFUSED_FABRIC_CARPET = omniRandom("infused_fabric");
     public static final CTSpriteShiftEntry INFUSED_FABRIC_CARPET_ORNATE = omniRandom("infused_fabric_ornate");
     public static final CTSpriteShiftEntry WAXED_INFUSED_FABRIC_CARPET = omniRandom("waxed_infused_fabric","infused_fabric_connected");
-    public static final CTSpriteShiftEntry INFUSED_FABRIC_CARPET_DYED = omniRandom("infused_fabric_dyed");
+    public static final CTSpriteShiftEntry WAXED_INFUSED_FABRIC_CARPET_ORNATE = omniRandom("waxed_infused_fabric_ornate","infused_fabric_ornate_connected");
+    public static final CTSpriteShiftEntry INFUSED_FABRIC_CARPET_DYED = omniRandom("infused_fabric_dyed", "infused_fabric_dyed_connected");
     public static final CTSpriteShiftEntry WAXED_INFUSED_FABRIC_CARPET_DYED = omniRandom("waxed_infused_fabric_dyed", "infused_fabric_dyed_connected");
 
     public static final CTSpriteShiftEntry WILLOW_CONNECTED = omni("willow_connected", "willow_planks_connected");

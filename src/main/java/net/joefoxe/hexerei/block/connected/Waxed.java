@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.block.connected;
 import net.joefoxe.hexerei.item.custom.CleaningClothItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ToolAction;
 
@@ -18,8 +19,9 @@ public interface Waxed {
 
         if(cloth){
             toReturn = WAX_OFF_BY_BLOCK.get().get(state.getBlock()).defaultBlockState();
-            if(state.hasProperty(AXIS) && WAX_OFF_BY_BLOCK.get().get(state.getBlock()).defaultBlockState().hasProperty(AXIS))
-                toReturn = WAX_OFF_BY_BLOCK.get().get(state.getBlock()).defaultBlockState().setValue(AXIS, state.getValue(AXIS));
+
+            if(state.hasProperty(AXIS) && toReturn.hasProperty(AXIS))
+                toReturn = toReturn.setValue(AXIS, state.getValue(AXIS));
             context.getLevel().scheduleTick(context.getClickedPos(), (Block) this, 1);
         }
 
