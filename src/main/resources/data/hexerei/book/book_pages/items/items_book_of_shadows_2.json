@@ -30,10 +30,10 @@
     },
 
     {
-      "type": "item",
+      "type": "tag",
       "x": 0,
       "y": 4,
-      "name": "hexerei:animal_fat"
+      "name": "hexerei:tallow_meltable"
     },
     {
       "type": "item",

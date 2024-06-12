@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/cross",
   "textures": {
-    "cross": "hexerei:block/mandrake_flower_stage0"
+    "cross": "hexerei:block/mandrake_plant_stage2"
   },
   "render_type": "cutout"
 }

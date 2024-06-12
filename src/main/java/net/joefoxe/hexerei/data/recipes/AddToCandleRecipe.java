@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 public class AddToCandleRecipe extends CustomRecipe {
 
     NonNullList<Ingredient> inputs;
-    NonNullList<Ingredient> newInputs;
     ItemStack output;
 
     public AddToCandleRecipe(ResourceLocation pId, NonNullList<Ingredient> inputs, ItemStack output) {
@@ -30,8 +29,7 @@ public class AddToCandleRecipe extends CustomRecipe {
             newInputs.set(i + 1,inputs.get(i));
         }
 
-        this.inputs = inputs;
-        this.newInputs = newInputs;
+        this.inputs = newInputs;
         this.output = output;
     }
     @Override
@@ -57,18 +55,18 @@ public class AddToCandleRecipe extends CustomRecipe {
                     itemstack = itemstack1;
                 } else {
 
-                    if(newInputs.isEmpty() || newInputs.get(1).getItems().length == 0)
+                    if(inputs.isEmpty() || inputs.get(1).getItems().length == 0)
                         return false;
 
                     CompoundTag tag = new CompoundTag();
                     CompoundTag tag2 = new CompoundTag();
                     if(itemstack1.hasTag())
                         tag = itemstack1.getOrCreateTag();
-                    if(newInputs.get(1).getItems()[0].hasTag())
-                        tag2 = newInputs.get(1).getItems()[0].getOrCreateTag();
+                    if(inputs.get(1).getItems()[0].hasTag())
+                        tag2 = inputs.get(1).getItems()[0].getOrCreateTag();
                     boolean compare = NbtUtils.compareNbt(tag2, tag, true);
 
-                    if ((itemstack1.is(this.newInputs.get(1).getItems()[0].getItem()) && compare)) {
+                    if ((itemstack1.is(this.inputs.get(1).getItems()[0].getItem()) && compare)) {
                         ++i;
                     }
 
@@ -102,11 +100,11 @@ public class AddToCandleRecipe extends CustomRecipe {
                     CompoundTag tag2 = new CompoundTag();
                     if(itemstack1.hasTag())
                         tag = itemstack1.getOrCreateTag();
-                    if(newInputs.get(1).getItems()[0].hasTag())
-                        tag2 = newInputs.get(1).getItems()[0].getOrCreateTag();
+                    if(inputs.get(1).getItems()[0].hasTag())
+                        tag2 = inputs.get(1).getItems()[0].getOrCreateTag();
                     boolean compare = NbtUtils.compareNbt(tag2, tag, true);
 
-                    if (!itemstack1.is(this.newInputs.get(1).getItems()[0].getItem()) && compare) {
+                    if (!itemstack1.is(this.inputs.get(1).getItems()[0].getItem()) && compare) {
                         return ItemStack.EMPTY;
                     }
                     ++i;
@@ -135,32 +133,13 @@ public class AddToCandleRecipe extends CustomRecipe {
     }
 
     public NonNullList<Ingredient> getInputs() {
-        return newInputs;
+        return inputs;
     }
 
     @Override
     public NonNullList<Ingredient> getIngredients() {
         return inputs;
     }
-
-//
-//    public NonNullList<ItemStack> getRemainingItems(CraftingContainer pInv) {
-//        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(pInv.getContainerSize(), ItemStack.EMPTY);
-//
-//        for(int i = 0; i < nonnulllist.size(); ++i) {
-//            ItemStack itemstack = pInv.getItem(i);
-//            if (itemstack.hasCraftingRemainingItem()) {
-//                nonnulllist.set(i, itemstack.getCraftingRemainingItem());
-//            } else if (itemstack.getItem() instanceof WrittenBookItem) {
-//                ItemStack itemstack1 = itemstack.copy();
-//                itemstack1.setCount(1);
-//                nonnulllist.set(i, itemstack1);
-//                break;
-//            }
-//        }
-//
-//        return nonnulllist;
-//    }
 
     public RecipeSerializer<?> getSerializer() {
         return ModRecipeTypes.ADD_TO_CANDLE_SERIALIZER.get();

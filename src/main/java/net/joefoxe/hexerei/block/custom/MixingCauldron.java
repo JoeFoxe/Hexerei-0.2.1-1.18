@@ -167,8 +167,8 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
         Random random = new Random();
         BlockEntity tileEntity = world.getBlockEntity(pos);
 
-        if (!(tileEntity instanceof MixingCauldronTile cauldronTile) || cauldronTile.getLevel() == null)
-            return InteractionResult.SUCCESS;
+        if (!(tileEntity instanceof MixingCauldronTile cauldronTile))
+            return InteractionResult.FAIL;
         if (stack.is(ModItems.CROW_FLUTE.get()) && stack.getOrCreateTag().getInt("commandMode") == 2) {
             stack.useOn(new UseOnContext(player, hand, rayTraceResult));
             return InteractionResult.SUCCESS;
@@ -192,33 +192,6 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
             }
 
         }
-
-        ItemStack fillStack = stack.copy();
-        fillStack.setCount(1);
-        LazyOptional<IFluidHandlerItem> fluidHandlerOptional = fillStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
-        if (fluidHandlerOptional.isPresent()) {
-            IFluidHandlerItem fluidHandler = fluidHandlerOptional.resolve().get();
-
-            if (cauldronTile.interactWithFluid(fluidHandler)) {
-                if (!player.isCreative()) {
-                    stack.shrink(1);
-                    if (stack.isEmpty()) {
-
-                        player.setItemInHand(hand, fluidHandler.getContainer());
-                    } else {
-                        player.setItemInHand(hand, stack);
-                        if (!player.getInventory().add(fluidHandler.getContainer()))
-                            player.drop(fluidHandler.getContainer(), false);
-                    }
-                }
-                if (!cauldronTile.getLevel().isClientSide)
-                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> tileEntity.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-
-
-                return InteractionResult.sidedSuccess(world.isClientSide);
-            }
-            return InteractionResult.SUCCESS;
-        }
         if (stack.getItem() == Items.GLASS_BOTTLE) {
             if (cauldronTile.getFluidStack().getAmount() >= 250) {
                 if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(Fluids.WATER, 1))) {
@@ -233,14 +206,10 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     cauldronTile.getFluidStack().shrink(250);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
-                    if (!cauldronTile.getLevel().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> cauldronTile.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-                    if (cauldronTile.getLevel() != null)
-                        cauldronTile.getLevel().playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
+                    if (!world.isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+                    if (world != null)
+                        world.playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
                     tileEntity.setChanged();
                     return InteractionResult.SUCCESS;
                 } else if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(Fluids.LAVA, 1))) {
@@ -255,14 +224,10 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     cauldronTile.getFluidStack().shrink(250);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
-                    if (!cauldronTile.getLevel().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> cauldronTile.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-                    if (cauldronTile.getLevel() != null)
-                        cauldronTile.getLevel().playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
+                    if (!world.isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+                    if (world != null)
+                        world.playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
                     tileEntity.setChanged();
                     return InteractionResult.SUCCESS;
                 } else if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(ModFluids.QUICKSILVER_FLUID.get(), 1))) {
@@ -277,14 +242,10 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     cauldronTile.getFluidStack().shrink(250);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
-                    if (!cauldronTile.getLevel().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> cauldronTile.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-                    if (cauldronTile.getLevel() != null)
-                        cauldronTile.getLevel().playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
+                    if (!world.isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+                    if (world != null)
+                        world.playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
                     tileEntity.setChanged();
                     return InteractionResult.SUCCESS;
                 } else if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(ModFluids.TALLOW_FLUID.get(), 1))) {
@@ -299,14 +260,10 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     cauldronTile.getFluidStack().shrink(250);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
-                    if (!cauldronTile.getLevel().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> cauldronTile.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-                    if (cauldronTile.getLevel() != null)
-                        cauldronTile.getLevel().playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
+                    if (!world.isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+                    if (world != null)
+                        world.playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
                     tileEntity.setChanged();
                     return InteractionResult.SUCCESS;
                 } else if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(ModFluids.BLOOD_FLUID.get(), 1))) {
@@ -321,14 +278,10 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     cauldronTile.getFluidStack().shrink(250);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
-                    if (!cauldronTile.getLevel().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> cauldronTile.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-                    if (cauldronTile.getLevel() != null)
-                        cauldronTile.getLevel().playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
+                    if (!world.isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+                    if (world != null)
+                        world.playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
                     tileEntity.setChanged();
                     return InteractionResult.SUCCESS;
                 } else if (cauldronTile.getFluidStack().getFluid() instanceof PotionFluid) {
@@ -344,14 +297,10 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     cauldronTile.getFluidStack().shrink(250);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
-                    if (!cauldronTile.getLevel().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> cauldronTile.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
-                    if (cauldronTile.getLevel() != null)
-                        cauldronTile.getLevel().playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
+                    if (!world.isClientSide)
+                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+                    if (world != null)
+                        world.playSound(null, cauldronTile.getPos().getX() + 0.5f, cauldronTile.getPos().getY() + 0.5f, cauldronTile.getPos().getZ() + 0.5f, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 0.8F + 0.4F * random.nextFloat());
                     tileEntity.setChanged();
                     return InteractionResult.SUCCESS;
                 }
@@ -375,10 +324,6 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         cauldronTile.getFluidStack().grow(250);
                     if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                         cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
                     if (!tileEntity.getLevel().isClientSide)
                         HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> tileEntity.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
                     if (tileEntity.getLevel() != null)
@@ -406,10 +351,6 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         cauldronTile.getFluidStack().grow(250);
                     if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                         cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                        cauldronTile.getFluidStack().shrink(1);
-                    if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                        cauldronTile.getFluidStack().grow(1);
                     if (!tileEntity.getLevel().isClientSide)
                         HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> tileEntity.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
                     if (tileEntity.getLevel() != null)
@@ -537,6 +478,36 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                 return InteractionResult.SUCCESS;
             }
         }
+
+
+        ItemStack fillStack = stack.copy();
+        fillStack.setCount(1);
+        LazyOptional<IFluidHandlerItem> fluidHandlerOptional = fillStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
+        if (fluidHandlerOptional.isPresent()) {
+            IFluidHandlerItem fluidHandler = fluidHandlerOptional.resolve().get();
+
+            if (cauldronTile.interactWithFluid(fluidHandler)) {
+                if (!player.isCreative()) {
+                    stack.shrink(1);
+                    if (stack.isEmpty()) {
+
+                        player.setItemInHand(hand, fluidHandler.getContainer());
+                    } else {
+                        player.setItemInHand(hand, stack);
+                        if (!player.getInventory().add(fluidHandler.getContainer()))
+                            player.drop(fluidHandler.getContainer(), false);
+                    }
+                }
+                if (!world.isClientSide)
+                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> tileEntity.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
+
+
+                return InteractionResult.sidedSuccess(world.isClientSide);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+
         if (!world.isClientSide()) {
 
             MenuProvider containerProvider = createContainerProvider(world, pos);
@@ -710,7 +681,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                 }
             }
             if (state.getValue(CRAFT_DELAY) >= MixingCauldronTile.craftDelayMax * 0.80) {
-                if (cauldronTile.getLevel() != null && !cauldronTile.getLevel().isClientSide)
+                if (!world.isClientSide)
                     HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> tileEntity.getLevel().getChunkAt(cauldronTile.getPos())), new EmitParticlesPacket(cauldronTile.getPos(), 3, false));
 
             }
