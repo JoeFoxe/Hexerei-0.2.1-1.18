@@ -157,7 +157,7 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
     @Override
     public Component getTitle() {
-        return Component.translatable(this.type + " Mixing");
+        return Component.translatable("gui.jei.category." + ((this.type + "_mixing")).toLowerCase(Locale.ROOT));
     }
 
     @Override
@@ -186,15 +186,13 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
                 .setFluidRenderer(2000, true, 12, 10)
                 .setBackground(this.cauldron, 0, 0)
                 .setOverlay(this.cauldron, 0, 0)
-                .addFluidStack(recipe.getLiquidOutput().getFluid(), 2000, recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getTag() : new CompoundTag())
-                .addTooltipCallback(HexereiJei.addFluidTooltip(-1, Component.translatable("Fluid is mixed into this")));
+                .addFluidStack(recipe.getLiquidOutput().getFluid(), 2000, recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getTag() : new CompoundTag());
 
         builder.addSlot(RecipeIngredientRole.INPUT,  20,  57)
                 .setFluidRenderer(2000, false, 16, 32)
                 .setBackground(this.liquid, 0, 0)
                 .setOverlay(this.liquid, 0, 0)
-                .addFluidStack(recipe.getLiquid().getFluid(), 2000, recipe.getLiquid().hasTag() ? recipe.getLiquid().getTag() : new CompoundTag())
-                .addTooltipCallback(HexereiJei.addFluidTooltip(-1, Component.translatable("Any amount of fluid can be used, most value when converting a full cauldron")));
+                .addFluidStack(recipe.getLiquid().getFluid(), 2000, recipe.getLiquid().hasTag() ? recipe.getLiquid().getTag() : new CompoundTag());
         int size = recipe.getIngredients().size();
 
         if(size > 0)

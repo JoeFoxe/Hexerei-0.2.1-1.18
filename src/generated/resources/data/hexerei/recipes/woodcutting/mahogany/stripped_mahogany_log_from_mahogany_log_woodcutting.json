@@ -1,0 +1,7 @@
+{
+  "type": "hexerei:woodcutting",
+  "ingredient": {
+    "item": "hexerei:mahogany_log"
+  },
+  "result": "hexerei:stripped_mahogany_log"
+}

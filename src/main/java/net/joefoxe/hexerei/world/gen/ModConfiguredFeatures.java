@@ -26,7 +26,7 @@ import net.minecraft.world.level.levelgen.feature.trunkplacers.StraightTrunkPlac
 import java.util.List;
 import java.util.Random;
 
-import static net.joefoxe.hexerei.block.custom.PickableDoubleFlower.AGE;
+import static net.joefoxe.hexerei.block.custom.PickableDoublePlant.AGE;
 
 public class ModConfiguredFeatures {
 
@@ -71,8 +71,8 @@ public class ModConfiguredFeatures {
                 new SimpleRandomFeatureConfiguration(HolderSet.direct(
                         PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.YELLOW_DOCK_BUSH.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))),
                         PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.MUGWORT_BUSH.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))),
-                        PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.BELLADONNA_FLOWER.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))),
-                        PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.MANDRAKE_FLOWER.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))))));
+                        PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.BELLADONNA_PLANT.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))),
+                        PlacementUtils.inlinePlaced(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(ModBlocks.MANDRAKE_PLANT.get().defaultBlockState().setValue(AGE, Math.max(0, Math.min(3, random.nextInt() % 3)))))))));
 //
         register(context, FLOWERING_LILYPAD_KEY, Feature.RANDOM_PATCH,
                 new RandomPatchConfiguration(10, 7, 3, PlacementUtils.onlyWhenEmpty(Feature.SIMPLE_BLOCK,

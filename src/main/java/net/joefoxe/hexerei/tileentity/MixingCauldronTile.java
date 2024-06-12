@@ -512,19 +512,14 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
         {
             if (Shapes.joinIsNotEmpty(Shapes.create(entity.getBoundingBox().move(-blockpos.getX(), -blockpos.getY(), -blockpos.getZ())), BLOOD_SIGIL_SHAPE, BooleanOp.AND)) {
                 if (this.isColliding <= 1 && this.getItemInSlot(9).asItem() == ModItems.BLOOD_SIGIL.get()) {
-                    Random random = new Random();
-                    entity.hurt(DamageUtil.source(level, DamageTypes.MAGIC, null), 3.0f);
+                    entity.hurt(entity.damageSources().magic(), 3.0f);
 
                     if (fluidStack.isEmpty() || (fluidStack.containsFluid(new FluidStack(ModFluids.BLOOD_FLUID.get(), 1)) && this.getFluidStack().getAmount() < this.getTankCapacity(0))) {
 
                         if (fluidStack.isEmpty())
-                            this.fill(new FluidStack(ModFluids.BLOOD_FLUID.get(), 111), IFluidHandler.FluidAction.EXECUTE);
+                            this.fill(new FluidStack(ModFluids.BLOOD_FLUID.get(), 250), IFluidHandler.FluidAction.EXECUTE);
                         else {
-                            this.getFluidStack().grow(111);
-                            if (this.getFluidStack().getAmount() % 1000 == 1)
-                                this.getFluidStack().shrink(1);
-                            if (this.getFluidStack().getAmount() % 1000 == 999)
-                                this.getFluidStack().grow(1);
+                            this.getFluidStack().grow(250);
                             setChanged();
                         }
                         level.playSound(null, entity.blockPosition(), SoundEvents.HONEY_DRINK, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -820,11 +815,17 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
 
     private void renderParticles() {
         float fillPercentage = 0;
-        FluidStack fluidStack = getFluidInTank(0);
+        FluidStack fluidStack = getFluidInTank(0).copy();
         if(!fluidStack.isEmpty())
             fillPercentage = Math.min(1, (float) fluidStack.getAmount() / getTankCapacity(0));
         float height = MixingCauldronRenderer.MIN_Y + (MixingCauldronRenderer.MAX_Y - MixingCauldronRenderer.MIN_Y) * fillPercentage;
         Random rand = new Random();
+
+        if (fluidStack.isEmpty() && this.renderedFluid != null)
+            fluidStack = this.renderedFluid.copy();
+
+        if (fluidStack.isEmpty())
+            return;
 
         if (this.emitParticles > 0 && level != null) {
             for (int i = 0; i < 3; i++) {

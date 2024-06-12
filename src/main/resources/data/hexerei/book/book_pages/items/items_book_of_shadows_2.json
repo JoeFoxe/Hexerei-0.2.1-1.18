@@ -24,19 +24,7 @@
 
     {
       "type": "item",
-      "x": 0,
-      "y": 3,
-      "name": "minecraft:leather"
-    },
-    {
-      "type": "tag",
       "x": 1,
-      "y": 3,
-      "name": "forge:dyes"
-    },
-    {
-      "type": "item",
-      "x": 2,
       "y": 3,
       "name": "minecraft:leather"
     },
@@ -62,19 +50,7 @@
 
     {
       "type": "item",
-      "x": 0,
-      "y": 5,
-      "name": "minecraft:leather"
-    },
-    {
-      "type": "item",
       "x": 1,
-      "y": 5,
-      "name": "minecraft:leather"
-    },
-    {
-      "type": "item",
-      "x": 2,
       "y": 5,
       "name": "minecraft:leather"
     },

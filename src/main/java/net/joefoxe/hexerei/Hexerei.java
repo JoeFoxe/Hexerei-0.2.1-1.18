@@ -281,8 +281,8 @@ public class Hexerei {
 					Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
 			LightManager.init();
 
-			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.MANDRAKE_FLOWER.getId(), ModBlocks.POTTED_MANDRAKE_FLOWER);
-			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.BELLADONNA_FLOWER.getId(), ModBlocks.POTTED_BELLADONNA_FLOWER);
+			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.MANDRAKE_PLANT.getId(), ModBlocks.POTTED_MANDRAKE_PLANT);
+			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.BELLADONNA_PLANT.getId(), ModBlocks.POTTED_BELLADONNA_PLANT);
 			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.YELLOW_DOCK_BUSH.getId(), ModBlocks.POTTED_YELLOW_DOCK_BUSH);
 			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.MUGWORT_BUSH.getId(), ModBlocks.POTTED_MUGWORT_BUSH);
 
@@ -291,8 +291,8 @@ public class Hexerei {
 			ComposterBlock.COMPOSTABLES.put(ModBlocks.MAHOGANY_LEAVES.get().asItem(), 0.3F);
 			ComposterBlock.COMPOSTABLES.put(ModBlocks.WILLOW_SAPLING.get().asItem(), 0.3F);
 			ComposterBlock.COMPOSTABLES.put(ModBlocks.MAHOGANY_SAPLING.get().asItem(), 0.3F);
-			ComposterBlock.COMPOSTABLES.put(ModBlocks.MANDRAKE_FLOWER.get().asItem(), 1F);
-			ComposterBlock.COMPOSTABLES.put(ModBlocks.BELLADONNA_FLOWER.get().asItem(), 1F);
+			ComposterBlock.COMPOSTABLES.put(ModBlocks.MANDRAKE_PLANT.get().asItem(), 1F);
+			ComposterBlock.COMPOSTABLES.put(ModBlocks.BELLADONNA_PLANT.get().asItem(), 1F);
 			ComposterBlock.COMPOSTABLES.put(ModBlocks.MUGWORT_BUSH.get().asItem(), 1F);
 			ComposterBlock.COMPOSTABLES.put(ModBlocks.YELLOW_DOCK_BUSH.get().asItem(), 1F);
 			ComposterBlock.COMPOSTABLES.put(ModBlocks.LILY_PAD_BLOCK.get().asItem(), 1F);

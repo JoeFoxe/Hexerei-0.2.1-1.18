@@ -7,7 +7,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "hexerei:mandrake_flower"
+          "name": "hexerei:mandrake_plant"
         }
       ],
       "conditions": [

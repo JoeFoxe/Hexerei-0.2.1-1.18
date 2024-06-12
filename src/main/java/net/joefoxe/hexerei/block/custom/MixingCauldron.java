@@ -220,7 +220,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
             return InteractionResult.SUCCESS;
         }
         if (stack.getItem() == Items.GLASS_BOTTLE) {
-            if (cauldronTile.getFluidStack().getAmount() >= 333) {
+            if (cauldronTile.getFluidStack().getAmount() >= 250) {
                 if (cauldronTile.getFluidStack().isFluidEqual(new FluidStack(Fluids.WATER, 1))) {
                     ItemStack itemstack4 = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
                     player.awardStat(Stats.USE_CAULDRON);
@@ -232,7 +232,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                             player.drop(itemstack4, false);
                         }
                     }
-                    cauldronTile.getFluidStack().shrink(333);
+                    cauldronTile.getFluidStack().shrink(250);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
                         cauldronTile.getFluidStack().shrink(1);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
@@ -254,7 +254,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                             player.drop(itemstack4, false);
                         }
                     }
-                    cauldronTile.getFluidStack().shrink(333);
+                    cauldronTile.getFluidStack().shrink(250);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
                         cauldronTile.getFluidStack().shrink(1);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
@@ -276,7 +276,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                             player.drop(itemstack4, false);
                         }
                     }
-                    cauldronTile.getFluidStack().shrink(333);
+                    cauldronTile.getFluidStack().shrink(250);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
                         cauldronTile.getFluidStack().shrink(1);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
@@ -298,7 +298,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                             player.drop(itemstack4, false);
                         }
                     }
-                    cauldronTile.getFluidStack().shrink(333);
+                    cauldronTile.getFluidStack().shrink(250);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
                         cauldronTile.getFluidStack().shrink(1);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
@@ -320,7 +320,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                             player.drop(itemstack4, false);
                         }
                     }
-                    cauldronTile.getFluidStack().shrink(333);
+                    cauldronTile.getFluidStack().shrink(250);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
                         cauldronTile.getFluidStack().shrink(1);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
@@ -343,7 +343,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                             player.drop(itemstack4, false);
                         }
                     }
-                    cauldronTile.getFluidStack().shrink(333);
+                    cauldronTile.getFluidStack().shrink(250);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
                         cauldronTile.getFluidStack().shrink(1);
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
@@ -370,9 +370,9 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     if (cauldronTile.getFluidStack().isEmpty())
-                        cauldronTile.fill(new FluidStack(Fluids.WATER, 333), IFluidHandler.FluidAction.EXECUTE);
+                        cauldronTile.fill(new FluidStack(Fluids.WATER, 250), IFluidHandler.FluidAction.EXECUTE);
                     else
-                        cauldronTile.getFluidStack().grow(333);
+                        cauldronTile.getFluidStack().grow(250);
                     if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                         cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
@@ -401,9 +401,9 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                         }
                     }
                     if (cauldronTile.getFluidStack().isEmpty())
-                        cauldronTile.fill(new FluidStack(PotionFluidHandler.getFluidFromPotionItem(stack), 333), IFluidHandler.FluidAction.EXECUTE);
+                        cauldronTile.fill(new FluidStack(PotionFluidHandler.getFluidFromPotionItem(stack), 250), IFluidHandler.FluidAction.EXECUTE);
                     else
-                        cauldronTile.getFluidStack().grow(333);
+                        cauldronTile.getFluidStack().grow(250);
                     if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                         cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
                     if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
@@ -432,9 +432,9 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                     }
                 }
                 if (cauldronTile.getFluidStack().isEmpty())
-                    cauldronTile.fill(new FluidStack(Fluids.LAVA, 333), IFluidHandler.FluidAction.EXECUTE);
+                    cauldronTile.fill(new FluidStack(Fluids.LAVA, 250), IFluidHandler.FluidAction.EXECUTE);
                 else
-                    cauldronTile.getFluidStack().grow(333);
+                    cauldronTile.getFluidStack().grow(250);
                 if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                     cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
                 if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
@@ -461,9 +461,9 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                     }
                 }
                 if (cauldronTile.getFluidStack().isEmpty())
-                    cauldronTile.fill(new FluidStack(ModFluids.QUICKSILVER_FLUID.get(), 333), IFluidHandler.FluidAction.EXECUTE);
+                    cauldronTile.fill(new FluidStack(ModFluids.QUICKSILVER_FLUID.get(), 250), IFluidHandler.FluidAction.EXECUTE);
                 else
-                    cauldronTile.getFluidStack().grow(333);
+                    cauldronTile.getFluidStack().grow(250);
                 if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                     cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
                 if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
@@ -490,9 +490,9 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                     }
                 }
                 if (cauldronTile.getFluidStack().isEmpty())
-                    cauldronTile.fill(new FluidStack(ModFluids.TALLOW_FLUID.get(), 333), IFluidHandler.FluidAction.EXECUTE);
+                    cauldronTile.fill(new FluidStack(ModFluids.TALLOW_FLUID.get(), 250), IFluidHandler.FluidAction.EXECUTE);
                 else
-                    cauldronTile.getFluidStack().grow(333);
+                    cauldronTile.getFluidStack().grow(250);
                 if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                     cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
                 if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
@@ -520,9 +520,9 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
                     }
                 }
                 if (cauldronTile.getFluidStack().isEmpty())
-                    cauldronTile.fill(new FluidStack(ModFluids.BLOOD_FLUID.get(), 333), IFluidHandler.FluidAction.EXECUTE);
+                    cauldronTile.fill(new FluidStack(ModFluids.BLOOD_FLUID.get(), 250), IFluidHandler.FluidAction.EXECUTE);
                 else
-                    cauldronTile.getFluidStack().grow(333);
+                    cauldronTile.getFluidStack().grow(250);
                 if (cauldronTile.getFluidStack().getAmount() > cauldronTile.getTankCapacity(1))
                     cauldronTile.getFluidStack().setAmount(cauldronTile.getTankCapacity(1));
                 if (cauldronTile.getFluidStack().getAmount() % 10 == 1)

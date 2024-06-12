@@ -1,0 +1,78 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"2": "hexerei:block/pestle_and_mortar_pestle_new"
+	},
+	"elements": [
+		{
+			"from": [-0.85, -1.08246, -0.88957],
+			"to": [0.95, 6.71754, 0.91043],
+			"rotation": {"angle": -22.5, "axis": "z", "origin": [-0.2, 0.40087, -0.23957]},
+			"faces": {
+				"north": {"uv": [2, 0, 0, 8], "texture": "#2"},
+				"east": {"uv": [0, 0, 2, 8], "texture": "#2"},
+				"south": {"uv": [2, 0, 0, 8], "texture": "#2"},
+				"west": {"uv": [0, 0, 2, 8], "texture": "#2"},
+				"up": {"uv": [4, 2, 2, 0], "texture": "#2"},
+				"down": {"uv": [4, 2, 2, 4], "texture": "#2"}
+			}
+		},
+		{
+			"from": [-0.95, -1.18246, -0.98957],
+			"to": [1.05, 0.81754, 1.01043],
+			"rotation": {"angle": -22.5, "axis": "z", "origin": [-0.2, 0.40087, -0.23957]},
+			"faces": {
+				"north": {"uv": [2, 6, 0, 8], "texture": "#2"},
+				"east": {"uv": [0, 6, 2, 8], "texture": "#2"},
+				"south": {"uv": [2, 6, 0, 8], "texture": "#2"},
+				"west": {"uv": [0, 6, 2, 8], "texture": "#2"},
+				"down": {"uv": [4, 2, 2, 4], "texture": "#2"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"translation": [0, 3, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, 225, 0],
+			"translation": [0, 3.5, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.5, 0.5, 0.5]
+		},
+		"gui": {
+			"rotation": [30, 225, 0],
+			"translation": [0, 3.25, 0]
+		},
+		"head": {
+			"rotation": [0, 0, -180],
+			"translation": [0, 5.5, 0]
+		},
+		"fixed": {
+			"translation": [0, 4.5, 0]
+		}
+	},
+	"groups": [
+		{
+			"name": "pestle",
+			"origin": [8, 5.5, 5.5],
+			"color": 0,
+			"children": [0, 1]
+		}
+	]
+}

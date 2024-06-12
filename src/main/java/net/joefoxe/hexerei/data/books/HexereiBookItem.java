@@ -4,6 +4,7 @@ package net.joefoxe.hexerei.data.books;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.CustomItemRendererWithPageDrawing;
 import net.joefoxe.hexerei.item.custom.HexereiBookItemRenderer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +21,7 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class HexereiBookItem extends Item implements DyeableLeatherItem {
+public class HexereiBookItem extends Item {
 
 
 
@@ -42,25 +43,35 @@ public class HexereiBookItem extends Item implements DyeableLeatherItem {
         super.inventoryTick(stack, level, entity, p_41407_, p_41408_);
     }
 
-    public static ItemStack withColors(int color2) {
+    public static ItemStack withColors(int color1, int color2) {
         ItemStack stack = new ItemStack(ModItems.BOOK_OF_SHADOWS.get());
+        stack.getOrCreateTag().putInt("dyeColor1", color1);
         stack.getOrCreateTag().putInt("dyeColor2", color2);
 
         return stack;
     }
 
+//
+//    public static int getColorStatic(ItemStack p_41122_) {
+//        CompoundTag compoundtag = p_41122_.getTagElement("display");
+//        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0xB77819;
+//    }
 
-    public static int getColorStatic(ItemStack p_41122_) {
-        CompoundTag compoundtag = p_41122_.getTagElement("display");
-        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0xB77819;
+    public static int getColor1(ItemStack stack) {
+
+        if(!stack.getOrCreateTag().contains("dyeColor1"))
+            return 0xC19343; // goldish color
+
+        return HexereiUtil.getColorValue(DyeColor.byId(stack.getOrCreateTag().getInt("dyeColor1")));
     }
 
-    public static DyeColor getColor2(ItemStack stack) {
+
+    public static int getColor2(ItemStack stack) {
 
         if(!stack.getOrCreateTag().contains("dyeColor2"))
-            return DyeColor.RED;
+            return 0xA85062; // redish color
 
-        return DyeColor.byId(stack.getOrCreateTag().getInt("dyeColor2"));
+        return HexereiUtil.getColorValue(DyeColor.byId(stack.getOrCreateTag().getInt("dyeColor2")));
     }
 
 

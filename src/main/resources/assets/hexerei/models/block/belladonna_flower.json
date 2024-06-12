@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "hexerei:block/belladonna_flower"
-  },
-  "render_type": "cutout"
-}

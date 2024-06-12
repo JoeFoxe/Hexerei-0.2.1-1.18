@@ -8,7 +8,9 @@ import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -29,7 +31,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.extensions.IForgeBakedModel;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -239,24 +243,20 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
 
     public static String getBaseLayer(ItemStack stack) {
         CompoundTag tag = stack.getTagElement("base");
-        if(tag == null) return null;
-        if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
-            if(tag.contains("layer")) {
-                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
-                if (holder.isPresent()) {
-                    BlockState blockState = holder.get().get().defaultBlockState();
-                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                    if (list.size() > 0)
-                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
-                }
-            }
-            return null;
-        }
-        return tag.contains("layer") ? tag.getString("layer") : null;
+        return getLayerLoc(tag);
     }
 
     public static String getGlowLayer(ItemStack stack) {
         CompoundTag tag = stack.getTagElement("glow");
+        return getLayerLoc(tag);
+    }
+
+    public static String getSwirlLayer(ItemStack stack) {
+        CompoundTag tag = stack.getTagElement("swirl");
+        return getLayerLoc(tag);
+    }
+
+    private static String getLayerLoc(CompoundTag tag) {
         if(tag == null) return null;
         if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
             if(tag.contains("layer")) {
@@ -264,8 +264,11 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
                 if (holder.isPresent()) {
                     BlockState blockState = holder.get().get().defaultBlockState();
                     List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                    if (list.size() > 0)
-                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
+                    if (list.size() > 0) {
+                        TextureAtlasSprite sprite = list.get(0).getSprite();
+
+                        return sprite.contents().name().getNamespace() + ":textures/" + sprite.contents().name().getPath() + ".png";
+                    }
                 }
             }
             return null;
@@ -273,23 +276,6 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         return tag.contains("layer") ? tag.getString("layer") : null;
     }
 
-    public static String getSwirlLayer(ItemStack stack) {
-        CompoundTag tag = stack.getTagElement("swirl");
-        if(tag == null) return null;
-        if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
-            if(tag.contains("layer")) {
-                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
-                if (holder.isPresent()) {
-                    BlockState blockState = holder.get().get().defaultBlockState();
-                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                    if (list.size() > 0)
-                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
-                }
-            }
-            return null;
-        }
-        return tag.contains("layer") ? tag.getString("layer") : null;
-    }
 
     public static String getEffectLocation(ItemStack stack) {
         if(stack.hasTag()){

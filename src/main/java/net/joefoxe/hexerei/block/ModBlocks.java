@@ -1,7 +1,6 @@
 package net.joefoxe.hexerei.block;
 
 import com.tterrag.registrate.Registrate;
-import com.tterrag.registrate.providers.loot.RegistrateBlockLootTables;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.nullness.NonNullConsumer;
 import net.joefoxe.hexerei.Hexerei;
@@ -193,11 +192,22 @@ public class ModBlocks {
 			.onRegister(connectedTextures(() -> new GlassPaneCTBehaviour(AllSpriteShifts.STONE_WINDOW_PANE_CONNECTED)))
 			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.STONE_WINDOW_PANE_CONNECTED)))
 			.register();
+	public static final BlockEntry<WaxedGlassPaneBlock> WAXED_STONE_WINDOW_PANE = REGISTRATE.block("waxed_stone_window_pane", (properties) -> new WaxedGlassPaneBlock(BlockBehaviour.Properties.copy(Blocks.GLASS_PANE)))
+			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.GLASS_PANE).mapColor(MapColor.STONE))
+			.onRegister(connectedTextures(() -> new GlassPaneCTBehaviour(AllSpriteShifts.WAXED_STONE_WINDOW_PANE_CONNECTED)))
+			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.WAXED_STONE_WINDOW_PANE_CONNECTED)))
+			.register();
 
 	public static final BlockEntry<GlassBlock> STONE_WINDOW = REGISTRATE.block("stone_window", (properties) -> new GlassBlock(BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE)))
 			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE).mapColor(MapColor.TERRACOTTA_RED))
-			.onRegister(connectedTextures(() -> new FullBlockCTBehaviour(AllSpriteShifts.STONE_WINDOW_CONNECTED)))
+			.onRegister(connectedTextures(() -> new FullBlockTopBottomShiftCTBehaviour(AllSpriteShifts.STONE_WINDOW_CONNECTED, AllSpriteShifts.STONE_WINDOW_CONNECTED_TOP)))
 			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.STONE_WINDOW_CONNECTED)))
+			.register();
+
+	public static final BlockEntry<GlassBlock> WAXED_STONE_WINDOW = REGISTRATE.block("waxed_stone_window", (properties) -> new GlassBlock(BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE)))
+			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE).mapColor(MapColor.TERRACOTTA_RED))
+			.onRegister(connectedTextures(() -> new FullBlockTopBottomShiftCTBehaviour(AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED_TOP)))
+			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED)))
 			.register();
 
 
@@ -805,8 +815,8 @@ public class ModBlocks {
 	public static final RegistryObject<FloweringLilyPadBlock> LILY_PAD_BLOCK = registerBlockNoItem("flowering_lily_pad",
 					() -> new FloweringLilyPadBlock(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).instabreak().sound(SoundType.LILY_PAD).noOcclusion()));
 
-	public static final RegistryObject<PickableFlower> MANDRAKE_FLOWER = registerBlock("mandrake_flower",
-					() -> new PickableFlower(MobEffects.REGENERATION, 3, BlockBehaviour.Properties.copy(Blocks.DANDELION), ModItems.MANDRAKE_FLOWERS, 2, ModItems.MANDRAKE_ROOT, 1) {
+	public static final RegistryObject<PickablePlant> MANDRAKE_PLANT = registerBlock("mandrake_plant",
+					() -> new PickablePlant(MobEffects.REGENERATION, 3, BlockBehaviour.Properties.copy(Blocks.DANDELION), ModItems.MANDRAKE_FLOWERS, 2, ModItems.MANDRAKE_ROOT, 1) {
 
 
 						@Override
@@ -817,8 +827,8 @@ public class ModBlocks {
 						}
 					});
 
-	public static final RegistryObject<PickableFlower> BELLADONNA_FLOWER = registerBlock("belladonna_flower",
-					() -> new PickableFlower(MobEffects.POISON, 3, BlockBehaviour.Properties.copy(Blocks.DANDELION), ModItems.BELLADONNA_FLOWERS, 2, ModItems.BELLADONNA_BERRIES, 6) {
+	public static final RegistryObject<PickablePlant> BELLADONNA_PLANT = registerBlock("belladonna_plant",
+					() -> new PickablePlant(MobEffects.POISON, 3, BlockBehaviour.Properties.copy(Blocks.DANDELION), ModItems.BELLADONNA_FLOWERS, 2, ModItems.BELLADONNA_BERRIES, 6) {
 
 
 						@Override
@@ -831,8 +841,8 @@ public class ModBlocks {
 
 //            () -> new PickableFlower(MobEffects.POISON, 3, BlockBehaviour.Properties.copy(Blocks.DANDELION), new ItemStack(ModItems.BELLADONNA_FLOWERS.get(), 4),  new ItemStack(ModItems.BELLADONNA_BERRIES.get(), 5), 5));
 
-	public static final RegistryObject<PickableDoubleFlower> MUGWORT_BUSH = registerBlock("mugwort_bush",
-					() -> new PickableDoubleFlower(MobEffects.GLOWING, 10, BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().instabreak().sound(SoundType.AZALEA), ModItems.MUGWORT_LEAVES, 4, ModItems.MUGWORT_FLOWERS, 3) {
+	public static final RegistryObject<PickableDoublePlant> MUGWORT_BUSH = registerBlock("mugwort_bush",
+					() -> new PickableDoublePlant(MobEffects.GLOWING, 10, BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().instabreak().sound(SoundType.AZALEA), ModItems.MUGWORT_LEAVES, 4, ModItems.MUGWORT_FLOWERS, 3) {
 
 
 						@Override
@@ -843,8 +853,8 @@ public class ModBlocks {
 						}
 					});
 
-	public static final RegistryObject<PickableDoubleFlower> YELLOW_DOCK_BUSH = registerBlock("yellow_dock_bush",
-					() -> new PickableDoubleFlower(MobEffects.GLOWING, 10, BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().instabreak().sound(SoundType.AZALEA), ModItems.YELLOW_DOCK_LEAVES, 4, ModItems.YELLOW_DOCK_FLOWERS, 3) {
+	public static final RegistryObject<PickableDoublePlant> YELLOW_DOCK_BUSH = registerBlock("yellow_dock_bush",
+					() -> new PickableDoublePlant(MobEffects.GLOWING, 10, BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).noCollission().instabreak().sound(SoundType.AZALEA), ModItems.YELLOW_DOCK_LEAVES, 4, ModItems.YELLOW_DOCK_FLOWERS, 3) {
 
 
 						@Override
@@ -855,11 +865,11 @@ public class ModBlocks {
 						}
 					});
 
-	public static final RegistryObject<Block> POTTED_MANDRAKE_FLOWER = registerBlockNoItem("potted_mandrake_flower",
-					() -> new FlowerPotBlock(ModBlocks.MANDRAKE_FLOWER.get(), BlockBehaviour.Properties.of().instabreak().noOcclusion().pushReaction(PushReaction.DESTROY)));
+	public static final RegistryObject<Block> POTTED_MANDRAKE_PLANT = registerBlockNoItem("potted_mandrake_plant",
+					() -> new FlowerPotBlock(ModBlocks.MANDRAKE_PLANT.get(), BlockBehaviour.Properties.of().instabreak().noOcclusion().pushReaction(PushReaction.DESTROY)));
 
-	public static final RegistryObject<Block> POTTED_BELLADONNA_FLOWER = registerBlockNoItem("potted_belladonna_flower",
-					() -> new FlowerPotBlock(ModBlocks.BELLADONNA_FLOWER.get(), BlockBehaviour.Properties.of().instabreak().noOcclusion().pushReaction(PushReaction.DESTROY)));
+	public static final RegistryObject<Block> POTTED_BELLADONNA_PLANT = registerBlockNoItem("potted_belladonna_plant",
+					() -> new FlowerPotBlock(ModBlocks.BELLADONNA_PLANT.get(), BlockBehaviour.Properties.of().instabreak().noOcclusion().pushReaction(PushReaction.DESTROY)));
 
 	public static final RegistryObject<Block> POTTED_YELLOW_DOCK_BUSH = registerBlockNoItem("potted_yellow_dock_bush",
 					() -> new FlowerPotBlock(ModBlocks.YELLOW_DOCK_BUSH.get(), BlockBehaviour.Properties.of().instabreak().noOcclusion().pushReaction(PushReaction.DESTROY)));
@@ -957,7 +967,7 @@ public class ModBlocks {
 	public static final RegistryObject<Block> HERB_JAR_BELLADONNA = registerBlockNoItem("herb_jar_belladonna",
 					() -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2).explosionResistance(8f)));
 
-	public static final RegistryObject<Block> HERB_JAR_MANDRAKE_FLOWER = registerBlockNoItem("herb_jar_mandrake_flower",
+	public static final RegistryObject<Block> HERB_JAR_MANDRAKE_PLANT = registerBlockNoItem("herb_jar_mandrake_plant",
 					() -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2).explosionResistance(8f)));
 
 	public static final RegistryObject<Block> HERB_JAR_MANDRAKE_ROOT = registerBlockNoItem("herb_jar_mandrake_root",

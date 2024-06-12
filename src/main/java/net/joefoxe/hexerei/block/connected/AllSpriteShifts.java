@@ -66,7 +66,12 @@ public class AllSpriteShifts {
     public static final CTSpriteShiftEntry WAXED_POLISHED_SMOOTH_WITCH_HAZEL = omniRandom("waxed_polished_smooth_witch_hazel", "polished_smooth_witch_hazel_connected");
 
     public static final CTSpriteShiftEntry STONE_WINDOW_CONNECTED = omni("stone_window", "stone_window_connected");
+    public static final CTSpriteShiftEntry STONE_WINDOW_CONNECTED_TOP = omni("stone_window_top", "stone_window_connected_top");
+
+    public static final CTSpriteShiftEntry WAXED_STONE_WINDOW_CONNECTED = omni("waxed_stone_window", "stone_window_connected");
+    public static final CTSpriteShiftEntry WAXED_STONE_WINDOW_CONNECTED_TOP = omni("waxed_stone_window_top", "stone_window_connected_top");
     public static final CTSpriteShiftEntry STONE_WINDOW_PANE_CONNECTED = omni("stone_window_pane", "stone_window_connected");
+    public static final CTSpriteShiftEntry WAXED_STONE_WINDOW_PANE_CONNECTED = omni("waxed_stone_window_pane", "stone_window_connected");
     private static CTSpriteShiftEntry omni(String name) {
         return getCT(AllCTTypes.OMNIDIRECTIONAL, name);
     }

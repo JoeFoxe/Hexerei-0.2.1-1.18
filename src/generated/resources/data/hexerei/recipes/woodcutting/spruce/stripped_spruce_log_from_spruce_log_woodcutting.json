@@ -1,0 +1,7 @@
+{
+  "type": "hexerei:woodcutting",
+  "ingredient": {
+    "item": "minecraft:spruce_log"
+  },
+  "result": "minecraft:stripped_spruce_log"
+}

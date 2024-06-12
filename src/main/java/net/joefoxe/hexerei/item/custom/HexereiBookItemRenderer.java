@@ -86,52 +86,15 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
             zPos = 0;
             this.degreesOpened2 = 0;
             this.degreesOpened = 45;
-            if(tag.contains("opened"))
-            {
-                if(tag.getBoolean("opened")){
-                    tileEntityIn.degreesOpened = 18;
-                    tileEntityIn.degreesFlopped = 0;
-                    this.degreesOpened = -10;
-                    tileEntityIn.degreesSpun = 270;
-                }
-                else {
-                    tileEntityIn.degreesOpened = 90;
-                    tileEntityIn.degreesFlopped = 90;
-                    if(transformType == ItemDisplayContext.GUI)
-                        yPos = 3/16f;
-                    if(transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    {
-                        this.degreesOpened2 = 90;
-                        xPos = 4/16f;
-                        zPos = -12/32f;
-                    }
-                    if(transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    {
-                        this.degreesOpened2 = 90;
-                        xPos = 4/16f;
-                        zPos = -1/32f;
-                    }
-                }
-            }else {
-                tileEntityIn.degreesOpened = 90;
-                tileEntityIn.degreesFlopped = 90;
-                if(transformType == ItemDisplayContext.GUI)
-                    yPos = 3/16f;
-                if(transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                {
-                    this.degreesOpened2 = 90;
-                    xPos = 4/16f;
-                    zPos = -12/32f;
-                }
-                if(transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                {
-                    this.degreesOpened2 = 90;
-                    xPos = 4/16f;
-                    zPos = -1/32f;
-                }
+            matrixStackIn.pushPose();
+            tileEntityIn.degreesOpened = 90;
+            tileEntityIn.degreesFlopped = 90;
+            if(tag.contains("opened") && tag.getBoolean("opened")) {
+                tileEntityIn.degreesOpened = 18;
+                tileEntityIn.degreesFlopped = 0;
+                this.degreesOpened = -10;
+                tileEntityIn.degreesSpun = 270;
             }
-
-
 
             tileEntityIn.degreesSpunRender = tileEntityIn.degreesSpun;
             tileEntityIn.degreesFloppedRender = tileEntityIn.degreesFlopped;
@@ -145,10 +108,6 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
                 } catch (CommandSyntaxException e) {
                     e.printStackTrace();
                 }
-            }
-            else{
-
-                drawBaseButtons(tileEntityIn, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, false, false, tag.getInt("chapter"), tag.getInt("page"), true, transformType, true);
             }
 
 //            this.itemRenderer = Minecraft.getInstance().getItemRenderer();
@@ -170,8 +129,12 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
                 else {
                     tileEntityIn.degreesOpened = 90;
                     tileEntityIn.degreesFlopped = 90;
-                    if(transformType == ItemDisplayContext.GUI)
-                        yPos = 3/16f;
+                    if(transformType == ItemDisplayContext.GUI) {
+                        yPos = 6 / 16f;
+                        xPos = 2/16f;
+                        zPos = -12/32f;
+                        matrixStackIn.scale(1.35f, 1.35f, 1.35f);
+                    }
                     if(transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
                     {
                         this.degreesOpened2 = 90;
@@ -185,11 +148,15 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
                         zPos = -1/32f;
                     }
                 }
-            }else {
+            } else {
                 tileEntityIn.degreesOpened = 90;
                 tileEntityIn.degreesFlopped = 90;
-                if(transformType == ItemDisplayContext.GUI)
-                    yPos = 3/16f;
+                if(transformType == ItemDisplayContext.GUI) {
+                    yPos = 6 / 16f;
+                    xPos = 2/16f;
+                    zPos = -12/32f;
+                    matrixStackIn.scale(1.35f, 1.35f, 1.35f);
+                }
                 if(transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
                 {
                     this.degreesOpened2 = 90;
@@ -225,8 +192,8 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, (-0.5f * (tileEntityIn.degreesFloppedRender / 90)) / 16f, (float) Math.sin((tileEntityIn.degreesFloppedRender) / 57.1f) / 32f);
             DyeColor col = HexereiUtil.getDyeColorNamed(stack.getHoverName().getString());
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER.get().defaultBlockState(), HexereiUtil.getColorValue(HexereiBookItem.getColor2(stack)));
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColorStatic(stack) : HexereiUtil.getColorValue(col));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER.get().defaultBlockState(), HexereiBookItem.getColor2(stack));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColor1(stack) : HexereiUtil.getColorValue(col));
             matrixStackIn.popPose();
 
             matrixStackIn.pushPose();
@@ -241,8 +208,8 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
             matrixStackIn.mulPose(Axis.XP.rotationDegrees(tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, (-0.5f * (tileEntityIn.degreesFloppedRender / 90)) / 16f, -(float) Math.sin((tileEntityIn.degreesFloppedRender) / 57.1f) / 32f);
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK.get().defaultBlockState(), HexereiUtil.getColorValue(HexereiBookItem.getColor2(stack)));
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColorStatic(stack) : HexereiUtil.getColorValue(col));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK.get().defaultBlockState(), HexereiBookItem.getColor2(stack));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColor1(stack) : HexereiUtil.getColorValue(col));
             matrixStackIn.popPose();
 
             matrixStackIn.pushPose();
@@ -254,7 +221,7 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
             matrixStackIn.mulPose(Axis.XP.rotationDegrees(degreesOpened2));
             matrixStackIn.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BINDING.get().defaultBlockState(), HexereiUtil.getColorValue(HexereiBookItem.getColor2(stack)));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BINDING.get().defaultBlockState(), HexereiBookItem.getColor2(stack));
             matrixStackIn.popPose();
 
             if(tileEntityIn.degreesFloppedRender != 90){
@@ -341,6 +308,9 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
                 renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_PAGE.get().defaultBlockState());
                 matrixStackIn.popPose();
             }
+
+
+            matrixStackIn.popPose();
         }
 
 

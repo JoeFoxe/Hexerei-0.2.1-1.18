@@ -76,10 +76,6 @@ public class BroomItem extends BroomStickItem {
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         ItemStackHandler handler = createHandler();
         handler.deserializeNBT(stack.getOrCreateTag().getCompound("Inventory"));
-//        for(int i = 0; i < stacks.length; i++){
-//            handler.setStackInSlot(slots[i], stacks[i]);
-////            nonnulllist.add(stack);
-//        }
 
         return Optional.of(new BroomItem.BroomItemToolTip(handler, stack));
     }
@@ -98,7 +94,7 @@ public class BroomItem extends BroomStickItem {
     public Vec3 getBrushOffset(){
         return new Vec3(0, 0, 0);
     }
-    public Vec3 SatchelOffset(){
+    public Vec3 getSatchelOffset(){
         return new Vec3(0, 0, 0);
     }
     public Vec3 getTipOffset(){

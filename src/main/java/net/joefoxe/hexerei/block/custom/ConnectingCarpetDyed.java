@@ -216,12 +216,14 @@ public class ConnectingCarpetDyed extends CarpetBlock implements Waxed, CTDyable
             if (player instanceof ServerPlayer) {
                 CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, player.getItemInHand(pHand));
             }
+
             BlockState newBlockstate = pLevel.getBlockState(blockpos).setValue(COLOR, dyecolor);
 //
-//            if(!player.isCreative())
-//                player.getItemInHand(pHand).shrink(1);
-            if(!player.isCreative() && pState.getBlock() == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get())
+            if(pState.getBlock() == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get()) {
                 Block.popResource(pLevel, blockpos, new ItemStack(Items.GOLD_NUGGET));
+                newBlockstate = ModBlocks.INFUSED_FABRIC_CARPET.get().defaultBlockState().setValue(COLOR, dyecolor);
+            }
+
             pLevel.setBlockAndUpdate(blockpos, newBlockstate);
             pLevel.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, newBlockstate));
             pLevel.levelEvent(player, 3003, blockpos, 0);

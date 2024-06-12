@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "hexerei:block/belladonna_flower_stage3"
-  }
-}

@@ -219,20 +219,19 @@ public class ConnectingCarpetSlab extends CarpetBlock implements Waxed, CTDyable
     public InteractionResult use(BlockState pState, Level pLevel, BlockPos blockpos, Player player, InteractionHand pHand, BlockHitResult pHit) {
         if(player.getItemInHand(pHand).getItem() instanceof DyeItem dyeItem) {
             DyeColor dyecolor = dyeItem.getDyeColor();
-            if(this.parentBlock == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get())
-                return InteractionResult.FAIL;
             if(this.getDyeColor(pState) == dyecolor)
                 return InteractionResult.FAIL;
 
             if (player instanceof ServerPlayer) {
                 CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, player.getItemInHand(pHand));
             }
+
             BlockState newBlockstate = pLevel.getBlockState(blockpos).setValue(COLOR, dyecolor);
 
-            if(!player.isCreative())
-                player.getItemInHand(pHand).shrink(1);
-            if(!player.isCreative() && pState.getBlock() == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get())
+            if(pState.getBlock() == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get()) {
                 Block.popResource(pLevel, blockpos, new ItemStack(Items.GOLD_NUGGET));
+                newBlockstate = ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get().defaultBlockState().setValue(COLOR, dyecolor);
+            }
 
             pLevel.setBlockAndUpdate(blockpos, newBlockstate);
             pLevel.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, newBlockstate));

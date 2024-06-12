@@ -123,7 +123,7 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
                 head_eyes_closed_r1 = head_eyes_closed.getChild("head_eyes_closed_r1");
         if (!entity.onGround() || !entity.isInSittingPose())
             body.y = 24.0f;
-        if (entity.onGround()) {
+        if (entity.onGround() || !entity.isFlying()) {
             leftWing.visible = false;
             rightWing.visible = false;
             wings.visible = true;
@@ -145,11 +145,14 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
                 rightLeg.xRot = Mth.cos(limbSwing * 2F + (float) Math.PI) * 2F * limbSwingAmount;
                 leftLeg.xRot = Mth.cos(limbSwing * 2F) * 2F * limbSwingAmount;
             }
-            head.xRot = (float) Math.toRadians(headPitch) + Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+            head.xRot = (float) Math.toRadians(headPitch);
+            if (!entity.isPlayingDead()) {
+                head.xRot += Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
 
-            rightTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
-            leftTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
-            tailMid.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                rightTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                leftTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                tailMid.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+            }
 
 
             rightTail.yRot = -Mth.sin(0.05f);
@@ -181,11 +184,14 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
                 leftLeg.z = 1.5f;
 
                 body.y = 25.5f;
-                head.xRot = (float) Math.toRadians(headPitch) + Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                head.xRot = (float) Math.toRadians(headPitch);
+                if (!entity.isPlayingDead()) {
+                    head.xRot += Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
 
-                rightTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
-                leftTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
-                tailMid.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                    rightTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                    leftTail.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                    tailMid.xRot = Mth.sin(Hexerei.getClientTicks() / 25f) * 0.1f;
+                }
 
 
                 rightTail.yRot = -Mth.sin(0.05f);
@@ -259,8 +265,6 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
         if (entity.peckTiltAngleActual > 0)
             head_r1.xRot = Mth.sin(entity.peckTiltAngleActual / 100f);
 
-//        body.zRot = (float) ((Hexerei.getClientTicks() % 80) / 360f * (Math.PI * 2));
-//        body.y = 22;
         head_eyes_closed.copyFrom(head);
         head_eyes_closed_r1.copyFrom(head_r1);
         tailMid_dyed.copyFrom(tailMid);

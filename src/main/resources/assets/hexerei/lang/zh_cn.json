@@ -111,10 +111,10 @@
   "block.hexerei.mugwort_bush": "艾蒿灌木",
   "item.hexerei.mugwort_flowers": "艾蒿花",
   "item.hexerei.mugwort_leaves": "艾蒿叶",
-  "block.hexerei.belladonna_flower": "颠茄花",
+  "block.hexerei.belladonna_plant": "颠茄花",
   "item.hexerei.belladonna_flowers": "颠茄花",
   "item.hexerei.belladonna_berries": "颠茄花浆果",
-  "block.hexerei.mandrake_flower": "曼德拉花",
+  "block.hexerei.mandrake_plant": "曼德拉花",
   "block.hexerei.herb_drying_rack": "干燥架",
   "item.hexerei.sage_bundle": "一捆鼠尾草",
   "item.hexerei.mandrake_root": "曼德拉草根",
@@ -618,11 +618,11 @@
   "book.hexerei.items_mushroom_witch_hat_1.passage_1": "蘑菇巫师帽",
   "book.hexerei.items_mushroom_witch_hat_1.passage_2": "   这顶帽子有点暗示性质，暗示未来更新中会出现哪些类型的巫师和巫师公会。",
 
-  "book.hexerei.items_mandrake_flower_1.passage_1": "曼德拉花",
-  "book.hexerei.items_mandrake_flower_1.passage_2": "    巫师世界的一种花，当曼德拉花成熟时，它像甜浆果丛一样可以通过右键点击收获。",
+  "book.hexerei.items_mandrake_plant_1.passage_1": "曼德拉花",
+  "book.hexerei.items_mandrake_plant_1.passage_2": "    巫师世界的一种花，当曼德拉花成熟时，它像甜浆果丛一样可以通过右键点击收获。",
 
-  "book.hexerei.items_belladonna_flower_1.passage_1": "颠茄花",
-  "book.hexerei.items_belladonna_flower_1.passage_2": "    颠茄花是巫师世界最毒的植物，也许不该以任何方式食用它，除非在适当的庄园中有所准备。当颠茄花成熟时，它像甜浆果丛一样可以通过右键点击收获。",
+  "book.hexerei.items_belladonna_plant_1.passage_1": "颠茄花",
+  "book.hexerei.items_belladonna_plant_1.passage_2": "    颠茄花是巫师世界最毒的植物，也许不该以任何方式食用它，除非在适当的庄园中有所准备。当颠茄花成熟时，它像甜浆果丛一样可以通过右键点击收获。",
 
   "book.hexerei.items_mugwort_bush_1.passage_1": "艾蒿灌木",
   "book.hexerei.items_mugwort_bush_1.passage_2": "    巫师世界的一种花朵灌木丛，一直被用于开放一条通向魔法月位侧的更直接的通路。目前还没有魔法用途，会在未来的更新中加入。成熟时可以通过右键点击收获。",

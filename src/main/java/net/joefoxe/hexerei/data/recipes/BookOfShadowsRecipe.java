@@ -6,7 +6,9 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,56 +18,47 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 
 public class BookOfShadowsRecipe extends ShapedRecipe {
 
-    NonNullList<Ingredient> inputs;
-    ItemStack output;
     public BookOfShadowsRecipe(ShapedRecipe compose) {
         super(compose.getId(), compose.getGroup(), CraftingBookCategory.MISC, compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem(null));
-        this.inputs = compose.getIngredients();
-        this.output = compose.getResultItem(null);
     }
     @Override
     public boolean isSpecial() {
-        return true;
+        return false;
     }
 
     @Nonnull
     @Override
     public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+        DyeColor color1 = null;
+        DyeColor color2 = null;
+
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
             Item item = stack.getItem();
 
-            int colorId;
             if (item instanceof DyeItem dye) {
-                colorId = dye.getDyeColor().getId();
-                return HexereiBookItem.withColors(colorId);
+                if (color1 == null)
+                    color1 = dye.getDyeColor();
+                else
+                    color2 = dye.getDyeColor();
             }
         }
-        return HexereiBookItem.withColors(0);
-    }
-
-//    @Nonnull
-//    @Override
-//    public ItemStack getResultItem() {
-//        return new ItemStack(ModItems.BOOK_OF_SHADOWS.get());
-//    }
-
-    @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
-        return getOutput();
+        return HexereiBookItem.withColors(color1 == null ? 0 : color1.getId(), color2 == null ? 0 : color2.getId());
     }
 
     public ItemStack getOutput() {
-        return output.copy();
+        return getResultItem(null);
     }
 
     public NonNullList<Ingredient> getInputs() {
-        return inputs;
+        return getIngredients();
     }
+
     public static class Serializer implements RecipeSerializer<BookOfShadowsRecipe> {
         @Nonnull
         @Override
@@ -87,6 +80,6 @@ public class BookOfShadowsRecipe extends ShapedRecipe {
 
     @Override
     public RecipeSerializer<?> getSerializer() {
-        return ModRecipeTypes.BOOK_OF_SHADOWS_DYE_SERIALIZER.get();
+        return ModRecipeTypes.BOOK_OF_SHADOWS_SERIALIZER.get();
     }
 }

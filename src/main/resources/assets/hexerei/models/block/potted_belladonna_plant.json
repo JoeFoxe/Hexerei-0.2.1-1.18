@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/flower_pot_cross",
+  "textures": {
+    "plant": "hexerei:block/potted_belladonna_plant"
+  },
+  "render_type": "cutout"
+}

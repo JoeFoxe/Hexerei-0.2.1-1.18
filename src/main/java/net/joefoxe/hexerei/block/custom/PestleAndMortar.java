@@ -75,24 +75,11 @@ public class PestleAndMortar extends Block implements ITileEntity<PestleAndMorta
 
     // hitbox REMEMBER TO DO THIS
     public static final VoxelShape SHAPE = Stream.of(
-            Block.box(6, 0, 10, 10, 1, 11),
-            Block.box(6, 0, 5, 10, 1, 6),
-            Block.box(5, 0, 6, 6, 1, 10),
-            Block.box(10, 0, 6, 11, 1, 10),
-            Block.box(6, 1, 6, 10, 2, 10),
-            Block.box(11, 3, 5, 12, 6, 11),
-            Block.box(4, 3, 5, 5, 6, 11),
-            Block.box(5, 3, 11, 11, 6, 12),
-            Block.box(5, 3, 4, 11, 6, 5),
-            Block.box(12, 6, 5, 13, 7, 11),
-            Block.box(11, 6, 4, 12, 7, 5),
-            Block.box(4, 6, 4, 5, 7, 5),
-            Block.box(4, 6, 11, 5, 7, 12),
-            Block.box(11, 6, 11, 12, 7, 12),
-            Block.box(3, 6, 5, 4, 7, 11),
-            Block.box(5, 6, 3, 11, 7, 4),
-            Block.box(5, 6, 12, 11, 7, 13),
-            Block.box(5, 2, 5, 11, 3, 11)
+            Block.box(4, 1, 4, 5, 7, 12),
+            Block.box(5, 1, 4, 11, 7, 5),
+            Block.box(5, 1, 11, 11, 7, 12),
+            Block.box(5, 0, 5, 11, 2, 11),
+            Block.box(11, 1, 4, 12, 7, 12)
     ).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
 
 

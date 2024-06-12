@@ -76,11 +76,6 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
                     e.printStackTrace();
                 }
             }
-            else{
-
-                if(bufferIn instanceof MultiBufferSource.BufferSource)
-                    tileEntityIn.drawing.drawBaseButtons(tileEntityIn, matrixStackIn, (MultiBufferSource.BufferSource) bufferIn, combinedLightIn, combinedOverlayIn, false, false, tag.getInt("chapter"), tag.getInt("page"), false, ItemDisplayContext.NONE, true);
-            }
 
             matrixStackIn.pushPose();
             matrixStackIn.translate(8f / 16f, 18f / 16f, 8f / 16f);
@@ -94,8 +89,8 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, (-0.5f * (tileEntityIn.degreesFloppedRender / 90)) / 16f, (float) Math.sin((tileEntityIn.degreesFloppedRender) / 57.1f) / 32f);
             DyeColor col = HexereiUtil.getDyeColorNamed(stack.getHoverName().getString());
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER.get().defaultBlockState(), HexereiUtil.getColorValue(HexereiBookItem.getColor2(stack)));
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColorStatic(stack) : HexereiUtil.getColorValue(col));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER.get().defaultBlockState(), HexereiBookItem.getColor2(stack));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_COVER_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColor1(stack) : HexereiUtil.getColorValue(col));
             matrixStackIn.popPose();
 
             matrixStackIn.pushPose();
@@ -109,8 +104,8 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
             matrixStackIn.mulPose(Axis.XP.rotationDegrees(tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
             matrixStackIn.translate(0, (-0.5f * (tileEntityIn.degreesFloppedRender / 90)) / 16f, -(float) Math.sin((tileEntityIn.degreesFloppedRender) / 57.1f) / 32f);
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK.get().defaultBlockState(), HexereiUtil.getColorValue(HexereiBookItem.getColor2(stack)));
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColorStatic(stack) : HexereiUtil.getColorValue(col));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK.get().defaultBlockState(), HexereiBookItem.getColor2(stack));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BACK_CORNERS.get().defaultBlockState(), col == null ? HexereiBookItem.getColor1(stack) : HexereiUtil.getColorValue(col));
             matrixStackIn.popPose();
 
             matrixStackIn.pushPose();
@@ -121,7 +116,7 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
             matrixStackIn.mulPose(Axis.XP.rotationDegrees(-(tileEntityIn.degreesOpenedRender / 2 + 45)));
             matrixStackIn.mulPose(Axis.YP.rotationDegrees(-tileEntityIn.degreesFloppedRender));
             matrixStackIn.translate(0, 0, -(tileEntityIn.degreesFloppedRender / 10f) / 32);
-            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BINDING.get().defaultBlockState(), HexereiUtil.getColorValue(HexereiBookItem.getColor2(stack)));
+            renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_BINDING.get().defaultBlockState(), HexereiBookItem.getColor2(stack));
             matrixStackIn.popPose();
 
             if(tileEntityIn.degreesFloppedRender != 90){

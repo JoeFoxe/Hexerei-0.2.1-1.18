@@ -45,15 +45,6 @@ public class DyeableCarpetItem extends BlockItem {
         void register(ItemColor handler, ItemLike... items);
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List< Component > tooltip, TooltipFlag flagIn) {
-        tooltip.add(Component.translatable("tooltip.hexerei.connected_texture").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-        tooltip.add(Component.translatable("tooltip.hexerei.can_be_dyed").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-        super.appendHoverText(stack, world, tooltip, flagIn);
-    }
-
-
-
     @org.jetbrains.annotations.Nullable
     @Override
     protected BlockState getPlacementState(BlockPlaceContext pContext) {
@@ -67,6 +58,8 @@ public class DyeableCarpetItem extends BlockItem {
                 return ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get().getStateForPlacement(pContext);
             if (ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get().parentBlock == this.getBlock())
                 return ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get().getStateForPlacement(pContext);
+            if (ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_SLAB.get().parentBlock == this.getBlock())
+                return ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_SLAB.get().getStateForPlacement(pContext);
         }
         if(block instanceof StairBlock && blockState.hasProperty(BlockStateProperties.HALF) && blockState.getValue(BlockStateProperties.HALF) == Half.BOTTOM) {
             if (ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get().parentBlock == this.getBlock())

@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/flower_pot_cross",
-  "textures": {
-    "plant": "hexerei:block/potted_mandrake_flower"
-  },
-  "render_type": "cutout"
-}

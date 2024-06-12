@@ -2,18 +2,18 @@
 {
   "variants": {
     "facing=east": {
-      "model": "hexerei:block/pestle_and_mortar",
+      "model": "hexerei:block/pestle_and_mortar_new",
       "y": 270
     },
     "facing=north": {
-      "model": "hexerei:block/pestle_and_mortar",
+      "model": "hexerei:block/pestle_and_mortar_new",
       "y": 180
     },
     "facing=south": {
-      "model": "hexerei:block/pestle_and_mortar"
+      "model": "hexerei:block/pestle_and_mortar_new"
     },
     "facing=west": {
-      "model": "hexerei:block/pestle_and_mortar",
+      "model": "hexerei:block/pestle_and_mortar_new",
       "y": 90
     }
   }

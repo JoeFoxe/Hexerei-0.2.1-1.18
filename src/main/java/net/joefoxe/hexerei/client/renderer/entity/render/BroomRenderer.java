@@ -158,6 +158,10 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
         if(entityIn.itemHandler.getStackInSlot(1).is(HexereiTags.Items.ALL_SATCHELS)) {
             if(satchelStack.getItem() instanceof BroomAttachmentItem satchelItem && satchelItem.model != null){
 
+                if(broomType.item() instanceof BroomItem broomItem) {
+                    matrixStackIn.translate(broomItem.getSatchelOffset().x(), broomItem.getSatchelOffset().y(), broomItem.getSatchelOffset().z());
+                }
+
                 Model satchelModel = satchelItem.model;
                 VertexConsumer vertexConsumer = bufferIn.getBuffer(satchelModel.renderType(satchelItem.texture));
                 satchelModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
@@ -188,6 +192,10 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
         if(miscStack.is(HexereiTags.Items.BROOM_MISC)) {
             if(miscStack.getItem() instanceof KeychainItem keychainItem && keychainItem.model != null)
             {
+
+                if(broomType.item() instanceof BroomItem broomItem) {
+                    matrixStackIn.translate(broomItem.getTipOffset().x(), broomItem.getTipOffset().y(), broomItem.getTipOffset().z());
+                }
 
                 Model broomKeychainModel = keychainItem.model;
                 VertexConsumer ivertexbuilderRings = bufferIn.getBuffer(broomKeychainModel.renderType(keychainItem.texture));

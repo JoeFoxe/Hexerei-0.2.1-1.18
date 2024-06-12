@@ -103,7 +103,7 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
 
     @Override
     public InteractionResult place(BlockPlaceContext context) {
-        if(context.getPlayer() != null && context.getPlayer().isSteppingCarefully())
+        if(context.getPlayer() != null && !context.getPlayer().isSteppingCarefully())
             return InteractionResult.PASS;
         return super.place(context);
     }
@@ -123,7 +123,7 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
 
         playerIn.startUsingItem(handIn);
         if (!level.isClientSide) {
-            if (playerIn.isShiftKeyDown() && itemstack.getCount() == 1) {
+            if (!playerIn.isSteppingCarefully() && itemstack.getCount() == 1) {
 
                 MenuProvider containerProvider = createContainerProvider(itemstack, handIn, itemstack.getTag());
 
@@ -131,7 +131,7 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
 
             }
         }
-        return InteractionResultHolder.success(itemstack);
+        return playerIn.isSteppingCarefully() ? InteractionResultHolder.pass(itemstack) : InteractionResultHolder.success(itemstack);
     }
 
     private MenuProvider createContainerProvider(ItemStack itemStack, InteractionHand hand, CompoundTag list) {

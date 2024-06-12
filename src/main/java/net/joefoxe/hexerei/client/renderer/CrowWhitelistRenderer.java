@@ -6,7 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.block.custom.PickableDoubleFlower;
+import net.joefoxe.hexerei.block.custom.PickableDoublePlant;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
@@ -36,13 +35,11 @@ import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.minecraftforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
 @OnlyIn(Dist.CLIENT)
 public class CrowWhitelistRenderer implements IGuiOverlay {
     private static final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
             "textures/gui/crow_gui.png");
-    public static final Quaternionf ARMOR_STAND_ANGLE = (new Quaternionf()).rotationXYZ(0.43633232F, 0.0F, (float)Math.PI);
     @Override //(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight)
     public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
         PoseStack poseStack = guiGraphics.pose();
@@ -53,10 +50,9 @@ public class CrowWhitelistRenderer implements IGuiOverlay {
             RenderSystem.setShaderTexture(0, GUI);
             guiGraphics.blit(GUI, screenWidth / 2 - 9, screenHeight - 42, 238, 178, 18, 18, 256, 256);
 
-            InventoryScreen.renderEntityInInventory(guiGraphics, screenWidth / 2, screenHeight - 78, 40, ARMOR_STAND_ANGLE, (Quaternionf)null, CrowWhitelistEvent.whiteListingCrow);
+            InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, screenWidth / 2, screenHeight - 78, 40, (float)Math.toRadians(-50), (float)Math.toRadians(10), CrowWhitelistEvent.whiteListingCrow);
 
             if(!CrowWhitelistEvent.whiteListingCrow.harvestWhitelist.isEmpty()){
-                ItemRenderer renderer = Minecraft.getInstance().getItemRenderer();
                 RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
                 RenderSystem.enableBlend();
                 RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
@@ -102,10 +98,10 @@ public class CrowWhitelistRenderer implements IGuiOverlay {
                     if(state.hasProperty(BlockStateProperties.BERRIES))
                         state = state.setValue(BlockStateProperties.BERRIES, true);
                     renderBlock(poseStack, buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
-                    if(state.hasProperty(PickableDoubleFlower.HALF)){
+                    if(state.hasProperty(PickableDoublePlant.HALF)){
                         poseStack.pushPose();
                         poseStack.translate(0F, 1, 0.0F);
-                        state = state.setValue(PickableDoubleFlower.HALF, DoubleBlockHalf.UPPER);
+                        state = state.setValue(PickableDoublePlant.HALF, DoubleBlockHalf.UPPER);
                         renderBlock(poseStack, buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
                         poseStack.popPose();
                     }

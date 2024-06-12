@@ -2,7 +2,7 @@
 {
   "variants": {
     "": {
-      "model": "hexerei:block/pestle_and_mortar_pestle"
+      "model": "hexerei:block/pestle_and_mortar_pestle_new"
     }
   }
 }

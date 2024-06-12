@@ -451,10 +451,6 @@ public class ConnectingCarpetStairs extends CarpetBlock implements Waxed, CTDyab
             DyeColor dyecolor = dyeItem.getDyeColor();
             if(this.getDyeColor(pState) == dyecolor)
                 return InteractionResult.FAIL;
-            if(this.parentBlock == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get())
-                return InteractionResult.FAIL;
-            if(this.parentBlock instanceof ConnectingCarpetDyed carpetDyed && carpetDyed.getDyeColor(pState) == dyecolor)
-                return InteractionResult.FAIL;
 
             if (player instanceof ServerPlayer) {
                 CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, player.getItemInHand(pHand));
@@ -464,10 +460,10 @@ public class ConnectingCarpetStairs extends CarpetBlock implements Waxed, CTDyab
                     .setValue(RIGHT, checkRight(pState, blockpos, pLevel))
                     .setValue(LEFT, checkLeft(pState, blockpos, pLevel)).setValue(COLOR, dyecolor);
 
-            if(!player.isCreative())
-                player.getItemInHand(pHand).shrink(1);
-            if(!player.isCreative() && pState.getBlock() == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get())
+            if(pState.getBlock() == ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get()) {
                 Block.popResource(pLevel, blockpos, new ItemStack(Items.GOLD_NUGGET));
+                newBlockstate = ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get().defaultBlockState().setValue(COLOR, dyecolor);
+            }
 
             pLevel.setBlockAndUpdate(blockpos, newBlockstate);
             pLevel.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, newBlockstate));

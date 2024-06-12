@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.Entity;
@@ -42,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 public class CofferTile extends RandomizableContainerBlockEntity implements WorldlyContainer, Clearable {
@@ -276,7 +278,9 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
 //    @Override
     public CompoundTag save(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.put("inv", itemStackHandler.serializeNBT());
+
+        if (!this.trySaveLootTable(tag))
+            tag.put("inv", itemStackHandler.serializeNBT());
         tag.putInt("ButtonToggled", this.buttonToggled);
         tag.putInt("DyeColor", this.dyeColor);
         return tag;
@@ -285,7 +289,8 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
 
     @Override
     public void saveAdditional(CompoundTag compound) {
-        compound.put("inv", itemStackHandler.serializeNBT());
+        if (!this.trySaveLootTable(compound))
+            compound.put("inv", itemStackHandler.serializeNBT());
         if (this.customName != null)
             compound.putString("CustomName", Component.Serializer.toJson(this.customName));
         compound.putInt("ButtonToggled", this.buttonToggled);
@@ -298,7 +303,9 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
     @Override
     public void load(CompoundTag compoundTag) {
         super.load(compoundTag);
-        itemStackHandler.deserializeNBT(compoundTag.getCompound("inv"));
+        if (!tryLoadLootTable(compoundTag)){
+            itemStackHandler.deserializeNBT(compoundTag.getCompound("inv"));
+        }
         if (compoundTag.contains("CustomName", 8))
             this.customName = Component.Serializer.fromJson(compoundTag.getString("CustomName"));
         if(compoundTag.contains("ButtonToggled"))
@@ -515,6 +522,8 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
         Player playerEntity = this.level.getNearestPlayer(this.worldPosition.getX(),this.worldPosition.getY(),this.worldPosition.getZ(), 5D, false);
         if(playerEntity != null) {
             if (Math.floor(getDistanceToEntity(playerEntity, this.worldPosition)) < 4D) {
+                if (!this.level.isClientSide)
+                    unpackLootTable(playerEntity);
                 int distanceFromSide = (lidOpenAmount / 2) - Math.abs((lidOpenAmount / 2) - this.degreesOpened);
                 flag = true;
 
@@ -544,7 +553,7 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
 
     @Override
     public int getContainerSize() {
-        return 0;
+        return 36;
     }
 
     @Override

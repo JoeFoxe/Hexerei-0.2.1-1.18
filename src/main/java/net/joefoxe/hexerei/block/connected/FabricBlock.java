@@ -94,20 +94,20 @@ public class FabricBlock extends WaxedLayeredBlock implements CTDyable {
 	public InteractionResult use(BlockState pState, Level pLevel, BlockPos blockpos, Player player, InteractionHand pHand, BlockHitResult pHit) {
 		if(player.getItemInHand(pHand).getItem() instanceof DyeItem dyeItem) {
 			DyeColor dyecolor = dyeItem.getDyeColor();
-			if(pState.getBlock() == ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get())
-				return InteractionResult.FAIL;
-			if(this.getDyeColor(pState) == dyecolor)
-				return InteractionResult.FAIL;
+			if(pState.getBlock() != ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get())
+				if(this.getDyeColor(pState) == dyecolor)
+					return InteractionResult.FAIL;
 
 			if (player instanceof ServerPlayer) {
 				CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, player.getItemInHand(pHand));
 			}
 			BlockState newBlockstate = pLevel.getBlockState(blockpos).setValue(COLOR, dyecolor);
 
-			if(!player.isCreative())
-				player.getItemInHand(pHand).shrink(1);
-			if(!player.isCreative() && pState.getBlock() == ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get())
+			if(pState.getBlock() == ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get()) {
 				Block.popResource(pLevel, blockpos, new ItemStack(Items.GOLD_NUGGET));
+				newBlockstate = ModBlocks.INFUSED_FABRIC_BLOCK.get().defaultBlockState().setValue(COLOR, dyecolor);
+			}
+
 			pLevel.setBlockAndUpdate(blockpos, newBlockstate);
 			pLevel.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, newBlockstate));
 			pLevel.levelEvent(player, 3003, blockpos, 0);

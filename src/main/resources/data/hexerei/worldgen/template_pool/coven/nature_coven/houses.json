@@ -3,7 +3,7 @@
   "fallback": "minecraft:empty",
   "elements": [
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/pots_shop",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -12,7 +12,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/witch_house_1",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -21,7 +21,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/witch_house_2",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -30,7 +30,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/witch_house_3",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -39,7 +39,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/witch_house_4",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -48,7 +48,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/witch_house_5",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -57,7 +57,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/witch_house_6",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -66,7 +66,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/garden_2",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -75,7 +75,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/gazebo_1",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -84,7 +84,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/gazebo_2",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",
@@ -93,7 +93,7 @@
       }
     },
     {
-      "weight": 150,
+      "weight": 75,
       "element": {
         "location": "hexerei:coven/nature_coven/houses/flower_garden_1",
         "processors": "hexerei:coven/nature_coven/nature_coven_legs",

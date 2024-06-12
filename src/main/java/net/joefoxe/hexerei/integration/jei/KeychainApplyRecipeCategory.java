@@ -121,7 +121,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
 
         builder.addSlot(RecipeIngredientRole.INPUT,15, 19).addItemStack(new ItemStack(ModItems.BROOM_KEYCHAIN.get()));
 
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 109, 37).addItemStack(new ItemStack(ModItems.BROOM_KEYCHAIN.get()));
+//        builder.addSlot(RecipeIngredientRole.OUTPUT, 109, 37).addItemStack(new ItemStack(ModItems.BROOM_KEYCHAIN.get()));
 
     }
 

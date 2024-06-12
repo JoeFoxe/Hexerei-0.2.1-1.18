@@ -7,7 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.block.custom.PickableDoubleFlower;
+import net.joefoxe.hexerei.block.custom.PickableDoublePlant;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.container.CrowContainer;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
@@ -50,7 +50,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
 import static net.joefoxe.hexerei.container.CofferContainer.OFFSET;
 
@@ -313,6 +312,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
                 components.add(Component.translatable("tooltip.hexerei.crow_flute_pickpocket_button_1").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 components.add(Component.translatable("tooltip.hexerei.crow_flute_pickpocket_button_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 components.add(Component.translatable("tooltip.hexerei.crow_flute_pickpocket_button_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                components.add(Component.translatable("tooltip.hexerei.crow_flute_pickpocket_button_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             } else {
                 components.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
@@ -453,15 +453,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
         RenderSystem.setShaderTexture(0, GUI);
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
 
-        if (crowEntity != null) {
-
-            float angle = 0.0f;
-            Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
-            Quaternionf quaternionf1 = (new Quaternionf()).rotateX(angle * 20.0F * ((float)Math.PI / 180F));
-            quaternionf.mul(quaternionf1);
-
-            InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 94, j - 10, 30, quaternionf, quaternionf1, crowEntity);
-        }
+        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 94, j - 10, 25, (float)(i + 51) - x, (float)(j + 75 - 50) - y, crowEntity);
 
         RenderSystem.disableDepthTest();
 //        if(crowEntity.getCrowType() == CrowEntity.Type.MAHOGANY)
@@ -588,10 +580,10 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
 
                 guiGraphics.pose().scale((whitelistOffset - 21) / 8f, (whitelistOffset - 21) / 8f, (whitelistOffset - 21) / 8f);
                 renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
-                if(state.hasProperty(PickableDoubleFlower.HALF)){
+                if(state.hasProperty(PickableDoublePlant.HALF)){
                     guiGraphics.pose().pushPose();
                     guiGraphics.pose().translate(0F, 1, 0.0F);
-                    state = state.setValue(PickableDoubleFlower.HALF, DoubleBlockHalf.UPPER);
+                    state = state.setValue(PickableDoublePlant.HALF, DoubleBlockHalf.UPPER);
                     renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
                     guiGraphics.pose().popPose();
                 }

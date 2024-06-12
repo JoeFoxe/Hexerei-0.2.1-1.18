@@ -4,5 +4,5 @@
     "edge": "minecraft:block/stone",
     "pane": "hexerei:block/stone_window_pane"
   },
-  "render_type": "cutout_mipped"
+  "render_type": "translucent"
 }

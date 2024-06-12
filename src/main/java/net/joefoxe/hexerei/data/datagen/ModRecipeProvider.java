@@ -387,6 +387,12 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 				Item stripped_log = ForgeRegistries.ITEMS.getValue(new ResourceLocation(stripped_log_loc));
 				Item log = ForgeRegistries.ITEMS.getValue(new ResourceLocation(log_loc));
 
+				if (reg.equals(wood) && stripped_wood != null && stripped_wood != Items.AIR)
+					new WoodcutterRecipeBuilder(block.asItem(), stripped_wood, 1, 1, type)
+						.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, stripped_wood, reg));
+				if (reg.equals(log) && stripped_log != null && stripped_log != Items.AIR)
+					new WoodcutterRecipeBuilder(block.asItem(), stripped_log, 1, 1, type)
+						.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, stripped_log, reg));
 
 				if (reg.equals(stripped_wood) || reg.equals(wood) || reg.equals(log) || reg.equals(stripped_log)) {
 					for (Item planks : planks_list) {

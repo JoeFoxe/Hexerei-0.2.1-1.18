@@ -355,8 +355,7 @@ public class Coffer extends BaseEntityBlock implements ITileEntity<CofferTile>, 
                     tooltip.add(Component.translatable("tooltip.hexerei.coffer_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                     tooltip.add(Component.translatable("tooltip.hexerei.coffer_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                     tooltip.add(Component.translatable("tooltip.hexerei.coffer_shift_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-                    tooltip.add(Component.translatable("tooltip.hexerei.coffer_shift_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-                    tooltip.add(Component.translatable("tooltip.hexerei.coffer_shift_5").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                    tooltip.add(Component.translatable("tooltip.hexerei.dyeable").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 }
             }
 

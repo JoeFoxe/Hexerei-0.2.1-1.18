@@ -106,7 +106,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                 tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-                tooltip.add(Component.translatable("Heat source shown: - %s", Component.translatable(heatSource.getDescriptionId()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCC5522)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltip.add(Component.translatable("tooltip.hexerei.heat_source_shown", Component.translatable(heatSource.getDescriptionId()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCC5522)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             } else {
                 tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
@@ -219,8 +219,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                     .setFluidRenderer(2000, true, 12, 10)
                     .setBackground(this.cauldron, 0, 0)
                     .setOverlay(this.cauldron, 0, 0)
-                    .addFluidStack(recipe.getLiquidOutput().getFluid(), 2000, recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getTag() : new CompoundTag())
-                    .addTooltipCallback(HexereiJei.addFluidTooltip(recipe.getFluidLevelsConsumed(), Component.translatable("Leftover fluid is mixed into this")));
+                    .addFluidStack(recipe.getLiquidOutput().getFluid(), 2000, recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getTag() : new CompoundTag());
         }
 
         if(!input.isEmpty()) {
@@ -228,8 +227,7 @@ public class MixingCauldronRecipeCategory implements IRecipeCategory<MixingCauld
                     .setFluidRenderer(2000, false, 16, 32)
                     .setBackground(this.liquid, 0, 0)
                     .setOverlay(this.liquid, 0, 0)
-                    .addFluidStack(recipe.getLiquid().getFluid(), recipe.getFluidLevelsConsumed(), recipe.getLiquid().hasTag() ? recipe.getLiquid().getTag() : new CompoundTag())
-                    .addTooltipCallback(HexereiJei.addFluidTooltip());
+                    .addFluidStack(recipe.getLiquid().getFluid(), recipe.getFluidLevelsConsumed(), recipe.getLiquid().hasTag() ? recipe.getLiquid().getTag() : new CompoundTag());
         }
         int size = recipe.getIngredients().size();
 

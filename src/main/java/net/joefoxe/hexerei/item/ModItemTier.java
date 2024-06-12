@@ -8,8 +8,8 @@ import java.util.function.Supplier;
 
 public enum ModItemTier implements Tier {
 
-    ARMOR_SCRAP(4, 2031, 9.0F, 4.0F, 15,
-            () -> Ingredient.of(ModItems.ARMOR_SCRAP.get()));
+    INFUSED_FABRIC(4, 2031, 9.0F, 4.0F, 15,
+            () -> Ingredient.of(ModItems.INFUSED_FABRIC.get()));
 
     private final int harvestLevel;
     private final int maxUses;

@@ -104,7 +104,7 @@ public class CofferScreen extends AbstractContainerScreen<CofferContainer> {
                 this.topPos - 25 - OFFSET);
 
         if(this.minecraft.player != null)
-            InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 107, this.topPos + 88 - OFFSET, 20, (new Quaternionf()).rotationXYZ(0.43633232F, 0.0F, (float)Math.PI), (Quaternionf)null, this.minecraft.player);
+            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 107, this.topPos + 88 - OFFSET, 20, (float)(i + 51) - x, (float)(j + 75 - 50) - y, this.minecraft.player);
 
         RenderSystem.enableDepthTest();
 

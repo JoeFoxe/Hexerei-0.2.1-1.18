@@ -34,7 +34,7 @@ public final class ModKeyBindings {
     static {
 
         allBindings = List.of(
-                broomDescend = new KeyMapping("key.hexerei.broomDescend", KeyConflictContext.IN_GAME, getKey(GLFW.GLFW_KEY_LEFT_SHIFT), broom_category),
+                broomDescend = new KeyMapping("key.hexerei.broomDescend", KeyConflictContext.IN_GAME, getKey(GLFW.GLFW_KEY_LEFT_CONTROL), broom_category),
 
                 bookJEIShowUses = new KeyMapping("key.hexerei.book_hovering_uses", KeyConflictContext.IN_GAME, getKey(GLFW.GLFW_KEY_U), book_hovering_category),
                 bookJEIShowRecipe = new KeyMapping("key.hexerei.book_hovering_recipe", KeyConflictContext.IN_GAME, getKey(GLFW.GLFW_KEY_R), book_hovering_category),

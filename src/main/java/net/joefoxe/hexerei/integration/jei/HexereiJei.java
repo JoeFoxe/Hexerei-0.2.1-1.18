@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.integration.jei;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
@@ -210,15 +211,6 @@ public class HexereiJei implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
 
-//        HexereiRecipeCategory<?>
-//
-//                milling = builder(AbstractCrushingRecipe.class)
-//                .addTypedRecipes(AllRecipeTypes.MILLING)
-//                .catalyst(AllBlocks.MILLSTONE::get)
-//                .doubleItemIcon(AllBlocks.MILLSTONE.get(), AllItems.WHEAT_FLOUR.get())
-//                .emptyBackground(177, 53)
-//                .build("milling", MillingCategory::new),
-
         if(PotionMixingRecipes.ALL == null || PotionMixingRecipes.ALL.isEmpty())
             PotionMixingRecipes.ALL = PotionMixingRecipes.createRecipes();
 
@@ -234,6 +226,9 @@ public class HexereiJei implements IModPlugin {
                 new DipperRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new PestleAndMortarRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new WoodcutterRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new BottlingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new BloodSigilRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new PlantPickingRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new DryingRackRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
@@ -242,6 +237,8 @@ public class HexereiJei implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(MixingCauldronRecipeCategory.UID, MixingCauldronRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(FluidMixingRecipeCategory.UID, FluidMixingRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(FluidMixingRecipeCategory.POTION_UID, FluidMixingRecipe.class));
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(BottlingRecipeCategory.UID, BottlingRecipeJEI.class));
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(DipperRecipeCategory.UID, DipperRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.CANDLE_DIPPER.get()), new RecipeType<>(DipperRecipeCategory.UID, DipperRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.HERB_DRYING_RACK.get()), new RecipeType<>(DryingRackRecipeCategory.UID, DryingRackRecipe.class));
@@ -255,6 +252,8 @@ public class HexereiJei implements IModPlugin {
         registration.addRecipeClickArea(MixingCauldronScreen.class, 101, 41, 24, 24,
                 new RecipeType<>(MixingCauldronRecipeCategory.UID, MixingCauldronRecipe.class),
                 new RecipeType<>(FluidMixingRecipeCategory.UID, FluidMixingRecipe.class),
+                new RecipeType<>(BottlingRecipeCategory.UID, BottlingRecipeJEI.class),
+                new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class),
                 new RecipeType<>(FluidMixingRecipeCategory.POTION_UID, FluidMixingRecipe.class));
 
         registration.addGuiContainerHandler(MixingCauldronScreen.class, new IGuiContainerHandler<>() {
@@ -336,7 +335,8 @@ public class HexereiJei implements IModPlugin {
             book_recipe = book_recipe.stream().filter((craftingRecipe) -> {
                 return craftingRecipe instanceof BookOfShadowsRecipe;
             }).toList();
-            registration.addRecipes(new RecipeType<>(BookOfShadowsRecipeCategory.UID, BookOfShadowsRecipe.class), book_recipe);
+//            registration.addRecipes(new RecipeType<>(BookOfShadowsRecipeCategory.UID, BookOfShadowsRecipe.class), book_recipe);
+            registration.addRecipes(RecipeTypes.CRAFTING, book_recipe);
 
             keychainRecipe = keychainRecipe.stream().filter((craftingRecipe) -> {
                 return craftingRecipe instanceof KeychainRecipe;
@@ -362,6 +362,15 @@ public class HexereiJei implements IModPlugin {
 
         List<WoodcutterRecipe> woodcutter_recipes = rm.getAllRecipesFor(WoodcutterRecipe.Type.INSTANCE);
         registration.addRecipes(new RecipeType<>(WoodcutterRecipeCategory.UID, WoodcutterRecipe.class), woodcutter_recipes);
+
+        List<BottlingRecipeJEI> bottling_recipes = BottlingRecipeJEI.getRecipeList();
+        registration.addRecipes(new RecipeType<>(BottlingRecipeCategory.UID, BottlingRecipeJEI.class), bottling_recipes);
+
+        List<BloodSigilRecipeJEI> blood_sigil_recipes = BloodSigilRecipeJEI.getRecipeList();
+        registration.addRecipes(new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class), blood_sigil_recipes);
+
+        List<PlantPickingRecipeJEI> plant_picking_recipes = PlantPickingRecipeJEI.getRecipeList();
+        registration.addRecipes(new RecipeType<>(PlantPickingRecipeCategory.UID, PlantPickingRecipeJEI.class), plant_picking_recipes);
     }
 
 

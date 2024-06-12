@@ -1538,13 +1538,13 @@ public class PageDrawing {
         if (this.drawTooltipStack && tileEntityIn.turnPage == 0) {
             this.drawTooltipStackFlag = true;
             this.drawTooltipTextFlag = false;
-            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, 0.004f);
+            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, partialTicks * 0.02f);
         } else if (this.drawTooltipText && tileEntityIn.turnPage == 0) {
             this.drawTooltipTextFlag = true;
             this.drawTooltipStackFlag = false;
-            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, 0.004f);
+            this.drawTooltipScale = moveTo(this.drawTooltipScale, 1f, partialTicks * 0.02f);
         } else {
-            this.drawTooltipScale = moveTo(this.drawTooltipScale, 0, 0.005f);
+            this.drawTooltipScale = moveTo(this.drawTooltipScale, 0, partialTicks * 0.03f);
             if (this.drawTooltipScale == 0) {
                 this.drawTooltipStackFlag = false;
                 this.drawTooltipTextFlag = false;

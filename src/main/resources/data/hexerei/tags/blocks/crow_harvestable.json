@@ -1,8 +1,8 @@
 {
   "replace": false,
   "values": [
-    "hexerei:belladonna_flower",
-    "hexerei:mandrake_flower",
+    "hexerei:belladonna_plant",
+    "hexerei:mandrake_plant",
     "hexerei:yellow_dock_bush",
     "hexerei:mugwort_bush",
     "minecraft:cave_vines",

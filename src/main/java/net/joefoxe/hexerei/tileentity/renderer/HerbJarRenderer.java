@@ -92,16 +92,16 @@ public class HerbJarRenderer implements BlockEntityRenderer<HerbJarTile> {
             BlockState state = null; //ModBlocks.HERB_JAR_GENERIC.get().defaultBlockState()
 
             Item item = tileEntityIn.itemHandler.getContents().get(0).getItem();
-            if(item == ModBlocks.BELLADONNA_FLOWER.get().asItem() ||
+            if(item == ModBlocks.BELLADONNA_PLANT.get().asItem() ||
                     item == ModItems.BELLADONNA_FLOWERS.get().asItem())
                 state = ModBlocks.HERB_JAR_BELLADONNA.get().defaultBlockState();
             if(item == ModBlocks.MUGWORT_BUSH.get().asItem() ||
                     item == ModItems.MUGWORT_LEAVES.get().asItem() ||
                     item == ModItems.MUGWORT_FLOWERS.get().asItem())
                 state = ModBlocks.HERB_JAR_MUGWORT.get().defaultBlockState();
-            if(item == ModBlocks.MANDRAKE_FLOWER.get().asItem() ||
+            if(item == ModBlocks.MANDRAKE_PLANT.get().asItem() ||
                     item == ModItems.MANDRAKE_FLOWERS.get().asItem())
-                state = ModBlocks.HERB_JAR_MANDRAKE_FLOWER.get().defaultBlockState();
+                state = ModBlocks.HERB_JAR_MANDRAKE_PLANT.get().defaultBlockState();
             if(item == ModItems.MANDRAKE_ROOT.get())
                 state = ModBlocks.HERB_JAR_MANDRAKE_ROOT.get().defaultBlockState();
             if(item == ModBlocks.YELLOW_DOCK_BUSH.get().asItem() ||

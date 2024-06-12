@@ -113,7 +113,7 @@ public class ExtraBookOfShadowsIcon implements IDrawable {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 
-        ItemStack output_stack = HexereiBookItem.withColors(color1);
+        ItemStack output_stack = HexereiBookItem.withColors(color1, color2);
 //        output_stack.getOrCreateTagElement("display").putInt("color", color2);
         renderItem(output_stack, Minecraft.getInstance().level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
 

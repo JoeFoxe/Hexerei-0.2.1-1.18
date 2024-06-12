@@ -473,7 +473,7 @@ public class SageBurningPlateTile extends RandomizableContainerBlockEntity imple
                 BlockPos pos2 = new BlockPos(worldPosition.getX() + (int) (0.5f + vec2.x()), worldPosition.getY() + (int) (0.25f + vec2.y()), worldPosition.getZ() + (int) (0.5f + vec2.z()));
 
                 if (rand.nextInt(40) == 0 && (this.getBlockState().getValue(SageBurningPlate.MODE) == 0 || this.getBlockState().getValue(SageBurningPlate.MODE) == 1)) {
-                    BlockPos pos = new BlockPos(worldPosition.getX() + (int) (0.5f + vec2.x()), worldPosition.getY() + (int) (0.25f + vec2.y()), worldPosition.getZ() + (int) (0.5f + vec2.z()));
+                    BlockPos pos = new BlockPos(worldPosition.getX() + (int) (0.5f + vec.x()), worldPosition.getY() + (int) (0.25f + vec.y()), worldPosition.getZ() + (int) (0.5f + vec.z()));
 
                     if ((!level.getBlockState(pos.below()).isAir() || !level.getBlockState(pos.below().below()).isAir()) && level.getBlockState(pos).isAir())
                         level.addParticle(ModParticleTypes.FOG.get(), pos.getX(), pos.getY(), pos.getZ(), (rand.nextDouble() - 0.5d) / 15d, (rand.nextDouble() + 0.5d) * 0.015d, (rand.nextDouble() - 0.5d) / 15d);

@@ -56,13 +56,13 @@
       "type": "item",
       "x": 0,
       "y": 2,
-      "name": "hexerei:mandrake_flower"
+      "name": "hexerei:mandrake_plant"
     },
     {
       "type": "item",
       "x": 1,
       "y": 2,
-      "name": "hexerei:belladonna_flower"
+      "name": "hexerei:belladonna_plant"
     },
     {
       "type": "item",
