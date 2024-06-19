@@ -2990,7 +2990,7 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
                         CrowEntity.this.peck();
                         HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowPeckPacket(CrowEntity.this));
 
-                        CrowEntity.this.pickpocketTimer = HexConfig.CROW_PICKPOCKET_COOLDOWN.get() / 10;
+                        CrowEntity.this.pickpocketTimer = HexConfig.CROW_PICKPOCKET_COOLDOWN.get();
                         BlockPos pos = RandomPos.generateRandomDirection(this.entity.getRandom(), 4, 1);
                         flightTarget = new Vec3(pos.getX() + CrowEntity.this.position().x, pos.getY() + CrowEntity.this.position().y + 2.0f, pos.getZ() + CrowEntity.this.position().z);
                         walkToIfNotFlyTo(this.flightTarget);
@@ -3080,14 +3080,14 @@ public class CrowEntity extends TamableAnimal implements ContainerListener, Flyi
         }
         @Override
         public boolean canUse() {
-            if (!this.crow.bringItemHomeActive)
+            if (!this.crow.bringItemHomeActive || this.crow.getCommandSit())
                 return false;
             return true;
         }
 
         @Override
         public boolean canContinueToUse() {
-            if (!this.crow.bringItemHomeActive)
+            if (!this.crow.bringItemHomeActive || this.crow.getCommandSit())
                 return false;
             return true;
         }

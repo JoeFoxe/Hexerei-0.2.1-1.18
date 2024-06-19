@@ -22,8 +22,13 @@ public class HexereiSupporterBenefits {
     public static final UUID HOWL = getUuid("af47ed24-0e01-43e4-9c8b-b9cec037a333");
     public static final UUID SHY = getUuid("7135da42-d327-47bb-bb04-5ba4e212fb32");
     public static final UUID HERBAL_FAT_CAT = getUuid("77a460e2-1a01-4798-ba76-5eeecad471b2");
+    public static final UUID CYROIL = getUuid("4ce55e73-a07e-4b7e-aec8-39e5e9d4d72a");
+    public static final UUID WAVECLAW = getUuid("02320102-6fc4-408b-8873-afe54b2dcae6");
+    public static final UUID KAIJA1624 = getUuid("2c67d443-185e-422b-8d1b-f6e3d3c393c1");
+    public static final UUID SLEEPY = getUuid("fbe0ad6b-f68c-408b-b4ef-343a48ff4b20");
+    public static final UUID MIZU = getUuid("8bbf2330-78d1-4ea7-945f-89b7a99298c2");
 
-    public static final Collection<UUID> supporters = new ArrayList<>(Arrays.asList(JOE, DEV, KAUPENJOE, WILLTARAX, ALEC, SAPHRYM, GWEN_WAV, HOWL, SHY, HERBAL_FAT_CAT));
+    public static final Collection<UUID> supporters = new ArrayList<>(Arrays.asList(JOE, DEV, KAUPENJOE, WILLTARAX, ALEC, SAPHRYM, GWEN_WAV, HOWL, SHY, HERBAL_FAT_CAT, CYROIL, WAVECLAW, KAIJA1624, SLEEPY, MIZU));
 
     public static boolean matchesSupporterUUID(UUID uuid){
 
