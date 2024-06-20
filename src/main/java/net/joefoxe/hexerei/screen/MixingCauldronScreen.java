@@ -1,13 +1,11 @@
 package net.joefoxe.hexerei.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.container.MixingCauldronContainer;
 import net.joefoxe.hexerei.fluid.PotionFluidHandler;
 import net.joefoxe.hexerei.integration.HexereiModNameTooltipCompat;
-import net.joefoxe.hexerei.integration.jei.HexereiJei;
 import net.joefoxe.hexerei.screen.renderer.FluidStackRenderer;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
@@ -18,7 +16,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -27,6 +24,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fml.ModList;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -190,10 +188,12 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
         int y = (height - imageHeight) / 2;
         if(isMouseAboveArea((int)pMouseX, (int)pMouseY, x, y, 42, 56)) {
 
-            if(button == 0)
-                HexereiJei.showRecipe(mixingCauldron.getFluidStack());
-            if(button == 1)
-                HexereiJei.showUses(mixingCauldron.getFluidStack());
+            if (ModList.get().isLoaded("jei")) {
+                if (button == 0)
+                    net.joefoxe.hexerei.integration.jei.HexereiJei.showRecipe(mixingCauldron.getFluidStack());
+                if (button == 1)
+                    net.joefoxe.hexerei.integration.jei.HexereiJei.showUses(mixingCauldron.getFluidStack());
+            }
         }
 
         if(isMouseOver(pMouseX, pMouseY, this.leftPos + 20 - (int)dumpOffset + 9, this.topPos + 56 + 9, 30, 14) && dumpOffset > 20){
@@ -203,10 +203,6 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
                 if (mixingCauldron.getLevel() != null && mixingCauldron.getLevel().isClientSide)
                     HexereiPacketHandler.sendToServer(new DrainCauldronToServer(this.mixingCauldron));
             }
-
-        }
-
-        if(isMouseOver(pMouseX, pMouseY, this.leftPos + 20 - (int)dumpOffset + 9, this.topPos + 56 + 9, 30, 14) && dumpOffset > 20){
 
         }
 

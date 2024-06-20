@@ -51,7 +51,7 @@ public class PotionMixingRecipes {
                 FluidStack fromFluid = PotionFluidHandler.getFluidFromPotion(mix.from.get(), bottleType, 1000);
                 FluidStack toFluid = PotionFluidHandler.getFluidFromPotion(mix.to.get(), bottleType, 1000);
                 if(mix.ingredient.getItems().length == 0 || mix.ingredient.getItems()[0] == null || mix.ingredient.getItems()[0].isEmpty())
-                    return null;
+                    continue;
 
                 mixingRecipes.add(createRecipe("potion_mixing_vanilla_" + recipeIndex++, mix.ingredient, fromFluid, toFluid));
             }
@@ -70,7 +70,7 @@ public class PotionMixingRecipes {
             PotionFluid.BottleType toBottleType = PotionFluidHandler.bottleTypeFromItem(to);
             Ingredient ingredient = mix.ingredient;
             if(mix.ingredient.getItems()[0] == null)
-                return null;
+                continue;
 
             for (Potion potion : ForgeRegistries.POTIONS.getValues()) {
                 if (potion == Potions.EMPTY) {

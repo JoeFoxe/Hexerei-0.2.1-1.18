@@ -7,6 +7,7 @@ import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.MixingCauldron;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
+import net.joefoxe.hexerei.util.HexereiTags;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -40,6 +41,8 @@ import org.joml.Matrix4f;
 import java.awt.*;
 import java.util.Objects;
 
+import static net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT;
+
 public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldronTile> {
 
     public static final float CORNERS = (float)MixingCauldron.SHAPE.min(Direction.Axis.X) + 3 / 16f;
@@ -53,6 +56,18 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
 
         if(!tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).hasBlockEntity() || !(tileEntityIn.getLevel().getBlockEntity(tileEntityIn.getBlockPos()) instanceof MixingCauldronTile))
             return;
+
+        boolean heated = false;
+        BlockState heatSource = tileEntityIn.getLevel().getBlockState(tileEntityIn.getPos().below());
+        if (heatSource.is(HexereiTags.Blocks.HEAT_SOURCES))
+            if (!heatSource.hasProperty(LIT) || heatSource.getValue(LIT))
+                heated = true;
+
+        float tickSpeed = Hexerei.getClientTicks() / 2.0f;
+
+        if (heated)
+            tickSpeed *= 3.0;
+
         // Rendering for the items inside the cauldron
         float craftPercent = 0;
         //Mixing the items
@@ -92,11 +107,11 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
                 if(fillPercentage > 0) {
                     matrixStackIn.translate(
                             0D + Math.sin(itemRotationOffset) / (3.5f + ((craftPercent * craftPercent) * 10.0f)),
-                            (Math.sin(Math.PI * (Hexerei.getClientTicks()) / 30 + (i * 20)) / 10) * 0.2D,
+                            (Math.sin(Math.PI * (tickSpeed) / 30 + (i * 20)) / 10) * 0.2D,
                             0D + Math.cos(itemRotationOffset)  / (3.5f + ((craftPercent * craftPercent) * 10.0f)));
-                    matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)((45 * i) -1f + (2 * Math.sin((tileEntityIn.degrees + i * 20) / 40)))));
-                    matrixStackIn.mulPose(Axis.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tileEntityIn.degrees + i * 22) / 40)))));
-                    matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tileEntityIn.degrees + i * 24) / 40))) ));
+                    matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)((45 * i) -1f + (2 * Math.sin((tickSpeed + i * 20) / 40)))));
+                    matrixStackIn.mulPose(Axis.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tickSpeed + i * 22) / 40)))));
+                    matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tickSpeed + i * 24) / 40))) ));
                     matrixStackIn.scale(1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f), 1 - (craftPercent * 0.5f));
                 } else {
                     matrixStackIn.translate(0D + Math.sin(itemRotationOffset) / 3.5, 0,0D + Math.cos(itemRotationOffset) / 3.5);
@@ -121,10 +136,10 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
             matrixStackIn.translate(0.5D, height + 1f / 256f, 0.5D);
 
             if(fillPercentage > 0) {
-                matrixStackIn.translate(0D,(Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D,0D);
-                matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((tileEntityIn.degrees + 20) / 40))) - ((craftPercent * craftPercent) * 720f)));
-                matrixStackIn.mulPose(Axis.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tileEntityIn.degrees + 22) / 40)))));
-                matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tileEntityIn.degrees + 24) / 40)))));
+                matrixStackIn.translate(0D,(Math.sin(Math.PI * (tickSpeed) / 60 + 20) / 10) * 0.2D,0D);
+                matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((tickSpeed + 20) / 40))) - ((craftPercent * craftPercent) * 720f)));
+                matrixStackIn.mulPose(Axis.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((tickSpeed + 22) / 40)))));
+                matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((tickSpeed + 24) / 40)))));
             } else {
                 matrixStackIn.mulPose(Axis.YP.rotationDegrees(45 - ((craftPercent * craftPercent) * 720f)));
                 matrixStackIn.mulPose(Axis.XP.rotationDegrees(85f));
@@ -137,9 +152,6 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
 
 
         }
-
-        //gives the wobble
-        tileEntityIn.degrees += partialTicks * 0.5f;
 
         if (tileEntityIn.getItemInSlot(9) == ModItems.BLOOD_SIGIL.get()) {
             if(tileEntityIn.getItemInSlot(9).asItem() == ModItems.BLOOD_SIGIL.get())

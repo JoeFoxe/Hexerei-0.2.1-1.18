@@ -196,9 +196,14 @@ public class Hexerei {
 		ModLootModifiers.init();
 		HexereiModNameTooltipCompat.init();
 
-//		BroomType.loadBroomTypes();
+		try {
+			Thread thread = new Thread(HexereiSupporterBenefits::init);
+			thread.setDaemon(true);
+			thread.start();
+		} catch(Exception err) {
+			err.printStackTrace();
+		}
 
-		IEventBus forgeEventBus = MinecraftForge.EVENT_BUS;
 
 		eventBus.addListener(this::loadComplete);
 

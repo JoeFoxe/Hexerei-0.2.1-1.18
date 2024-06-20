@@ -4,8 +4,6 @@ package net.joefoxe.hexerei.screen.renderer;
 import com.google.common.base.Preconditions;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.ingredients.IIngredientRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,9 +19,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.text.NumberFormat;
@@ -31,19 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// CREDIT: https://github.com/mezz/JustEnoughItems by mezz
+// CREDIT: https://github.com/mezz/JustEnoughItems by mezz - edited by joefoxe
 // Under MIT-License: https://github.com/mezz/JustEnoughItems/blob/1.18/LICENSE.txt
-public class FluidStackRenderer<T> implements IIngredientRenderer<T> {
+public class FluidStackRenderer {
     private static final NumberFormat nf = NumberFormat.getIntegerInstance();
     private static final int TEXTURE_SIZE = 16;
     private static final int MIN_FLUID_HEIGHT = 1; // ensure tiny amounts of fluid are still visible
 
     public final int capacityMb;
     private final TooltipMode tooltipMode;
-    @SuppressWarnings({"DeprecatedIsStillUsed"})
-    @Nullable
-    @Deprecated
-    private final IDrawable overlay;
     private final int width;
     private final int height;
 
@@ -53,20 +45,11 @@ public class FluidStackRenderer<T> implements IIngredientRenderer<T> {
         ITEM_LIST
     }
 
-    public FluidStackRenderer() {
-        this(FluidType.BUCKET_VOLUME, TooltipMode.ITEM_LIST, 16, 16, null);
-    }
-
     public FluidStackRenderer(int capacityMb, boolean showCapacity, int width, int height) {
-        this(capacityMb, showCapacity ? TooltipMode.SHOW_AMOUNT_AND_CAPACITY : TooltipMode.SHOW_AMOUNT, width, height, null);
+        this(capacityMb, showCapacity ? TooltipMode.SHOW_AMOUNT_AND_CAPACITY : TooltipMode.SHOW_AMOUNT, width, height);
     }
 
-    @Deprecated
-    public FluidStackRenderer(int capacityMb, boolean showCapacity, int width, int height, @Nullable IDrawable overlay) {
-        this(capacityMb, showCapacity ? TooltipMode.SHOW_AMOUNT_AND_CAPACITY : TooltipMode.SHOW_AMOUNT, width, height, overlay);
-    }
-
-    private FluidStackRenderer(int capacityMb, TooltipMode tooltipMode, int width, int height, @Nullable IDrawable overlay) {
+    private FluidStackRenderer(int capacityMb, TooltipMode tooltipMode, int width, int height) {
         Preconditions.checkArgument(capacityMb > 0, "capacity must be > 0");
         Preconditions.checkArgument(width > 0, "width must be > 0");
         Preconditions.checkArgument(height > 0, "height must be > 0");
@@ -74,29 +57,19 @@ public class FluidStackRenderer<T> implements IIngredientRenderer<T> {
         this.tooltipMode = tooltipMode;
         this.width = width;
         this.height = height;
-        this.overlay = overlay;
     }
 
-    @Override
-    public void render(@NotNull GuiGraphics guiGraphics, @NotNull T fluidStack) {
+    public void render(@NotNull GuiGraphics guiGraphics, FluidStack fluidStack) {
         RenderSystem.enableBlend();
 
         drawFluid(guiGraphics, width, height, fluidStack);
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        if (overlay != null) {
-            guiGraphics.pose().pushPose();
-            {
-                guiGraphics.pose().translate(0, 0, 200);
-                overlay.draw(guiGraphics);
-            }
-            guiGraphics.pose().popPose();
-        }
         RenderSystem.disableBlend();
     }
 
-    public void render(GuiGraphics guiGraphics, int xPosition, int yPosition, @Nullable T ingredient) {
+    public void render(GuiGraphics guiGraphics, int xPosition, int yPosition, FluidStack ingredient) {
         if (ingredient != null) {
             guiGraphics.pose().pushPose();
             {
@@ -107,29 +80,26 @@ public class FluidStackRenderer<T> implements IIngredientRenderer<T> {
         }
     }
 
-    private void drawFluid(GuiGraphics guiGraphics, final int width, final int height, T fluidStack) {
+    private void drawFluid(GuiGraphics guiGraphics, final int width, final int height, FluidStack fluidStack) {
 
-
-        if (fluidStack instanceof FluidStack fluidStack1) {
-            if (fluidStack1.getFluid().isSame(Fluids.EMPTY)) {
-                return;
-            }
-            getStillFluidSprite(fluidStack1)
-                    .ifPresent(fluidStillSprite -> {
-                        int fluidColor = getColorTint(fluidStack1);
-
-                        long amount = fluidStack1.getAmount();
-                        long scaledAmount = (amount * height) / capacityMb;
-                        if (amount > 0 && scaledAmount < MIN_FLUID_HEIGHT) {
-                            scaledAmount = MIN_FLUID_HEIGHT;
-                        }
-                        if (scaledAmount > height) {
-                            scaledAmount = height;
-                        }
-
-                        drawTiledSprite(guiGraphics, width, height, fluidColor, scaledAmount, fluidStillSprite);
-                    });
+        if (fluidStack.getFluid().isSame(Fluids.EMPTY)) {
+            return;
         }
+        getStillFluidSprite(fluidStack)
+                .ifPresent(fluidStillSprite -> {
+                    int fluidColor = getColorTint(fluidStack);
+
+                    long amount = fluidStack.getAmount();
+                    long scaledAmount = (amount * height) / capacityMb;
+                    if (amount > 0 && scaledAmount < MIN_FLUID_HEIGHT) {
+                        scaledAmount = MIN_FLUID_HEIGHT;
+                    }
+                    if (scaledAmount > height) {
+                        scaledAmount = height;
+                    }
+
+                    drawTiledSprite(guiGraphics, width, height, fluidColor, scaledAmount, fluidStillSprite);
+                });
     }
 
     public Optional<TextureAtlasSprite> getStillFluidSprite(FluidStack fluidStack) {
@@ -207,44 +177,35 @@ public class FluidStackRenderer<T> implements IIngredientRenderer<T> {
         tessellator.end();
     }
 
-    @Override
-    public List<Component> getTooltip(T fluidStack, TooltipFlag tooltipFlag) {
-        if (fluidStack instanceof FluidStack fluidStack1){
-            List<Component> tooltip = new ArrayList<>();
-            Fluid fluidType = fluidStack1.getFluid();
-            if (fluidType == null) {
-                return tooltip;
-            }
-
-            Component displayName = fluidStack1.getDisplayName();
-            if(fluidStack1.isEmpty())
-                displayName = Component.translatable("book.hexerei.tooltip.empty");
-            tooltip.add(displayName);
-
-            int amount = fluidStack1.getAmount();
-            if (tooltipMode == TooltipMode.SHOW_AMOUNT_AND_CAPACITY) {
-                MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount.with.capacity", nf.format(amount), nf.format(capacityMb));
-                tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
-            } else if (tooltipMode == TooltipMode.SHOW_AMOUNT) {
-                MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount", nf.format(amount));
-                tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
-            }
-
+    public List<Component> getTooltip(FluidStack fluidStack, TooltipFlag tooltipFlag) {
+        List<Component> tooltip = new ArrayList<>();
+        Fluid fluidType = fluidStack.getFluid();
+        if (fluidType == null) {
             return tooltip;
         }
 
+        Component displayName = fluidStack.getDisplayName();
+        if(fluidStack.isEmpty())
+            displayName = Component.translatable("book.hexerei.tooltip.empty");
+        tooltip.add(displayName);
 
+        int amount = fluidStack.getAmount();
+        if (tooltipMode == TooltipMode.SHOW_AMOUNT_AND_CAPACITY) {
+            MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount.with.capacity", nf.format(amount), nf.format(capacityMb));
+            tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
+        } else if (tooltipMode == TooltipMode.SHOW_AMOUNT) {
+            MutableComponent amountString = Component.translatable("book.hexerei.tooltip.liquid.amount", nf.format(amount));
+            tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
+        }
 
+        return tooltip;
 
-        return null;
     }
 
-    @Override
     public int getWidth() {
         return width;
     }
 
-    @Override
     public int getHeight() {
         return height;
     }
