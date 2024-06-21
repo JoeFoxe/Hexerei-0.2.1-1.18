@@ -163,7 +163,7 @@ public class CandleDipperRenderer implements BlockEntityRenderer<CandleDipperTil
                     matrixStackIn.scale(0.4f, 0.4f, 0.4f);
                     matrixStackIn.translate(0, -1.5f/16f, 0);
                 }
-                renderItem(tileEntityIn.getItems().get(3), tileEntityIn.getLevel(), matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+                renderItem(tileEntityIn.getItems().get(2), tileEntityIn.getLevel(), matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
             }
             matrixStackIn.popPose();
         }

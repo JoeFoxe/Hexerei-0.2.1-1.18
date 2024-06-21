@@ -1,0 +1,18 @@
+
+{
+  "structures": [
+    {
+      "structure": "hexerei:baba_yaga_hut",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "salt": 4297827934,
+
+    "spacing": 100,
+
+    "separation": 95,
+
+    "type": "minecraft:random_spread"
+  }
+}

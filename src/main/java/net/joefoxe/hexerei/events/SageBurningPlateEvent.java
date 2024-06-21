@@ -57,7 +57,8 @@ public class SageBurningPlateEvent {
 
         BlockPos burning_plate = null;
         for (BlockPos nearbySageBurningPlate : Hexerei.sageBurningPlateTileList) {
-            if (entity.distanceToSqr(nearbySageBurningPlate.getX() + 0.5f, nearbySageBurningPlate.getY(), nearbySageBurningPlate.getZ() + 0.5f) < HexConfig.SAGE_BURNING_PLATE_RANGE.get() * HexConfig.SAGE_BURNING_PLATE_RANGE.get() + 1) {
+            float dist = (float) Math.sqrt(entity.distanceToSqr(nearbySageBurningPlate.getX() + 0.5f, nearbySageBurningPlate.getY(), nearbySageBurningPlate.getZ() + 0.5f));
+            if (dist < HexConfig.SAGE_BURNING_PLATE_RANGE.get() + 1) {
                 BlockState burning_platestate = world.getBlockState(nearbySageBurningPlate);
                 Block block = burning_platestate.getBlock();
 
@@ -75,7 +76,6 @@ public class SageBurningPlateEvent {
             }
         }
         for(BlockPos nonSageBurninPlate : nonSagePlatesInList){
-//            System.out.println(Hexerei.sageBurningPlateTileList.indexOf(nonSageBurninPlate));
             Hexerei.sageBurningPlateTileList.remove(nonSageBurninPlate);
         }
 
@@ -90,6 +90,7 @@ public class SageBurningPlateEvent {
             }
         }
 
+        e.setSpawnCancelled(true);
         e.setResult(Result.DENY);
     }
 
