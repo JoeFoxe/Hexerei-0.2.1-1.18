@@ -211,17 +211,14 @@
   "tooltip.hexerei.flower_output_item": "按住 \u00A7eSHIFT\u00A7r 以获取更多的信息",
   "tooltip.hexerei.flower_output_item_shift": "当植物几乎完全成熟或已经成熟时，可以通过右键单击该植物从其植株中拾取, 该植物就像浆果丛一样，可以再生其产品。",
   "tooltip.hexerei.coffer": "集储物与装饰为一身的方块",
-  "tooltip.hexerei.coffer_shift": "可以在世界中任意放置，",
-  "tooltip.hexerei.coffer_shift_2": "可以用来储存物品，并像潜影盒那样直接带走。",
-  "tooltip.hexerei.coffer_shift_3": "可以被重命名。",
-  "tooltip.hexerei.coffer_shift_4": "打破储物柜后，物品依旧保存在里面。",
-  "tooltip.hexerei.coffer_shift_5": "可以被染色。",
+  "tooltip.hexerei.coffer_shift": "可以通过潜行并右键单击放置在世界上。",
+  "tooltip.hexerei.coffer_shift_2": "或者拿在手中右键单击打开其库存。",
+  "tooltip.hexerei.coffer_shift_3": "放在世界上时，左击它以将其放入物品栏。",
   "tooltip.hexerei.herb_jar_shift_4": "左键点击前面可以取出其中的物品，",
   "tooltip.hexerei.herb_jar_shift_5": "蹲下后左键点击，可以取出一整组物品。",
   "tooltip.hexerei.herb_jar_shift_6": "右键点击任意地方，可打开其界面。",
   "tooltip.hexerei.herb_jar_shift_7": "只能容纳一种类型的物品, 但是能容纳1024件。",
   "tooltip.hexerei.candle": "按住 \u00A7eSHIFT\u00A7r 以获取更多的信息",
-  "tooltip.hexerei.candle_shift": "蜡烛提供的增益效果基于蘸注时的配方 (制作中)",
   "tooltip.hexerei.candle_dipper": "按住 \u00A7eSHIFT\u00A7r 以获取更多的信息",
   "tooltip.hexerei.candle_dipper_shift_1": "把它放在装满油脂的混合锅的顶部, 然后将3根线放在蜡烛蘸注器上进行蘸注。",
   "tooltip.hexerei.candle_dipper_shift_2": "通过空手右键，可以取下制作好的蜡烛。",
@@ -354,6 +351,7 @@
   "tooltip.hexerei.crow_flute_pickpocket_button_1": "并从其物品栏中取走一样物品之后飞走，",
   "tooltip.hexerei.crow_flute_pickpocket_button_2": "过了一会儿，窃取的物品将会掉落出来。",
   "tooltip.hexerei.crow_flute_pickpocket_button_3": "如果它们有栖息点，它们将会停留在该地方。",
+  "tooltip.hexerei.crow_flute_pickpocket_button_4": "如果栖息地是一个容器，他们会试着把它放在容器里。",
 
   "tooltip.hexerei.crow_flute_select_button_0": "切换时，您可以通过右键单击乌鸦来选择它们。",
   "tooltip.hexerei.crow_flute_select_button_1": "如果您有多个选中的乌鸦，只需要选中其中一个。",
@@ -460,12 +458,15 @@
   "book.hexerei.support_page_5.passage_1": "社区的帮助给予了我很多意义，并且我对社区的大家十分的感激！再一次，无论是社区的一份子抑或是在我开发模组期间支持我维持我生活的大家，我都十分地感激！\n\n   言尽于此，让我们开始探索吧！",
 
 
+
   "book.hexerei.items_index_page_1.passage_1": "- 物品 -",
   "book.hexerei.items_index_page_1.passage_2": "    这一章节关于您可以获得的物品以及它们是如何使用的。如果您页面上右键点击一个物品，那么书本会快速地跳转到此物品的详情页。",
 
   "book.hexerei.items_index_page_2.passage_1": "物品索引页",
 
   "book.hexerei.items_index_page_3.passage_1": "",
+
+  "book.hexerei.items_index_page_4.passage_1": "",
 
   "book.hexerei.items_mixing_cauldron_1.passage_1": "混合锅",
   "book.hexerei.items_mixing_cauldron_1.passage_2": "    混合锅是巫师们最主要的宝贝工具之一。",
@@ -474,6 +475,7 @@
   "book.hexerei.items_mixing_cauldron_5.passage_1": "    混合锅可以盛多达两桶的任意一种液体。液体能使用其他模组的管道泵入。您也可以使用瓶装的基础液体和其它本模组的液体装入锅中。\n当锅中装入岩浆时，看起来会焚烧物品，但实际上它们是安全的。",
   "book.hexerei.items_mixing_cauldron_6.passage_1": "    在混合锅中，所有的液体都会以某种方式被利用上。这些被用于工艺制作的液体，也可以被锅顶部摆放的蘸注器进行利用。",
   "book.hexerei.items_mixing_cauldron_6.passage_2": "配件：",
+  "book.hexerei.items_mixing_cauldron_7.passage_1": "  混合锅加热后，一次最多可以酿造两桶药剂。\n要做到这一点，请在里面装满水，然后加入两个制作药水所需的成分。例如，制作粗制的药水需要两个下界疣。",
 
   "book.hexerei.items_coffer_1.passage_1": "储物箱",
   "book.hexerei.items_coffer_1.passage_2": "    储物箱对于巫师来说是一种十分有用储物器械，特别是对于那些拥有乌鸦伙伴的巫师来说。",
@@ -518,6 +520,7 @@
   "book.hexerei.items_candle_1.passage_1": "蜡烛",
   "book.hexerei.items_candle_1.passage_2": "    蜡烛是极佳的装饰品，您可以混合摆放多达4个各自不同的蜡烛至同一个方块上。每根蜡烛都能点燃35分钟，各种不同的蜡烛注魔出来的蜡烛可能不太一样。",
   "book.hexerei.items_candle_3.passage_1": "    您可以依次分别点燃同一个方块上先放的蜡烛到至最后放的蜡烛，这个特性可能会改为使用打火石点燃您所注视的方向的蜡烛。蜡烛能围绕着祭坛漂浮，后续更新将能够围绕着玩家进行仪式和符咒",
+  "book.hexerei.items_candle_4.passage_1": "    蜡烛可以用蘸注器注入药剂效果。当被点亮时，它们会将其效果应用于附近的任何人。只有某些药剂能起作用。\n也可以制作特殊的草药混合物并将其应用于蜡烛，如冥想催眠混合物。",
 
   "book.hexerei.items_candelabra_1.passage_1": "枝状烛台",
   "book.hexerei.items_candelabra_1.passage_2": "    枝状烛台是很好的装饰品，您可以将其悬挂到方块的底部或者顶部，会有不同的连结纹理。挂在锁链上也是可以的！",
@@ -535,12 +538,15 @@
   "book.hexerei.items_blood_bottle_1.passage_2": "    若要获取瓶装血液，首先，您需要在混合锅里边放入鲜血符印，接下来！跳进锅内！反复3次以排出足够装一瓶的血液量，并把血液用瓶子舀起来（刚好一瓶！）。手持空瓶简单的右键点击混合锅即可舀起。",
 
   "book.hexerei.items_willow_broom_1.passage_1": "柳木扫帚",
-  "book.hexerei.items_willow_broom_1.passage_2": "    巫师们最主要的交通工具——扫帚！迄今为止，有两种扫帚，这把扫帚的开销要少于第二种，这把扫帚拥有三个不同的可升级空槽：杂项、挎包以及扫帚尾。扫帚尾是扫帚飞行的动力来源，每一把新扫帚都自带一个扫帚尾。",
+  "book.hexerei.items_willow_broom_1.passage_2": "    巫师们最主要的交通工具——扫帚！迄今为止，有三种扫帚，柳木是最慢的，但也是最便宜的。这把扫帚拥有三个不同的可升级空槽：杂项、挎包以及扫帚尾。扫帚尾是扫帚飞行的动力来源，每一把新扫帚都自带一个扫帚尾。",
   "book.hexerei.items_willow_broom_3.passage_1": "    若要进入扫帚的库存，只要蹲伏并右键点击被放置出来的扫帚即可。当骑着扫帚展望高空时，扫帚尾会消耗耐久度而损坏。所以，巫师必须额外准备几把扫帚尾，以备不时之需。",
   "book.hexerei.items_willow_broom_4.passage_1": "    最好的方法就是把额外的扫帚尾存到扫帚的挎包内。加上一个小型挎包可以增加9个额外的物品格， 每升一级挎包都能增加额外的9个物品格。",
 
+  "book.hexerei.items_witch_hazel_broom_1.passage_1": "金缕梅木扫帚",
+  "book.hexerei.items_witch_hazel_broom_1.passage_2": "   三种扫帚的中间档。它比柳木扫帚快，比桃花心木扫帚慢，但不需要使用下界合金来制作。",
+
   "book.hexerei.items_mahogany_broom_1.passage_1": "桃花心木扫帚",
-  "book.hexerei.items_mahogany_broom_1.passage_2": "    这是两种扫帚中速度最快的一种。桃花心木扫帚拥有防火能力，所以它不会被遗失在岩浆中或被火焰烧毁。尽管防火，但它飞入火焰时仍会被打掉，除非给扫帚装上一个下界合金扫帚头。",
+  "book.hexerei.items_mahogany_broom_1.passage_2": "    这是三种扫帚中速度最快的一种。桃花心木扫帚拥有防火能力，所以它不会被遗失在岩浆中或被火焰烧毁。尽管防火，但它飞入火焰时仍会被打掉，除非给扫帚装上一个下界合金扫帚头。",
 
   "book.hexerei.items_gold_rings_1.passage_1": "金锁环",
   "book.hexerei.items_gold_rings_1.passage_2": "    首先给扫帚制作的配件就是金锁环，以后可能会有各种各样的效果添加到这些小饰品当中，但是现在仅仅是个扫帚装饰品。打开扫帚界面放入杂项空槽即可使用。",
@@ -575,6 +581,12 @@
 
   "book.hexerei.items_wet_herb_enhanced_broom_brush_1.passage_1": "湿的增强扫帚尾",
   "book.hexerei.items_wet_herb_enhanced_broom_brush_1.passage_2": "    就像普通的湿扫帚尾一样，它必须先在锅内做出来，并进行干燥才能使用。",
+
+  "book.hexerei.items_moon_dust_brush_1.passage_1": "月尘扫帚尾",
+  "book.hexerei.items_moon_dust_brush_1.passage_2": "   这种扫帚尾可以使扫帚更快，尤其是在满月的时候。除此之外，它与增强扫帚尾相同。",
+
+  "book.hexerei.items_wet_moon_dust_brush_1.passage_1": "湿的月尘扫帚尾",
+  "book.hexerei.items_wet_moon_dust_brush_1.passage_2": "   和其他扫帚尾一样，月尘扫帚尾是在混合锅中制作的，使用前必须干燥。",
 
   "book.hexerei.items_crow_flute_1.passage_1": "乌鸦竖笛",
   "book.hexerei.items_crow_flute_1.passage_2": "    乌鸦竖笛是用来指挥您的乌鸦伙伴们的好帮手！",
@@ -635,6 +647,9 @@
 
   "book.hexerei.items_mahogany_sapling_1.passage_1": "桃花心木树苗",
   "book.hexerei.items_mahogany_sapling_1.passage_2": "    这个树苗用于种植桃花心木树，可以通过打破桃花心木树叶获得。",
+
+  "book.hexerei.items_witch_hazel_sapling_1.passage_1": "金缕梅木树苗",
+  "book.hexerei.items_witch_hazel_sapling_1.passage_2": "    这个树苗用于种植金缕梅木树，可以通过打破金缕梅木树叶获得。",
 
   "book.hexerei.items_mandrake_flowers_1.passage_1": "曼德拉花",
   "book.hexerei.items_mandrake_flowers_1.passage_2": "    曼德拉花被用于制作使用药草增强的扫帚尾，可以在干燥后用于各种注魔和仪式。\n    通过右键点击成熟的曼德拉植株获取。",
@@ -738,6 +753,7 @@
   "book.hexerei.entities_broom_page_9.passage_1": "   配件: \n   杂项: \n   挎包: \n   扫帚尾: \n 若要装备，则将每件物品放至其对应的扫帚空槽内即可。",
 
 
+
   "book.hexerei.structures_index_page_1.passage_1": "- 建筑物 -",
   "book.hexerei.structures_index_page_1.passage_2": "    这一章关于世界上新添加的各种建筑物，以及您要如何找到它们！",
 
@@ -748,14 +764,20 @@
   "book.hexerei.structures_witch_hut_page_1.passage_2": "    在整个沼泽中，您可能会遇到本模组各种各样的巫师小屋。这些小屋会有着许多的巫师和他们各种各样的工具。在未来后续的更新中会有更多的内容！",
   "book.hexerei.structures_witch_hut_page_2.passage_1": "    一个有抱负的巫师白手起家的好地方！",
 
-  "book.hexerei.structures_dark_coven_page_1.passage_1": "黑暗巫师公会",
-  "book.hexerei.structures_dark_coven_page_1.passage_2": "    和巫师小屋一样，您可以在沼泽群系中找到黑暗巫师公会。它是巫师们的住所，并且在未来的更新中，巫师们将会被替换成拥有他们各自特殊装备的自定义公会巫师。",
-  "book.hexerei.structures_dark_coven_page_2.passage_1": "    直到那时，您就可以发现各种各样的工具、护甲、以及公会内的各种草药。",
+  "book.hexerei.structures_dark_coven_page_1.passage_1": "黑暗巫师集会",
+  "book.hexerei.structures_dark_coven_page_1.passage_2": "    和巫师小屋一样，您可以在沼泽群系中找到黑暗巫师集会，它是巫师们的住所。",
+  "book.hexerei.structures_dark_coven_page_2.passage_1": "    您可以在集会内发现各种各样的工具、护甲、以及各种草药。",
 
+  
+  "book.hexerei.structures_nature_coven_page_1.passage_1": "自然巫师集会",
+  "book.hexerei.structures_nature_coven_page_1.passage_2": "    在森林中，可能会发现自然巫师集会，尽管除了一些小屋里的一些动物外，它们目前基本上无人居住。",
+  "book.hexerei.structures_nature_coven_page_2.passage_1": "    这些地方是找到巫师工具、乌鸦、蜜蜂和草药的好来源。",
+  
 
   "book.hexerei.tooltip_go_to_page": "页面跳转到",
   "book.hexerei.crafting_type.crafting_table": "    若要进行合成，您需要一个3x3的合成空间，材料展示在下方。",
   "book.hexerei.crafting_type.mixing_cauldron": "    若要进行合成，您需要使用混合锅以及下方所展示的各种材料。",
+  "book.hexerei.crafting_type.mixing_cauldron_heated": "  若要进行合成，您需要使用加热的混合锅，使用的材料和液体展示在下方。",
   "book.hexerei.crafting_type.dipper": "    若要进行合成，您需要使用顶部配置有蘸注器的混合锅，使用的材料和液体展示在下方。",
   "book.hexerei.crafting_type.herb_drying_rack": "    若要进行合成，您需要干燥架，使用的材料展示在下方。",
   "book.hexerei.crafting_type.pestle_and_mortar": "    若要进行合成，您需要研钵，使用的材料展示在下方。",
@@ -906,7 +928,9 @@
 
   "block.hexerei.willow_sign" : "柳木告示牌",
   "block.hexerei.polished_willow_sign" : "抛光柳木告示牌",
+  "block.hexerei.willow_hanging_sign" : "悬挂式柳木告示牌",
   "block.hexerei.mahogany_sign" : "桃花心木告示牌",
+  "block.hexerei.mahogany_hanging_sign" : "悬挂式桃花心木告示牌",
   "block.hexerei.polished_mahogany_sign" : "抛光桃花心木告示牌",
 
   "block.hexerei.willow_window_pane" : "柳树玻璃板",
@@ -1008,6 +1032,150 @@
   "tooltip.hexerei.infused_fabric_ornate" : "在世界上使用金粒可以给织物件进行装饰。",
 
 
-  "itemGroup.hexereiModTab": "魔法巫师"
+  "tooltip.hexerei.crow_attack_toggle" : "攻击开关",
+  "tooltip.hexerei.crow_attack_toggled" : "开关: %s",
+  "tooltip.hexerei.crow_attack_toggle_0" : "当开关打开时，这只乌鸦会在受到攻击或主人受到攻击时发起攻击。",
+  "tooltip.hexerei.crow_attack_toggle_1" : "关闭后，这只乌鸦将不再攻击任何东西。",
+  "tooltip.hexerei.crow_range_interaction" : "交互范围",
+  "tooltip.hexerei.crow_range_interaction_0" : "这只乌鸦搜索方块、物品和村民的半径。",
+  "tooltip.hexerei.crow_range_interaction_1" : "如果你想让你的乌鸦呆在一定的距离内，不要走得太远，这很有用。",
+  "tooltip.hexerei.crow_range_decrease" : "减小范围",
+  "tooltip.hexerei.crow_range_increase" : "增加范围",
+  "tooltip.hexerei.crow_whitelist_next" : "下一个",
+  "tooltip.hexerei.crow_whitelist_back" : "上一个",
+  "tooltip.hexerei.crow_whitelist_remove" : "移除",
+  "tooltip.hexerei.crow_whitelist_button" : "收获白名单",
+  "tooltip.hexerei.crow_whitelist_button_0" : "切换后，所有者可以右键单击乌鸦可收割作物，将其添加到白名单中。",
+  "tooltip.hexerei.crow_whitelist_button_1" : "当乌鸦的白名单不是空的，它只会从白名单中收割作物。",
 
+  "display.hexerei.dowsing_rod_swamp_new": "已定位一个新的沼泽位置。",
+  "display.hexerei.dowsing_rod_jungle_new": "已定位一个新的丛林位置。",
+
+  "block.hexerei.mahogany_drying_rack": "桃花心木干燥支架",
+  "block.hexerei.willow_drying_rack": "柳木干燥支架",
+  "block.hexerei.witch_hazel_drying_rack": "金缕梅木干燥支架",
+
+
+  "block.hexerei.witch_hazel_log": "金缕梅树原木",
+  "block.hexerei.witch_hazel_planks": "金缕梅树木板",
+  "block.hexerei.witch_hazel_wood": "金缕梅树木",
+  "block.hexerei.stripped_witch_hazel_log": "去皮金缕梅树原木",
+  "block.hexerei.stripped_witch_hazel_wood": "去皮金缕梅树木",
+  "block.hexerei.witch_hazel_stairs": "金缕梅木楼梯",
+  "block.hexerei.witch_hazel_fence": "金缕梅木栅栏",
+  "block.hexerei.witch_hazel_fence_gate": "金缕梅木栅栏门",
+  "block.hexerei.witch_hazel_slab": "金缕梅木台阶",
+  "block.hexerei.witch_hazel_button": "金缕梅树按钮",
+  "block.hexerei.witch_hazel_pressure_plate": "金缕梅木压力板",
+  "block.hexerei.witch_hazel_door": "金缕梅木门",
+  "block.hexerei.witch_hazel_trapdoor": "金缕梅木活板门",
+  "block.hexerei.witch_hazel_leaves": "金缕梅树树叶",
+  "block.hexerei.witch_hazel_sapling": "金缕梅树树苗",
+  "block.hexerei.witch_hazel_window" : "金缕梅木玻璃窗",
+  "block.hexerei.waxed_witch_hazel_window" : "打蜡的金缕梅木玻璃窗",
+  "block.hexerei.witch_hazel_window_pane" : "金缕梅木玻璃板",
+  "block.hexerei.waxed_witch_hazel_window_pane" : "打蜡的金缕梅木玻璃板",
+  "block.hexerei.witch_hazel_sign" : "金缕梅木告示牌",
+  "block.hexerei.witch_hazel_hanging_sign" : "悬挂式金缕梅木告示牌",
+  "block.hexerei.polished_witch_hazel_sign" : "抛光金缕梅木告示牌",
+  "block.hexerei.witch_hazel_chest" : "金缕梅木箱",
+  "item.hexerei.witch_hazel_chest_boat" : "金缕梅木箱船",
+  "item.hexerei.polished_witch_hazel_chest_boat" : "抛光金缕梅木箱船",
+  "item.hexerei.witch_hazel_boat" : "金缕梅木船",
+  "item.hexerei.polished_witch_hazel_boat" : "抛光金缕梅木船",
+  "block.hexerei.polished_witch_hazel_fence": "抛光金缕梅木栅栏",
+  "block.hexerei.polished_witch_hazel_fence_gate": "抛光金缕梅木栅栏门",
+  "block.hexerei.polished_witch_hazel_slab": "抛光金缕梅木台阶",
+  "block.hexerei.polished_witch_hazel_button": "抛光金缕梅木按钮",
+  "block.hexerei.polished_witch_hazel_pressure_plate": "抛光金缕梅木压力板",
+  "block.hexerei.polished_witch_hazel_door": "抛光金缕梅木门",
+  "block.hexerei.polished_witch_hazel_trapdoor": "抛光金缕梅木活板门",
+  "block.hexerei.polished_witch_hazel_stairs": "抛光金缕梅木楼梯",
+  "block.hexerei.waxed_polished_witch_hazel_connected": "上蜡的连接抛光金缕梅木",
+  "block.hexerei.waxed_polished_witch_hazel_layered": "上蜡的分层抛光金缕梅木",
+  "block.hexerei.waxed_polished_witch_hazel_pillar": "上蜡的抛光金缕梅木桩",
+  "block.hexerei.waxed_witch_hazel_connected": "上蜡的连接金缕梅木",
+  "block.hexerei.polished_witch_hazel_connected": "抛光的连接金缕梅木",
+  "block.hexerei.polished_witch_hazel_layered": "抛光的分层金缕梅木",
+  "block.hexerei.polished_witch_hazel_pillar": "抛光金缕梅木桩",
+  "block.hexerei.polished_witch_hazel_planks": "抛光金缕梅木板",
+  "block.hexerei.witch_hazel_connected": "连接金缕梅木",
+  "block.hexerei.witch_hazel_woodcutter": "金缕梅木工机",
+  "item.hexerei.witch_hazel_altar": "金缕梅木暗影书坛",
+  "block.hexerei.witch_hazel_altar": "金缕梅木暗影书坛",
+
+  "item.hexerei.witch_hazel_broom": "金缕梅木扫帚",
+  "entity.hexerei.witch_hazel_broom": "金缕梅木扫帚",
+
+  "item.hexerei.stone_window": "石玻璃窗",
+  "item.hexerei.stone_window_pane": "石玻璃板",
+  "item.hexerei.waxed_stone_window": "上蜡的石玻璃窗",
+  "item.hexerei.waxed_stone_window_pane": "上蜡的石玻璃板",
+  "item.hexerei.wet_moon_dust_brush": "湿的月尘扫帚尾",
+  "item.hexerei.moon_dust_brush": "月尘扫帚尾",
+  "item.hexerei.broom_thruster_brush": "推进器扫帚",
+  "item.hexerei.moon_dust": "月尘",
+  "item.hexerei.broom_seat": "扫帚座椅",
+  "tooltip.hexerei.broom_seat_1": "允许另一名玩家骑上扫帚。",
+  "tooltip.hexerei.broom_seat_2": "如果只有一名玩家在扫帚上，该玩家将使用该座位。",
+  "item.hexerei.willow_broom_stand": "柳木扫帚架",
+  "item.hexerei.witch_hazel_broom_stand": "金缕梅木扫帚架",
+  "item.hexerei.mahogany_broom_stand": "桃花心木扫帚架",
+  "block.hexerei.willow_broom_stand": "柳木扫帚架",
+  "block.hexerei.witch_hazel_broom_stand": "金缕梅木扫帚架",
+  "block.hexerei.mahogany_broom_stand": "桃花心木扫帚架",
+  "block.hexerei.willow_broom_stand_wall": "柳木扫帚架",
+  "block.hexerei.witch_hazel_broom_stand_wall": "金缕梅木扫帚架",
+  "block.hexerei.mahogany_broom_stand_wall": "桃花心木扫帚架",
+  "tooltip.hexerei.broom_stand": "不用扫帚时用来拿扫帚的支架。可以放在方块的侧面。",
+  "tooltip.hexerei.wet_broom_brush": "使用前必须干燥。",
+  "tooltip.hexerei.moon_dust_brush": "提高扫帚的速度，并在满月时大幅提高速度。",
+  "tooltip.hexerei.dyeable": "可以染色。",
+
+  "tooltip.hexerei.full_moon": "§f满月§r",
+  "tooltip.hexerei.waning_gibbous": "§f渐亏凸月§r",
+  "tooltip.hexerei.last_quarter": "§f下弦月§r",
+  "tooltip.hexerei.waning_crescent": "§f渐亏残月§r",
+  "tooltip.hexerei.new_moon": "§f新月§r",
+  "tooltip.hexerei.waxing_crescent": "§f渐盈残月§r",
+  "tooltip.hexerei.first_quarter": "§f上弦月§r",
+  "tooltip.hexerei.waxing_gibbous": "§f渐盈凸月§r",
+  "tooltip.hexerei.moon_phase": "§f月相§r",
+  "tooltip.hexerei.recipe_moon": "这个配方需要在月相为 '%s' 的夜晚制作。",
+  "tooltip.hexerei.recipe_moon_1": "只能在晚上合成，必须是上面显示的月相。",
+
+  "block.hexerei.potted_mandrake_plant": "曼德拉花盆栽",
+  "block.hexerei.potted_belladonna_plant": "颠茄花盆栽",
+  "block.hexerei.potted_mugwort_bush": "艾蒿花盆栽",
+  "block.hexerei.potted_yellow_dock_bush": "黄色酸模灌木盆栽",
+
+  "tooltip.hexerei.hour": "小时",
+  "tooltip.hexerei.hours": "小时",
+  "tooltip.hexerei.minute": "分钟",
+  "tooltip.hexerei.minutes": "分钟",
+  "tooltip.hexerei.second": "秒",
+  "tooltip.hexerei.seconds": "秒",
+
+  "hexerei.dynamic_light_on": "动态灯光：已启用",
+  "hexerei.dynamic_light_off": "动态灯光：已停用",
+
+  "block.hexerei.stone_window": "石玻璃窗",
+  "block.hexerei.stone_window_pane": "石玻璃板",
+  "block.hexerei.waxed_stone_window": "上蜡的石玻璃窗",
+  "block.hexerei.waxed_stone_window_pane": "上蜡的石玻璃板",
+
+  "gui.jei.category.blood_sigil": "鲜血符印",
+  "gui.jei.category.blood_sigil_tooltip1": "手持符印右击混合锅，或者将其放在它的符印槽中",
+  "gui.jei.category.blood_sigil_tooltip2": "然后跳进去！",
+
+  "gui.jei.category.bottling": "装瓶",
+  "gui.jei.category.fluid_mixing": "流体混合",
+  "gui.jei.category.potion_mixing": "药剂混合",
+  "gui.jei.category.item_mixing": "物品混合",
+  "gui.jei.category.plant_picking": "收割作物",
+  "gui.jei.category.plant_picking_tooltip": "右键单击以像浆果一样采摘",
+
+
+
+  "itemGroup.hexereiModTab": "魔法巫师"
 }
