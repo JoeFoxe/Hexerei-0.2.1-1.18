@@ -259,8 +259,11 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
             Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
             if (fluid == null)
                 throw new JsonSyntaxException("Unknown fluid '" + id + "'");
-            FluidStack stack = new FluidStack(fluid, 1);
-
+            int amount = 1;
+            if(json.has("amount")) {
+                amount = GsonHelper.getAsInt(json, "amount");
+            }
+            FluidStack stack = new FluidStack(fluid, amount);
             if (!json.has("nbt"))
                 return stack;
 

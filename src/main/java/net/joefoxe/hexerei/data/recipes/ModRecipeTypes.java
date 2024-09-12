@@ -99,6 +99,11 @@ public class ModRecipeTypes {
 
     public static final RegistryObject<RecipeType<WoodcutterRecipe>> WOODCUTTING_TYPE = RECIPE_TYPES.register("woodcutting", ModRecipeType::new);
 
+    public static final RegistryObject<RecipeType<CauldronFillingRecipe>> CAULDRON_FILLING_TYPE = RECIPE_TYPES.register("cauldron_filling", ModRecipeType::new);
+    public static final RegistryObject<RecipeSerializer<CauldronFillingRecipe>> CAULDRON_FILLING_SERIALIZER = RECIPE_SERIALIZERS.register("cauldron_filling", CauldronFillingRecipe.Serializer::new);
+
+    public static final RegistryObject<RecipeType<CauldronEmptyingRecipe>> CAULDRON_EMPTYING_TYPE = RECIPE_TYPES.register("cauldron_emptying", ModRecipeType::new);
+    public static final RegistryObject<RecipeSerializer<CauldronEmptyingRecipe>> CAULDRON_EMPTYING_SERIALIZER = RECIPE_SERIALIZERS.register("cauldron_emptying", CauldronEmptyingRecipe.Serializer::new);
 
     private static class ModRecipeType<T extends Recipe<?>> implements RecipeType<T> {
         @Override
