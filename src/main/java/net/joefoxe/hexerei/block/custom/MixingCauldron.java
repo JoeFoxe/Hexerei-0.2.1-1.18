@@ -91,6 +91,9 @@ import static net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer.MIN
 @SuppressWarnings("deprecation")
 public class MixingCauldron extends BaseEntityBlock implements ITileEntity<MixingCauldronTile>, DyeableLeatherItem {
 
+    //Moved to constant in case this is changed in the future.
+    public static final int POTION_MB_AMOUNT = 250;
+
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 3);
     public static final IntegerProperty CRAFT_DELAY = IntegerProperty.create("delay", 0, MixingCauldronTile.craftDelayMax);
     public static final BooleanProperty GUI_RENDER = BooleanProperty.create("gui_render");
@@ -230,7 +233,7 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
 //                        ItemStack potionOut = PotionUtils.setPotion(new ItemStack(Items.POTION), PotionFluidHandler.getPotionFromFluidStack(cauldronFluid));
 
             shrinkItem(player, hand, player.getItemInHand(hand), potionOut);
-            cauldronFluid.shrink(250);
+            cauldronFluid.shrink(POTION_MB_AMOUNT);
             cauldronTile.setChanged();
 
             //Effects
@@ -244,15 +247,15 @@ public class MixingCauldron extends BaseEntityBlock implements ITileEntity<Mixin
         }
         //Emptying from potion
         else if (stack.getItem() == Items.POTION || stack.getItem() == Items.LINGERING_POTION || stack.getItem() == Items.SPLASH_POTION) {
-            if ((cauldronFluid.isFluidEqual(PotionFluidHandler.getFluidFromPotionItem(stack)) && cauldronFluid.getAmount() + 250 <= cauldronTile.getTankCapacity(0)) || cauldronFluid.isEmpty()) {
+            if ((cauldronFluid.isFluidEqual(PotionFluidHandler.getFluidFromPotionItem(stack)) && cauldronFluid.getAmount() + POTION_MB_AMOUNT <= cauldronTile.getTankCapacity(0)) || cauldronFluid.isEmpty()) {
                 ItemStack bottle = new ItemStack(Items.GLASS_BOTTLE);
                 player.awardStat(Stats.USE_CAULDRON);
                 shrinkItem(player, hand, player.getItemInHand(hand), bottle);
                 if (cauldronFluid.isEmpty()) {
-                    cauldronTile.fill(new FluidStack(PotionFluidHandler.getFluidFromPotionItem(stack), 250), IFluidHandler.FluidAction.EXECUTE);
+                    cauldronTile.fill(new FluidStack(PotionFluidHandler.getFluidFromPotionItem(stack), POTION_MB_AMOUNT), IFluidHandler.FluidAction.EXECUTE);
                 }
                 else {
-                    cauldronFluid.grow(250);
+                    cauldronFluid.grow(POTION_MB_AMOUNT);
                 }
                 cauldronTile.setChanged();
 

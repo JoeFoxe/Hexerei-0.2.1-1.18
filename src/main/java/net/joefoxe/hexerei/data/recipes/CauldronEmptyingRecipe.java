@@ -52,12 +52,20 @@ public class CauldronEmptyingRecipe implements Recipe<CauldronEmptyingRecipe.Wra
         return true;
     }
 
+    public Ingredient getInput() {
+        return input;
+    }
+
     public FluidIngredient getFluid() {
         return fluid;
     }
 
     @Override
     public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
+        return output.copy();
+    }
+
+    public ItemStack getResultItem() {
         return output.copy();
     }
 
