@@ -237,7 +237,7 @@ public class HexereiJei implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(MixingCauldronRecipeCategory.UID, MixingCauldronRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(FluidMixingRecipeCategory.UID, FluidMixingRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(FluidMixingRecipeCategory.POTION_UID, FluidMixingRecipe.class));
-        registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(BottlingRecipeCategory.UID, BottlingRecipeJEI.class));
+        registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(BottlingRecipeCategory.UID, CauldronEmptyingRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.MIXING_CAULDRON.get()), new RecipeType<>(DipperRecipeCategory.UID, DipperRecipe.class));
         registration.addRecipeCatalyst(new ItemStack(ModBlocks.CANDLE_DIPPER.get()), new RecipeType<>(DipperRecipeCategory.UID, DipperRecipe.class));
@@ -252,7 +252,7 @@ public class HexereiJei implements IModPlugin {
         registration.addRecipeClickArea(MixingCauldronScreen.class, 101, 41, 24, 24,
                 new RecipeType<>(MixingCauldronRecipeCategory.UID, MixingCauldronRecipe.class),
                 new RecipeType<>(FluidMixingRecipeCategory.UID, FluidMixingRecipe.class),
-                new RecipeType<>(BottlingRecipeCategory.UID, BottlingRecipeJEI.class),
+                new RecipeType<>(BottlingRecipeCategory.UID, CauldronEmptyingRecipe.class),
                 new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class),
                 new RecipeType<>(FluidMixingRecipeCategory.POTION_UID, FluidMixingRecipe.class));
 
@@ -363,8 +363,8 @@ public class HexereiJei implements IModPlugin {
         List<WoodcutterRecipe> woodcutter_recipes = rm.getAllRecipesFor(WoodcutterRecipe.Type.INSTANCE);
         registration.addRecipes(new RecipeType<>(WoodcutterRecipeCategory.UID, WoodcutterRecipe.class), woodcutter_recipes);
 
-        List<BottlingRecipeJEI> bottling_recipes = BottlingRecipeJEI.getRecipeList();
-        registration.addRecipes(new RecipeType<>(BottlingRecipeCategory.UID, BottlingRecipeJEI.class), bottling_recipes);
+        List<CauldronEmptyingRecipe> bottling_recipes = rm.getAllRecipesFor(ModRecipeTypes.CAULDRON_EMPTYING_TYPE.get());
+        registration.addRecipes(new RecipeType<>(BottlingRecipeCategory.UID, CauldronEmptyingRecipe.class), bottling_recipes);
 
         List<BloodSigilRecipeJEI> blood_sigil_recipes = BloodSigilRecipeJEI.getRecipeList();
         registration.addRecipes(new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class), blood_sigil_recipes);

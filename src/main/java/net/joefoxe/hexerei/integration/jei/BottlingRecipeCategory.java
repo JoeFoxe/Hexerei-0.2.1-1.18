@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
@@ -18,6 +19,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.MixingCauldron;
+import net.joefoxe.hexerei.data.recipes.CauldronEmptyingRecipe;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
 import net.minecraft.client.Minecraft;
@@ -46,7 +48,7 @@ import org.joml.Matrix4f;
 
 import java.util.List;
 
-public class BottlingRecipeCategory implements IRecipeCategory<BottlingRecipeJEI> {
+public class BottlingRecipeCategory implements IRecipeCategory<CauldronEmptyingRecipe> {
     public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "bottling");
     public final static ResourceLocation TEXTURE =
             new ResourceLocation(Hexerei.MOD_ID, "textures/gui/bottling_gui_jei.png");
@@ -58,8 +60,8 @@ public class BottlingRecipeCategory implements IRecipeCategory<BottlingRecipeJEI
     }
 
     @Override
-    public RecipeType<BottlingRecipeJEI> getRecipeType() {
-        return new RecipeType<>(UID, BottlingRecipeJEI.class);
+    public RecipeType<CauldronEmptyingRecipe> getRecipeType() {
+        return new RecipeType<>(UID, CauldronEmptyingRecipe.class);
     }
 
     @Override
@@ -79,71 +81,72 @@ public class BottlingRecipeCategory implements IRecipeCategory<BottlingRecipeJEI
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, BottlingRecipeJEI recipe, IFocusGroup focuses) {
+    public void setRecipe(IRecipeLayoutBuilder builder, CauldronEmptyingRecipe recipe, IFocusGroup focuses) {
         builder.moveRecipeTransferButton(160, 90);
 
-        builder.addSlot(RecipeIngredientRole.INPUT,14, 24).addItemStack(recipe.getInput());
+        builder.addSlot(RecipeIngredientRole.INPUT,14, 24).addIngredients(recipe.getInput());
         builder.addSlot(RecipeIngredientRole.INPUT,62, 24)
-                .setFluidRenderer(2000, true, 16, 16)
-                .addFluidStack(recipe.getInputFluid().getFluid(), 250, recipe.getInputFluid().hasTag() ? recipe.getInputFluid().getTag() : new CompoundTag()).setOverlay(new IDrawable() {
-            @Override
-            public int getWidth() {
-                return 16;
-            }
+            .setFluidRenderer(2000, true, 16, 16)
+            .addIngredients(ForgeTypes.FLUID_STACK, recipe.getFluid().getMatchingFluidStacks())
+            .setOverlay(new IDrawable() {
+                    @Override
+                public int getWidth() {
+                    return 16;
+                }
 
-            @Override
-            public int getHeight() {
-                return 16;
-            }
+                @Override
+                public int getHeight() {
+                    return 16;
+                }
 
-            @Override
-            public void draw(GuiGraphics guiGraphics, int xOffset, int yOffset) {
+                @Override
+                public void draw(GuiGraphics guiGraphics, int xOffset, int yOffset) {
 
-                Lighting.setupFor3DItems();
-                RenderSystem.enableDepthTest();
-                guiGraphics.pose().pushPose();
+                    Lighting.setupFor3DItems();
+                    RenderSystem.enableDepthTest();
+                    guiGraphics.pose().pushPose();
 
-                guiGraphics.pose().translate(xOffset, yOffset, 0);
-                guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
-                guiGraphics.pose().translate(-3, -15, 0);
-                guiGraphics.pose().scale(17, 17, 17);
-                MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-                Vec3 rotationOffset = new Vec3(0, 0, 0);
+                    guiGraphics.pose().translate(xOffset, yOffset, 0);
+                    guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+                    guiGraphics.pose().translate(-3, -15, 0);
+                    guiGraphics.pose().scale(17, 17, 17);
+                    MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+                    Vec3 rotationOffset = new Vec3(0, 0, 0);
 
-                float zRot = 0;
-                float xRot = 20;
-                float yRot = 30;
+                    float zRot = 0;
+                    float xRot = 20;
+                    float yRot = 30;
 
-                guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
-                guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
-                guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
-                guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
-                guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+                    guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
+                    guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
+                    guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
+                    guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
+                    guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
 
-                BlockState blockState = ModBlocks.MIXING_CAULDRON.get().defaultBlockState().setValue(MixingCauldron.GUI_RENDER, true);
+                    BlockState blockState = ModBlocks.MIXING_CAULDRON.get().defaultBlockState().setValue(MixingCauldron.GUI_RENDER, true);
 
-                RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-                RenderSystem.enableBlend();
-                RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                    RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
+                    RenderSystem.enableBlend();
+                    RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-                renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, blockState, 0xFF404040);
+                    renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, blockState, 0xFF404040);
 
-                MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, recipe.getInputFluid(), 1, 1, OverlayTexture.NO_OVERLAY);
+                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, recipe.getFluid().getMatchingFluidStacks().get(0), 1, 1, OverlayTexture.NO_OVERLAY);
 
-                guiGraphics.pose().popPose();
-            }
-        }, 0, 0);
+                    guiGraphics.pose().popPose();
+                }
+            }, 0, 0);
 
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 96, 24).addItemStack(recipe.getOutput());
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 96, 24).addItemStack(recipe.getResultItem());
 
     }
 
     @Override
-    public void draw(BottlingRecipeJEI recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(CauldronEmptyingRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
         Minecraft minecraft = Minecraft.getInstance();
-        Component outputName = recipe.getOutput().getHoverName();
+        Component outputName = recipe.getResultItem().getHoverName();
 
 
 

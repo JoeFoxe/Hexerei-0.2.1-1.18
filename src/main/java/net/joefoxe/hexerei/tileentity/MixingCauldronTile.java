@@ -662,11 +662,7 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
                                 //for setting a cooldown on crafting so the animations can take place
                                 this.crafted = true;
                                 HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new EmitParticlesPacket(worldPosition, 10, true));
-                                this.getFluidStack().shrink(iRecipe.getFluidLevelsConsumed());
-                                if (this.getFluidStack().getAmount() % 10 == 1)
-                                    this.getFluidStack().shrink(1);
-                                if (this.getFluidStack().getAmount() % 10 == 9)
-                                    this.getFluidStack().grow(1);
+                                normalizeTank();
                                 setChanged();
                             }
                         }
@@ -914,6 +910,14 @@ public class MixingCauldronTile extends RandomizableContainerBlockEntity impleme
         return amount;
     }
 
+    public void normalizeTank() {
+        if(this.getFluidStack().getAmount() % 10 == 1) {
+            this.getFluidStack().shrink(1);
+        }
+        if(this.getFluidStack().getAmount() % 10 == 9) {
+            this.getFluidStack().grow(1);
+        }
+    }
 
     @Nonnull
     @Override

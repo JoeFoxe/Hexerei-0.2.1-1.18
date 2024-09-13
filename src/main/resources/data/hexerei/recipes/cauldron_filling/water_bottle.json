@@ -1,0 +1,17 @@
+{
+    "type": "hexerei:cauldron_filling",
+    "input": {
+        "item": "minecraft:potion",
+        "nbt": {
+            "Potion": "minecraft:water"
+        }
+    },
+    "output": {
+        "item": "minecraft:glass_bottle",
+        "count": 1
+    },
+    "fluid": {
+        "fluid": "minecraft:water",
+        "amount": 250
+    }
+}
