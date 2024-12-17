@@ -1,0 +1,390 @@
+import java.text.SimpleDateFormat
+import java.util.*
+
+plugins {
+	id 'idea'
+	id 'java-library'
+	id 'maven-publish'
+	id 'net.neoforged.moddev' version '1.0.23'
+}
+
+//val minecraftVersion: String by extra
+//val minecraftVersionRange: String by extra
+//val loaderVersionRange: String by extra
+//val neoforgeVersionRange: String by extra
+//val modVersion: String by extra
+//val modGroupId: String by extra
+//val modId: String by extra
+//val modAuthors: String by extra
+//val modDescription: String by extra
+//val modLicense: String by extra
+//val modName: String by extra
+//val parchmentChannel: String by extra
+//val parchmentVersion: String by extra
+//val neoforgeVersion: String by extra
+//val jeiVersion: String by extra
+//val mixinVersion: String by extra
+//val modJavaVersion: String by extra
+//val registrateVersion: String by extra
+//val terraBlenderVersion: String by extra
+//val cyanideVersion: String by extra
+//val arsNouveauVersion: String by extra
+//val curiosVersion: String by extra
+
+version = "${property("minecraft_version")}-${property("mod_version")}"
+if (System.getenv("BUILD_NUMBER") != null) {
+	version = "${property("minecraft_version")}-${property("mod_version")}.${System.getenv("BUILD_NUMBER")}"
+}
+group = "${property("mod_group_id")}"
+
+base {
+	archivesName = mod_id
+}
+
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+//jarJar.enable()
+
+//mixin {
+//	add(sourceSets.main.get(), "hexerei.refmap.json")
+//	config("hexerei.mixins.json")
+//}
+
+neoForge {
+
+	version.set(project.property("neo_version").toString())
+	parchment {
+		mappingsVersion.set(project.property("parchment_mappings_version").toString())
+		minecraftVersion.set(project.property("parchment_minecraft_version").toString())
+	}
+
+	accessTransformers.from(
+			project.files(
+					"src/main/resources/META-INF/accesstransformer.cfg"
+			)
+	)
+
+	// Default run configurations.
+	// These can be tweaked, removed, or duplicated as needed.
+//	runs {
+//		// applies to all the run configs below
+//		configureEach {
+//			workingDirectory(project.file("run"))
+//
+//			property("forge.logging.markers", "REGISTRIES")
+//			property("forge.logging.console.level", "debug")
+//			arg("-mixin.config=$modId.mixins.json")
+//
+//			mods {
+//				create(modId) {
+//					source(sourceSets.main.get())
+//				}
+//			}
+//		}
+//
+//		create("client") {
+//			// Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+//			property("forge.enabledGameTestNamespaces", modId)
+//		}
+//
+//		create("server") {
+//			property("forge.enabledGameTestNamespaces", modId)
+//			args("--nogui")
+//		}
+//
+//		create("data") {
+//			// example of overriding the workingDirectory set in configureEach above
+//			workingDirectory(project.file("run-data"))
+//
+//			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+//			args(
+//				"--mod",
+//				modId,
+//				"--all",
+//				"--output",
+//				file("src/generated/resources/"),
+//				"--existing",
+//				file("src/main/resources/")
+//			)
+//		}
+//	}
+
+
+
+	runs {
+		client {
+			client()
+
+			// Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+			systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+		}
+
+		server {
+			server()
+			programArgument '--nogui'
+			systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+		}
+
+		// This run config launches GameTestServer and runs all registered gametests, then exits.
+		// By default, the server will crash when no gametests are provided.
+		// The gametest system is also enabled by default for other run configs under the /test command.
+		gameTestServer {
+			type = "gameTestServer"
+			systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+		}
+
+		data {
+			data()
+
+			// example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+			// gameDirectory = project.file('run-data')
+
+			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+			programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+		}
+
+		// applies to all the run configs above
+		configureEach {
+			// Recommended logging data for a userdev environment
+			// The markers can be added/remove as needed separated by commas.
+			// "SCAN": For mods scan.
+			// "REGISTRIES": For firing of registry events.
+			// "REGISTRYDUMP": For getting the contents of all registries.
+			systemProperty 'forge.logging.markers', 'REGISTRIES'
+
+			// Recommended logging level for the console
+			// You can set various levels here.
+			// Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
+			logLevel = org.slf4j.event.Level.DEBUG
+		}
+	}
+}
+
+sourceSets {
+	main {
+		resources.srcDirs("src/generated/resources")
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		name = "Curios maven"
+		url = uri("https://maven.theillusivec4.top/")
+	}
+	maven {
+		name = "JEI maven"
+		url = uri("https://dvs1.progwml6.com/files/maven")
+	}
+	maven {
+		name = "tterrag maven"
+		url = uri("https://maven.tterrag.com/")
+	}
+	maven {
+		name = "BlameJared maven"
+		url = uri("https://maven.blamejared.com/")
+	}
+	maven {
+		name = "Curse Maven"
+		url = uri("https://cursemaven.com")
+		content {
+			includeGroup("curse.maven")
+		}
+	}
+	maven {
+		name = "Thermal Maven"
+		url = uri("https://maven.covers1624.net/")
+	}
+	maven {
+		name = "Kotlin for Forge"
+		setUrl("https://thedarkcolour.github.io/KotlinForForge/")
+	}
+	maven {
+		name = "Gecko Lib"
+		setUrl("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
+	}
+}
+
+dependencies {
+
+//
+//	 compileOnly "mezz.jei:jei-${project.findProperty("mc_version")}-common-api:${project.findProperty("jei_version")}"
+//	 compileOnly "mezz.jei:jei-${project.findProperty("mc_version")}-neoforge-api:${project.findProperty("jei_version")}"
+
+
+	compileOnly "mezz.jei:jei-${project.findProperty("minecraft_version")}-neoforge-api:${project.findProperty("jei_version")}"
+	runtimeOnly "mezz.jei:jei-${project.findProperty("minecraft_version")}-neoforge:${project.findProperty("jei_version")}"
+//	 localRuntime "mezz.jei:jei-${project.findProperty("mc_version")}-neoforge:${project.findProperty("jei_version")}"
+
+//	 Example mod dependency using a mod jar from ./libs with a flat dir repository
+//	 This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
+//	 The group id is ignored when searching -- in this case, it is "blank"
+//	 implementation "blank:coolmod-${mc_version}:${coolmod_version}"
+//
+//	 Example mod dependency using a file as dependency
+//	 implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
+//
+//	 Example project dependency using a sister or child project:
+//	 implementation project(":myproject")
+//
+//	 For more info:
+//	 http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+//	 http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+
+
+//	minecraft("net.neoforged:forge:$minecraftVersion-$neoforgeVersion")
+//
+//	if (System.getProperty("idea.sync.active") != "true") {
+//		annotationProcessor("org.spongepowered:mixin:$mixinVersion:processor")
+//	}
+//
+//	// JEI Dependency
+//	compileOnly(("mezz.jei:jei-${property("minecraft_version")}-neoforge-api:${property("jei_version")}"))
+//	runtimeOnly(("mezz.jei:jei-${property("minecraft_version")}-neoforge:${property("jei_version")}"))
+
+
+//	jarJar(group = "com.tterrag.registrate", name = "Registrate", version = "[$registrateVersion,)") {
+//		jarJar.pin(this, registrateVersion)
+//	}
+//
+	implementation "com.tterrag.registrate:Registrate:${project.findProperty("registrateVersion")}"
+//	implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrateVersion}"))
+
+	implementation "curse.maven:terrablender-563928:${project.findProperty("terraBlenderVersion")}"
+	implementation "curse.maven:cyanide-541676:${project.findProperty("cyanideVersion")}"
+//	implementation (fg.deobf("curse.maven:terrablender-563928:$terraBlenderVersion")) // Terra Blender
+//	implementation(fg.deobf("curse.maven:cyanide-541676:$cyanideVersion")) // Cyanide
+//	implementation(fg.deobf("curse.maven:spit-it-out-857141:4888754")) // Spit It Out
+
+
+//	/*implementation*/ compileOnly(fg.deobf("com.hollingsworth.ars_nouveau:ars_nouveau-${minecraftVersion}:${arsNouveauVersion}"))
+	/*implementation*/ compileOnly "com.hollingsworth.ars_nouveau:ars_nouveau-${project.findProperty("minecraft_version")}:${project.findProperty("arsNouveauVersion")}"
+//	compileOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${curiosVersion}:api"))
+	compileOnly "top.theillusivec4.curios:curios-forge:${project.findProperty("curiosVersion")}:api"
+//	runtimeOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${curiosVersion}"))
+	runtimeOnly "top.theillusivec4.curios:curios-forge:${project.findProperty("curiosVersion")}"
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+	var replaceProperties = [
+			minecraft_version      : minecraft_version,
+			minecraft_version_range: minecraft_version_range,
+			neo_version            : neo_version,
+			neo_version_range      : neo_version_range,
+			loader_version_range   : loader_version_range,
+			mod_id                 : mod_id,
+			mod_name               : mod_name,
+			mod_license            : mod_license,
+			mod_version            : mod_version,
+			mod_authors            : mod_authors,
+			mod_description        : mod_description
+	]
+	inputs.properties replaceProperties
+	expand replaceProperties
+	from "src/main/templates"
+	into "build/generated/sources/modMetadata"
+}
+
+//tasks.withType<ProcessResources> {
+//	inputs.property("version", version)
+//
+//	filesMatching(listOf("META-INF/mods.toml", "pack.mcmeta")) {
+//		expand(
+//			mapOf(
+//				"forgeVersionRange" to neoforgeVersionRange,
+//				"loaderVersionRange" to loaderVersionRange,
+//				"minecraftVersion" to minecraftVersion,
+//				"minecraftVersionRange" to minecraftVersionRange,
+//				"modAuthors" to modAuthors,
+//				"modDescription" to modDescription,
+//				"modId" to modId,
+//				"modJavaVersion" to modJavaVersion,
+//				"modName" to modName,
+//				"modVersion" to version,
+//				"modLicense" to modLicense,
+//			)
+//		)
+//	}
+//}
+// Include the output of "generateModMetadata" as an input directory for the build
+// this works with both building through Gradle and the IDE.
+sourceSets.main.resources.srcDir generateModMetadata
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+neoForge.ideSyncTask generateModMetadata
+
+//tasks.withType<Jar> {
+//	val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
+//	manifest {
+//		attributes(
+//			mapOf(
+//				"Specification-Title" to modName,
+//				"Specification-Vendor" to modAuthors,
+//				"Specification-Version" to '1',
+//				"Implementation-Title" to modName,
+//				"Implementation-Version" to version,
+//				"Implementation-Vendor" to modAuthors,
+//				"Implementation-Timestamp" to now,
+//			)
+//		)
+//	}
+//	finalizedBy("reobfJar")
+//}
+
+publishing {
+	publications {
+		register('mavenJava', MavenPublication) {
+			from components.java
+		}
+	}
+	repositories {
+		maven {
+			url "file://${project.projectDir}/repo"
+		}
+	}
+}
+
+//publishing {
+//	publications {
+//		register<MavenPublication>("mavenJava") {
+//			artifactId = baseArchivesName
+//			artifact(tasks.jar.get())
+//		}
+//	}
+//	repositories {
+//		maven {
+//			url = uri("file://${System.getenv("local_maven")}")
+//		}
+//	}
+//}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+idea {
+	module {
+		downloadSources = true
+		downloadJavadoc = true
+	}
+}
+
+//idea {
+//	module {
+//		for (fileName in listOf("run", "out", "logs")) {
+//			excludeDirs.add(file(fileName))
+//		}
+//	}
+//}
+
+
+//tasks.register("jarJarRelease") {
+//	doLast {
+//		tasks.jarJar {
+//			(this as Jar).archiveClassifier.set("")
+//		}
+//	}
+//	finalizedBy(tasks.getByName("jarJar"))
+//}
+//tasks.jarJar.get().finalizedBy("reobfJarJar")
