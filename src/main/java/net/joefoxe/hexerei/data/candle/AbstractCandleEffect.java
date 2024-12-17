@@ -7,9 +7,8 @@ import net.minecraft.world.level.Level;
 
 import java.util.List;
 
-public class AbstractCandleEffect implements CandleEffect{
+public class AbstractCandleEffect implements CandleEffect {
 
-    private static final int MAX_TIME = 8 * 20;
 
     public int checkCooldown;
 
@@ -23,7 +22,6 @@ public class AbstractCandleEffect implements CandleEffect{
     public AbstractCandleEffect(){
     }
 
-
     @Override
     public void tick(Level level, CandleTile blockEntity, CandleData candleData) {
     }
@@ -34,5 +32,8 @@ public class AbstractCandleEffect implements CandleEffect{
     }
 
 
+    public boolean isEmpty() {
+        return getLocationName().equals(EMPTY);
+    }
 
 }

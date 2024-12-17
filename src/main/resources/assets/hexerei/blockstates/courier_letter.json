@@ -1,0 +1,36 @@
+{
+  "variants": {
+    "facing=east,sealed=true": {
+      "model": "hexerei:block/courier_letter_sealed",
+      "y": 270
+    },
+    "facing=north,sealed=true": {
+      "model": "hexerei:block/courier_letter_sealed",
+      "y": 180
+    },
+    "facing=south,sealed=true": {
+      "model": "hexerei:block/courier_letter_sealed"
+    },
+    "facing=west,sealed=true": {
+      "model": "hexerei:block/courier_letter_sealed",
+      "y": 90
+    },
+
+
+    "facing=east,sealed=false": {
+      "model": "hexerei:block/courier_letter",
+      "y": 270
+    },
+    "facing=north,sealed=false": {
+      "model": "hexerei:block/courier_letter",
+      "y": 180
+    },
+    "facing=south,sealed=false": {
+      "model": "hexerei:block/courier_letter"
+    },
+    "facing=west,sealed=false": {
+      "model": "hexerei:block/courier_letter",
+      "y": 90
+    }
+  }
+}

@@ -2,7 +2,7 @@
 	"parent": "hexerei:block/infused_fabric_carpet/special_carpet_end_90",
 	"textures": {
 		"face": "hexerei:block/infused_fabric_ornate",
-		"outer": "hexerei:block/infused_fabric_outter"
+		"outer": "hexerei:block/infused_fabric_outter_dark"
 	},
 	"render_type": "cutout_mipped"
 }

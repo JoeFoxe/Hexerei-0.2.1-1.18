@@ -18,11 +18,12 @@ public class BookNonItemTooltip {
     public float width;
     public int hyperlink_chapter;
     public int hyperlink_page;
+    public String hyperlink_id;
     public String hyperlink_url;
     public java.util.List<net.minecraft.network.chat.Component> textComponentsList;
     List<BookTooltipExtra> extra_tooltips_raw;
 
-    BookNonItemTooltip(float x, float y, float width, float height, int hyperlink_chapter, int hyperlink_page, java.util.List<net.minecraft.network.chat.Component> textComponentsList, String hyperlink_url, List<BookTooltipExtra> extra_tooltips_raw){
+    BookNonItemTooltip(float x, float y, float width, float height, int hyperlink_chapter, int hyperlink_page, java.util.List<net.minecraft.network.chat.Component> textComponentsList, String hyperlink_url, String hyperlink_id, List<BookTooltipExtra> extra_tooltips_raw){
         this.x = x;
         this.y = y;
         this.height = height;
@@ -31,6 +32,7 @@ public class BookNonItemTooltip {
         this.hyperlink_chapter = hyperlink_chapter;
         this.hyperlink_page = hyperlink_page;
         this.hyperlink_url = hyperlink_url;
+        this.hyperlink_id = hyperlink_id;
         this.extra_tooltips_raw = extra_tooltips_raw;
     }
 
@@ -43,6 +45,7 @@ public class BookNonItemTooltip {
         JsonObject hyperlink = GsonHelper.getAsJsonObject(object, "hyperlink", new JsonObject());
         int chapter = GsonHelper.getAsInt(hyperlink, "chapter", -1);
         int page = GsonHelper.getAsInt(hyperlink, "page", -1);
+        String id = GsonHelper.getAsString(hyperlink, "id", "");
         String url = GsonHelper.getAsString(hyperlink, "url", "");
 
 
@@ -81,6 +84,6 @@ public class BookNonItemTooltip {
 
 
 
-        return new BookNonItemTooltip(x, y, width, height, chapter, page, textComponentsList, url, bookTooltipExtraList);
+        return new BookNonItemTooltip(x, y, width, height, chapter, page, textComponentsList, url, id, bookTooltipExtraList);
     }
 }

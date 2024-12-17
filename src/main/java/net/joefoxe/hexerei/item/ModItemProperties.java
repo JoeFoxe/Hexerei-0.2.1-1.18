@@ -1,17 +1,25 @@
 package net.joefoxe.hexerei.item;
 
+import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.item.custom.CourierPackageItem;
 import net.joefoxe.hexerei.item.custom.DowsingRodItem;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
@@ -23,59 +31,53 @@ public class ModItemProperties {
         return diff < -180 ? diff + 360 : diff;
     }
 
-    public static void makeDowsingRod(Item item) {
+    public static void setup() {
 
-        ItemProperties.register(ModItems.DOWSING_ROD.get(), new ResourceLocation("angle"), new ClampedItemPropertyFunction() {
-            private double rotation;
-            private double rota;
-            private long lastUpdateTick;
+        ItemProperties.register(ModItems.DOWSING_ROD.get(), new ResourceLocation("angle"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
+            Entity entity = p_174667_ != null ? p_174667_ : itemStack.getEntityRepresentation();
 
-            public float unclampedCall(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity p_174667_, int p_174668_) {
-                Entity entity = p_174667_ != null ? p_174667_ : itemStack.getEntityRepresentation();
+            if (!(entity instanceof Player) || ((DowsingRodItem)itemStack.getItem()).nearestPos == null) {
+                return 0.3F;
+            }
 
-                if (!(entity instanceof Player) || ((DowsingRodItem)itemStack.getItem()).nearestPos == null) {
-                    return 0.3F;
+            float viewRot = Mth.wrapDegrees(entity.getViewYRot(1.0f));
+            float rotationFromPlayer = (float) (Math.atan2(((DowsingRodItem)itemStack.getItem()).nearestPos.getZ() - p_174667_.getZ() + 0.5f, ((DowsingRodItem)itemStack.getItem()).nearestPos.getX() - p_174667_.getX() + 0.5f) * 180 / Math.PI);
+            if (Math.abs(angleDifference(Mth.wrapDegrees(viewRot + 90), rotationFromPlayer)) < 15) {
+                return 0.0f;
+            }else if (Math.abs(angleDifference(Mth.wrapDegrees(viewRot + 90), rotationFromPlayer)) < 45) {
+                return 0.1f;
+            }else if (Math.abs(angleDifference(Mth.wrapDegrees(viewRot + 90), rotationFromPlayer)) < 75) {
+                return 0.2f;
+            }
+            return 0.3f;
+
+        });
+
+        ItemProperties.register(ModItems.COURIER_PACKAGE.get(), new ResourceLocation("open"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
+
+            if (itemStack.hasTag()) {
+
+                CompoundTag tag = itemStack.getOrCreateTag();
+                if (tag.contains("BlockEntityTag") && tag.getCompound("BlockEntityTag").contains("Items") && !tag.getCompound("BlockEntityTag").getList("Items", Tag.TAG_COMPOUND).isEmpty()) {
+                    if (tag.getCompound("BlockEntityTag").contains("Sealed") && tag.getCompound("BlockEntityTag").getBoolean("Sealed"))
+                        return 0.0f;
+                    return 0.5f;
                 }
-                if (level == null && entity.level() instanceof ClientLevel) {
-                    level = (ClientLevel)entity.level();
-                }
+            }
+            return 1.0f;
 
-                float viewRot = Mth.wrapDegrees(entity.getViewYRot(1.0f));
-                float rotationFromPlayer = (float) (Math.atan2(((DowsingRodItem)itemStack.getItem()).nearestPos.getZ() - p_174667_.getZ() + 0.5f, ((DowsingRodItem)itemStack.getItem()).nearestPos.getX() - p_174667_.getX() + 0.5f) * 180 / Math.PI);
-                if (Math.abs(angleDifference(Mth.wrapDegrees(viewRot + 90), rotationFromPlayer)) < 15) {
+        });
+
+        ItemProperties.register(ModItems.COURIER_LETTER.get(), new ResourceLocation("open"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
+
+            if (itemStack.hasTag()) {
+                CompoundTag tag = BlockItem.getBlockEntityData(itemStack);
+                if (tag != null && tag.contains("Sealed") && tag.getBoolean("Sealed")) {
                     return 0.0f;
-                }else if (Math.abs(angleDifference(Mth.wrapDegrees(viewRot + 90), rotationFromPlayer)) < 45) {
-                    return 0.1f;
-                }else if (Math.abs(angleDifference(Mth.wrapDegrees(viewRot + 90), rotationFromPlayer)) < 75) {
-                    return 0.2f;
                 }
-                return 0.3f;
-
-
-//                double d0;
-//                if (level.dimensionType().natural()) {
-//                    d0 = (double)level.getTimeOfDay(1.0F);
-//                } else {
-//                    d0 = Math.random();
-//                }
-//
-//                d0 = this.wobble(level, d0);
-//                return (float)d0;
-
             }
+            return 1.0f;
 
-            private double wobble(Level p_117904_, double p_117905_) {
-                if (p_117904_.getGameTime() != this.lastUpdateTick) {
-                    this.lastUpdateTick = p_117904_.getGameTime();
-                    double d0 = p_117905_ - this.rotation;
-                    d0 = Mth.positiveModulo(d0 + 0.5D, 1.0D) - 0.5D;
-                    this.rota += d0 * 0.1D;
-                    this.rota *= 0.9D;
-                    this.rotation = Mth.positiveModulo(this.rotation + this.rota, 1.0D);
-                }
-
-                return this.rotation;
-            }
         });
     }
 }

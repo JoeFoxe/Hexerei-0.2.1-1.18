@@ -127,6 +127,11 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
     }
 
     @Override
+    protected void containerTick() {
+        super.containerTick();
+    }
+
+    @Override
     public Component getTitle() {
         return super.getTitle();
     }

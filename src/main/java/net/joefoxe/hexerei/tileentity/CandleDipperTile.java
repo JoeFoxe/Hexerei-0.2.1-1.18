@@ -11,7 +11,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -48,6 +47,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,70 +56,130 @@ import static net.joefoxe.hexerei.util.HexereiUtil.moveTo;
 
 public class CandleDipperTile extends RandomizableContainerBlockEntity implements WorldlyContainer, Clearable, MenuProvider {
 
-    //    public final ItemStackHandler itemHandler = createHandler();
-//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
     protected NonNullList<ItemStack> items = NonNullList.withSize(3, ItemStack.EMPTY);
 
     public float numberOfCandles;
-    public Vec3 candlePos1;
-    public Vec3 candlePos2;
-    public Vec3 candlePos3;
-    public boolean candle1Crafted = false;
-    public boolean candle2Crafted = false;
-    public boolean candle3Crafted = false;
-    public boolean candle1Crafting;
-    public boolean candle2Crafting;
-    public boolean candle3Crafting;
-    public boolean candle1Dunking;
-    public boolean candle2Dunking;
-    public boolean candle3Dunking;
-    public int candle1DippedTimes;
-    public int candle2DippedTimes;
-    public int candle3DippedTimes;
-    public int candle1DippedTimesMax;
-    public int candle2DippedTimesMax;
-    public int candle3DippedTimesMax;
-    public int candleDryingTimeStart = 60;
-    public int candle1DryingTime = candleDryingTimeStart;
-    public int candle2DryingTime = candleDryingTimeStart;
-    public int candle3DryingTime = candleDryingTimeStart;
-    public int candle1DryingTimeMax = 200;
-    public int candle2DryingTimeMax = 200;
-    public int candle3DryingTimeMax = 200;
-    public int candle1DippingTimeMax = 200;
-    public int candle2DippingTimeMax = 200;
-    public int candle3DippingTimeMax = 200;
-    public int candle1DippingTime = candle1DippingTimeMax;
-    public int candle2DippingTime = candle2DippingTimeMax;
-    public int candle3DippingTime = candle3DippingTimeMax;
-    public ItemStack candle1Output = ItemStack.EMPTY;
-    public ItemStack candle2Output = ItemStack.EMPTY;
-    public ItemStack candle3Output = ItemStack.EMPTY;
-    public int candle1DecreaseAmount = 100;
-    public int candle2DecreaseAmount = 100;
-    public int candle3DecreaseAmount = 100;
+    public static int DRYING_START_TICKS = 60;
 
-    public Vec3 closestPlayerPos;
-    public double closestDist;
+    public List<DipperSlot> dipperSlots = new ArrayList<>(3);
 
-    public final double maxDist = 8;
+    public static class DipperSlot {
+        public int index;
+        public Vec3 pos;
+        public Vec3 posLast;
+        public DipperState state;
+        public int dippingTicks;
+        public int dippingTicksMax;
+        public int dryingTicks;
+        public int dryingTicksMax;
+        public int timesDipped;
+        public int timesDippedMax;
+        public int fluidConsumptionAmount;
+        public ItemStack output;
 
+        public DipperSlot(int index, Vec3 pos, DipperState state, int dippingTicksMax, int dryingTicksMax, int timesDippedMax, int fluidConsumptionAmount, ItemStack output) {
+            this.index = index;
+            this.pos = pos;
+            this.posLast = pos;
+            this.state = state;
+            this.dippingTicks = dippingTicksMax;
+            this.dippingTicksMax = dippingTicksMax;
+            this.dryingTicks = dryingTicksMax;
+            this.dryingTicksMax = dryingTicksMax;
+            this.timesDipped = 0;
+            this.timesDippedMax = timesDippedMax;
+            this.fluidConsumptionAmount = fluidConsumptionAmount;
+            this.output = output;
+        }
+
+        public boolean isCrafting() {
+            return this.state != DipperState.NON && this.state != DipperState.FINISHED;
+        }
+
+        public boolean isDrying() {
+            return this.state == DipperState.DRYING;
+        }
+
+        public boolean isDunking() {
+            return this.state == DipperState.DUNKING;
+        }
+
+        public boolean isFinished() {
+            return this.state == DipperState.FINISHED;
+        }
+
+        public boolean isNon() {
+            return this.state == DipperState.NON;
+        }
+
+        public CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putInt("state", this.state.ordinal());
+            tag.putInt("dippingTicks", this.dippingTicks);
+            tag.putInt("dippingTicksMax", this.dippingTicksMax);
+            tag.putInt("dryingTicks", this.dryingTicks);
+            tag.putInt("dryingTicksMax", this.dryingTicksMax);
+            tag.putInt("timesDipped", this.timesDipped);
+            tag.putInt("timesDippedMax", this.timesDippedMax);
+            tag.putInt("fluidConsumptionAmount", this.fluidConsumptionAmount);
+            tag.put("output", this.output.save(new CompoundTag()));
+
+            return tag;
+        }
+
+        public void load(CompoundTag tag) {
+            this.state = DipperState.byId(tag.getInt("state"));
+            this.dippingTicks = tag.getInt("dippingTicks");
+            this.dippingTicksMax = tag.getInt("dippingTicksMax");
+            this.dryingTicks = tag.getInt("dryingTicks");
+            this.dryingTicksMax = tag.getInt("dryingTicksMax");
+            this.timesDipped = tag.getInt("timesDipped");
+            this.timesDippedMax = tag.getInt("timesDippedMax");
+            this.fluidConsumptionAmount = tag.getInt("fluidConsumptionAmount");
+            this.output = ItemStack.of(tag.getCompound("output"));
+        }
+    }
+
+    public enum DipperState {
+        DRYING, DUNKING, FINISHED, NON;
+
+
+        public static DipperState byId(int id) {
+            DipperState[] type = values();
+            return type[id < 0 || id >= type.length ? 0 : id];
+        }
+    }
 
     public CandleDipperTile(BlockEntityType<?> tileEntityTypeIn, BlockPos blockPos, BlockState blockState) {
         super(tileEntityTypeIn, blockPos, blockState);
 
-        candlePos1 = new Vec3(0.4f, 0.4f, 0.4f);
-        candlePos2 = new Vec3(0.4f, 0.4f, 0.4f);
-        candlePos3 = new Vec3(0.4f, 0.4f, 0.4f);
-        candle1Dunking = false;
-        candle2Dunking = false;
-        candle3Dunking = false;
-//        candle1DippedTimes = 0;
-//        candle2DippedTimes = 0;
-//        candle3DippedTimes = 0;
-        candle1DippedTimesMax = 3;
-        candle2DippedTimesMax = 3;
-        candle3DippedTimesMax = 3;
+        dipperSlots.add(new DipperSlot(
+                0,
+                new Vec3(0.5f, 0.4f, 0.5f),
+                DipperState.NON,
+                200,
+                60,
+                3,
+                100,
+                ItemStack.EMPTY));
+        dipperSlots.add(new DipperSlot(
+                1,
+                new Vec3(0.5f, 0.4f, 0.5f),
+                DipperState.NON,
+                200,
+                60,
+                3,
+                100,
+                ItemStack.EMPTY));
+        dipperSlots.add(new DipperSlot(
+                2,
+                new Vec3(0.5f, 0.4f, 0.5f),
+                DipperState.NON,
+                200,
+                60,
+                3,
+                100,
+                ItemStack.EMPTY));
     }
 
     @Override
@@ -179,21 +239,6 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         return super.getCapability(cap);
     }
 
-    public Item getItemInSlot(int slot) {
-        return this.items.get(slot).getItem();
-    }
-
-    public int getNumberOfItems() {
-
-        int num = 0;
-        for (int i = 0; i < 8; i++) {
-            if (this.items.get(i) != ItemStack.EMPTY)
-                num++;
-        }
-        return num;
-
-    }
-
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
@@ -226,12 +271,7 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             ItemStack itemStack = stack.copy();
             itemStack.setCount(1);
             this.items.set(index, itemStack);
-            if (index == 0)
-                candle1DryingTime = candleDryingTimeStart;
-            if (index == 1)
-                candle2DryingTime = candleDryingTimeStart;
-            if (index == 2)
-                candle3DryingTime = candleDryingTimeStart;
+            dipperSlots.get(index).dryingTicks = DRYING_START_TICKS;
             level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, this.level.random.nextFloat() * 0.4F + 1.0F);
         }
 
@@ -243,19 +283,9 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         this.unpackLootTable(null);
         ItemStack itemstack = ContainerHelper.removeItem(this.getItems(), index, p_59614_);
         if (!itemstack.isEmpty()) {
-            this.setChanged();
-            if (index == 0) {
-                candle1Crafted = false;
-                setChanged();
-            }
-            if (index == 0) {
-                candle2Crafted = false;
-                setChanged();
-            }
-            if (index == 0) {
-                candle3Crafted = false;
-                setChanged();
-            }
+
+            dipperSlots.get(index).state = DipperState.NON;
+            setChanged();
         }
 
 
@@ -264,14 +294,14 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
 
     public void craft() {
         SimpleContainer inv = new SimpleContainer(3);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++)
             inv.setItem(i, this.items.get(i));
-        }
 
         BlockEntity blockEntity = level.getBlockEntity(this.worldPosition.below());
-        AtomicBoolean matchesRecipe1 = new AtomicBoolean(false);
-        AtomicBoolean matchesRecipe2 = new AtomicBoolean(false);
-        AtomicBoolean matchesRecipe3 = new AtomicBoolean(false);
+        AtomicBoolean[] matchesRecipe = new AtomicBoolean[3];
+        for (int i = 0; i < matchesRecipe.length; i++)
+            matchesRecipe[i] = new AtomicBoolean(false);
+
         if (blockEntity instanceof MixingCauldronTile mixingCauldronTile) {
 
             List<DipperRecipe> recipes = level.getRecipeManager().getRecipesFor(DipperRecipe.Type.INSTANCE, inv, level).stream().filter((dipperRecipe) -> {
@@ -306,474 +336,115 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
 
                 boolean useInputItemAsOutput = iRecipe.getUseInputItemAsOutput();
                 CompoundTag tag = input.getOrCreateTag();
-                CompoundTag tag2 = this.items.get(0).getOrCreateTag();
-
-                boolean compare = NbtUtils.compareNbt(tag, tag2, true);
-
-                if (input.getItem() == this.items.get(0).getItem() && compare && !matchesRecipe1.get()) {
-                    // FIRST SLOT MATCHES
 
 
-                    if (matchesFluid) {
+                for (int i = 0; i < matchesRecipe.length; i++) {
+                    CompoundTag tag2 = this.items.get(i).getOrCreateTag();
+                    boolean compare = NbtUtils.compareNbt(tag, tag2, true);
+                    DipperSlot dipperSlot = dipperSlots.get(i);
+                    if (input.getItem() == this.items.get(i).getItem() && compare && !matchesRecipe[i].get()) {
 
-                        matchesRecipe1.set(true);
+                        if (matchesFluid) {
 
-                        if (!candle1Crafting && !candle1Crafted) {
-                            candle1Crafting = true;
-                            candle1Output = output.copy();
-                            if (useInputItemAsOutput) {
-                                ItemStack stack = this.items.get(0).copy();
-                                stack.getOrCreateTag().merge(output.getOrCreateTag());
-                                candle1Output = stack;
+                            matchesRecipe[i].set(true);
+
+                            if (dipperSlot.isNon()) {
+                                dipperSlot.state = DipperState.DRYING;
+
+                                dipperSlot.output = output.copy();
+                                if (useInputItemAsOutput) {
+                                    ItemStack stack = this.items.get(i).copy();
+                                    stack.getOrCreateTag().merge(output.getOrCreateTag());
+                                    dipperSlot.output = stack;
+                                }
+                                dipperSlot.fluidConsumptionAmount = iRecipe.getFluidLevelsConsumed();
+                                dipperSlot.timesDipped = 0;
+                                dipperSlot.timesDippedMax = iRecipe.getNumberOfDips();
+                                dipperSlot.dryingTicksMax = iRecipe.getDryingTime();
+                                dipperSlot.dryingTicks = DRYING_START_TICKS;
+                                dipperSlot.dippingTicksMax = iRecipe.getDippingTime();
+                                dipperSlot.dippingTicks = dipperSlot.dippingTicksMax;
+                                setChanged();
                             }
-                            candle1DecreaseAmount = iRecipe.getFluidLevelsConsumed();
-                            candle1DippedTimesMax = iRecipe.getNumberOfDips();
-                            candle1DryingTimeMax = iRecipe.getDryingTime();
-                            candle1DryingTime = candleDryingTimeStart;
-                            candle1DippingTimeMax = iRecipe.getDippingTime();
-                            candle1DippingTime = candle1DippingTimeMax;
-                            setChanged();
-                        }
-
-                    }
-
-
-                } else {
-                    if (matchesFluid) {
-                        if (candle1Crafting) {
-                            candle1Crafting = false;
-                            setChanged();
-                        }
-                    }
-                }
-                tag2 = this.items.get(1).getOrCreateTag();
-
-                compare = NbtUtils.compareNbt(tag, tag2, true);
-
-                if (input.getItem() == this.items.get(1).getItem() && compare && !matchesRecipe2.get()) {
-                    // SECOND SLOT MATCHES
-
-                    if (matchesFluid) {
-
-                        matchesRecipe2.set(true);
-
-
-                        if (!candle2Crafting && !candle2Crafted) {
-                            candle2Crafting = true;
-                            candle2Output = output.copy();
-                            candle2DecreaseAmount = iRecipe.getFluidLevelsConsumed();
-                            candle2DippedTimesMax = iRecipe.getNumberOfDips();
-                            candle2DryingTimeMax = iRecipe.getDryingTime();
-                            candle2DryingTime = candleDryingTimeStart;
-                            candle2DippingTimeMax = iRecipe.getDippingTime();
-                            candle2DippingTime = candle2DippingTimeMax;
-                            setChanged();
                         }
 
                     } else {
-                        if (candle2Dunking) {
-                            candle2Crafting = false;
-                            candle2Dunking = false;
-                            candle2DryingTime = candleDryingTimeStart;
-                            setChanged();
-                        }
-
-                    }
-
-                } else {
-                    if (matchesFluid) {
-                        if (candle2Crafting) {
-                            candle2Crafting = false;
-                            setChanged();
+                        if (matchesFluid) {
+                            if (dipperSlot.isCrafting()) {
+                                dipperSlot.state = DipperState.NON;
+                                setChanged();
+                            }
                         }
                     }
                 }
-
-                tag2 = this.items.get(2).getOrCreateTag();
-
-                compare = NbtUtils.compareNbt(tag, tag2, true);
-                if (input.getItem() == this.items.get(2).getItem() && compare && !matchesRecipe3.get()) {
-                    // THIRD SLOT MATCHES
-
-                    if (matchesFluid) {
-
-                        matchesRecipe3.set(true);
-
-
-                        if (!candle3Crafting && !candle3Crafted) {
-                            candle3Crafting = true;
-                            candle3Output = output.copy();
-                            candle3DecreaseAmount = iRecipe.getFluidLevelsConsumed();
-                            candle3DippedTimesMax = iRecipe.getNumberOfDips();
-                            candle3DryingTimeMax = iRecipe.getDryingTime();
-                            candle3DryingTime = candleDryingTimeStart;
-                            candle3DippingTimeMax = iRecipe.getDippingTime();
-                            candle3DippingTime = candle3DippingTimeMax;
-                            setChanged();
-                        }
-
-
-                    } else {
-                        if (candle3Dunking) {
-                            candle3Crafting = false;
-                            candle3Dunking = false;
-                            candle3DryingTime = candleDryingTimeStart;
-                            setChanged();
-                        }
-
-                    }
-
-
-                } else {
-                    if (matchesFluid) {
-                        if (candle3Crafting) {
-                            candle3Crafting = false;
-                            setChanged();
-                        }
-                    }
-                }
-
-//                if(this.craftDelay >= this.craftDelayMax) {
-//                    Random rand = new Random();
-//                    craftTheItem(output);
-//                    setChanged();();
-//                    int temp = this.getFluidStack().getAmount();
-//                    this.getFluidStack().shrink(this.getTankCapacity(0));
-//                    this.fill(new FluidStack(iRecipe.getLiquidOutput(), temp), IFluidHandler.FluidAction.EXECUTE);
-//
-//                    //for setting a cooldown on crafting so the animations can take place
-//                    this.crafted = true;
-//
-//                    this.getFluidStack().shrink(iRecipe.getFluidLevelsConsumed());
-//                    if (this.getFluidStack().getAmount() % 10 == 1)
-//                        this.getFluidStack().shrink(1);
-//                    if (this.getFluidStack().getAmount() % 10 == 9)
-//                        this.getFluidStack().grow(1);
-//
-//                }
-//
-//                else
-//                {
-//                    if(candle3Dunking || candle2Dunking || candle3Dunking) {
-//                        System.out.println("SET FALSE");
-//                        candle1Crafting = false;
-//                        candle2Crafting = false;
-//                        candle3Crafting = false;
-//                        candle1Dunking = false;
-//                        candle2Dunking = false;
-//                        candle3Dunking = false;
-//                        candle3DryingTime = candleDryingTimeStart;
-//                        candle2DryingTime = candleDryingTimeStart;
-//                        candle1DryingTime = candleDryingTimeStart;
-//                        setChanged();();
-//                    }
-//
-//                }
 
 
             }));
 
-            if (!matchesRecipe1.get()) {
-                if (candle1Dunking) {
-                    candle1Crafting = false;
-                    candle1Dunking = false;
-                    candle1DryingTime = candleDryingTimeStart;
-                    setChanged();
+            for (int i = 0; i < matchesRecipe.length; i++) {
+                if (!matchesRecipe[i].get()) {
+                    if (dipperSlots.get(i).isCrafting()) {
+                        dipperSlots.get(i).state = DipperState.NON;
+                        dipperSlots.get(i).dryingTicks = DRYING_START_TICKS;
+                        setChanged();
+                    }
                 }
             }
 
 
-//            recipe.ifPresent(iRecipe -> {
-//                ItemStack output = iRecipe.getResultItem();
-//                ItemStack input = iRecipe.getIngredients().get(0).getItems()[0];
-//                boolean matchesFluid = iRecipe.getLiquid().getFluid().isSame(mixingCauldronTile.getFluidStack().getFluid()) && iRecipe.getFluidLevelsConsumed() <= mixingCauldronTile.getFluidStack().getAmount();
-//                boolean hasFluidTag = iRecipe.getLiquid().hasTag();
-//                if(hasFluidTag && !mixingCauldronTile.getFluidStack().isEmpty() && !mixingCauldronTile.getFluidStack().getOrCreateTag().equals(iRecipe.getLiquid().getOrCreateTag()))
-//                    matchesFluid = false;
-//                boolean useInputItemAsOutput = iRecipe.getUseInputItemAsOutput();
-//                CompoundTag tag = input.getOrCreateTag();
-//                CompoundTag tag2 = this.items.get(0).getOrCreateTag();
-//
-//
-//
-//                boolean hasTag = input.hasTag();
-//                boolean compare = NbtUtils.compareNbt(tag, tag2, true);
-//
-//                if (input.getItem() == this.items.get(0).getItem() && compare) {
-//                    // FIRST SLOT MATCHES
-//
-//                    if(matchesFluid){
-//
-//
-//                        if (!candle1Crafting && !candle1Crafted) {
-//                            candle1Crafting = true;
-//                            candle1Output = output.copy();
-//                            if(useInputItemAsOutput) {
-//                                ItemStack stack = this.items.get(0).copy();
-//                                stack.getOrCreateTag().merge(output.getOrCreateTag());
-//                                candle1Output = stack;
-//                            }
-//                            candle1DecreaseAmount = iRecipe.getFluidLevelsConsumed();
-//                            candle1DippedTimesMax = iRecipe.getNumberOfDips();
-//                            candle1DryingTimeMax = iRecipe.getDryingTime();
-//                            candle1DryingTime = candleDryingTimeStart;
-//                            candle1DippingTimeMax = iRecipe.getDippingTime();
-//                            candle1DippingTime = candle1DippingTimeMax;
-//                            setChanged();
-//                        }
-//
-//                    } else
-//                    {
-//                        if(candle1Dunking) {
-//                            candle1Crafting = false;
-//                            candle1Dunking = false;
-//                            candle1DryingTime = candleDryingTimeStart;
-//                            setChanged();
-//                        }
-//
-//                    }
-//
-//
-//                } else {
-//                    if(matchesFluid){
-//                        if (candle1Crafting) {
-//                            candle1Crafting = false;
-//                            setChanged();
-//                        }
-//                    }
-//                }
-//
-//                if (input.getItem() == this.items.get(1).getItem()) {
-//                    // SECOND SLOT MATCHES
-//
-//                    if(matchesFluid){
-//
-//
-//
-//                        if (!candle2Crafting && !candle2Crafted) {
-//                            candle2Crafting = true;
-//                            candle2Output = output.copy();
-//                            candle2DecreaseAmount = iRecipe.getFluidLevelsConsumed();
-//                            candle2DippedTimesMax = iRecipe.getNumberOfDips();
-//                            candle2DryingTimeMax = iRecipe.getDryingTime();
-//                            candle2DryingTime = candleDryingTimeStart;
-//                            candle2DippingTimeMax = iRecipe.getDippingTime();
-//                            candle2DippingTime = candle2DippingTimeMax;
-//                            setChanged();
-//                        }
-//
-//                    } else
-//                    {
-//                        if(candle2Dunking) {
-//                            candle2Crafting = false;
-//                            candle2Dunking = false;
-//                            candle2DryingTime = candleDryingTimeStart;
-//                            setChanged();
-//                        }
-//
-//                    }
-//
-//                } else {
-//                    if(matchesFluid){
-//                        if (candle2Crafting) {
-//                            candle2Crafting = false;
-//                            setChanged();
-//                        }
-//                    }
-//                }
-//
-//                if (input.getItem() == this.items.get(2).getItem()) {
-//                    // THIRD SLOT MATCHES
-//
-//                    if(matchesFluid){
-//
-//
-//                        if (!candle3Crafting && !candle3Crafted) {
-//                            candle3Crafting = true;
-//                            candle3Output = output.copy();
-//                            candle3DecreaseAmount = iRecipe.getFluidLevelsConsumed();
-//                            candle3DippedTimesMax = iRecipe.getNumberOfDips();
-//                            candle3DryingTimeMax = iRecipe.getDryingTime();
-//                            candle3DryingTime = candleDryingTimeStart;
-//                            candle3DippingTimeMax = iRecipe.getDippingTime();
-//                            candle3DippingTime = candle3DippingTimeMax;
-//                            setChanged();
-//                        }
-//
-//
-//                    } else
-//                    {
-//                        if(candle3Dunking) {
-//                            candle3Crafting = false;
-//                            candle3Dunking = false;
-//                            candle3DryingTime = candleDryingTimeStart;
-//                            setChanged();
-//                        }
-//
-//                    }
-//
-//
-//                } else {
-//                    if(matchesFluid){
-//                        if (candle3Crafting) {
-//                            candle3Crafting = false;
-//                            setChanged();
-//                        }
-//                    }
-//                }
-//
-////                if(this.craftDelay >= this.craftDelayMax) {
-////                    Random rand = new Random();
-////                    craftTheItem(output);
-////                    setChanged();();
-////                    int temp = this.getFluidStack().getAmount();
-////                    this.getFluidStack().shrink(this.getTankCapacity(0));
-////                    this.fill(new FluidStack(iRecipe.getLiquidOutput(), temp), IFluidHandler.FluidAction.EXECUTE);
-////
-////                    //for setting a cooldown on crafting so the animations can take place
-////                    this.crafted = true;
-////
-////                    this.getFluidStack().shrink(iRecipe.getFluidLevelsConsumed());
-////                    if (this.getFluidStack().getAmount() % 10 == 1)
-////                        this.getFluidStack().shrink(1);
-////                    if (this.getFluidStack().getAmount() % 10 == 9)
-////                        this.getFluidStack().grow(1);
-////
-////                }
-////
-////                else
-////                {
-////                    if(candle3Dunking || candle2Dunking || candle3Dunking) {
-////                        System.out.println("SET FALSE");
-////                        candle1Crafting = false;
-////                        candle2Crafting = false;
-////                        candle3Crafting = false;
-////                        candle1Dunking = false;
-////                        candle2Dunking = false;
-////                        candle3Dunking = false;
-////                        candle3DryingTime = candleDryingTimeStart;
-////                        candle2DryingTime = candleDryingTimeStart;
-////                        candle1DryingTime = candleDryingTimeStart;
-////                        setChanged();();
-////                    }
-////
-////                }
-//
-//
-//            });
-        }
+            for(DipperSlot slot : dipperSlots) {
+                if (slot.isDrying() && slot.timesDipped < slot.timesDippedMax) {
+                    slot.dryingTicks--;
+                    if (slot.dryingTicks <= 0) {
+                        slot.dryingTicks = slot.dryingTicksMax;
+                        slot.state = DipperState.DUNKING;
+                        setChanged();
+                    }
+                }
+                else if (slot.isDunking()) {
+                    if (mixingCauldronTile.getFluidStack().getAmount() > 0) {
+                        slot.dippingTicks--;
+                    }
+                    if (slot.dippingTicks <= 0) {
+                        slot.dippingTicks = slot.dippingTicksMax;
+                        slot.state = DipperState.DRYING;
+                        slot.dryingTicks = slot.dryingTicksMax;
+                        slot.timesDipped++;
+                        decreaseFluid(slot.fluidConsumptionAmount);
 
-        if (candle1DippedTimes >= candle1DippedTimesMax) {
-            candle1DippedTimes = 0;
-            candle1DippingTime = candle1DippingTimeMax;
-            candle1Dunking = false;
-            candle1DryingTime = candle1DryingTimeMax;
-            level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-            candle1Crafted = true;
-            candle1Crafting = false;
-            this.items.set(0, candle1Output);
-            candle1Output = ItemStack.EMPTY;
-            setChanged();
+                        if (slot.timesDipped >= slot.timesDippedMax) {
+                            slot.state = DipperState.FINISHED;
+                            slot.timesDipped = 0;
+                            slot.dippingTicks = slot.dippingTicksMax;
+                            slot.dryingTicks = slot.dryingTicksMax;
+
+                            level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
+
+                            this.items.set(slot.index, slot.output);
+                        }
+                        setChanged();
+                    }
+                }
+            }
 
         }
-        if (candle2DippedTimes >= candle2DippedTimesMax) {
-
-            candle2DippedTimes = 0;
-            candle2DippingTime = candle2DippingTimeMax;
-            candle2Dunking = false;
-            candle2DryingTime = candle2DryingTimeMax;
-            level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-            candle2Crafted = true;
-            candle2Crafting = false;
-            this.items.set(1, candle2Output);
-            candle2Output = ItemStack.EMPTY;
-            setChanged();
-
-        }
-        if (candle3DippedTimes >= candle3DippedTimesMax) {
-            candle3DippedTimes = 0;
-            candle3DippingTime = candle3DippingTimeMax;
-            candle3Dunking = false;
-            candle3DryingTime = candle3DryingTimeMax;
-            level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-            candle3Crafted = true;
-            candle3Crafting = false;
-            this.items.set(2, candle3Output);
-            candle3Output = ItemStack.EMPTY;
-            setChanged();
-
-        }
-//
-
-    }
 
 
-    private void craftTheItem(ItemStack output, int slot) {
-
-        this.setItem(slot, output);
     }
 
 
     @Override
     public void load(CompoundTag nbt) {
-//        itemHandler.deserializeNBT(nbt.getCompound("inv"));
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(nbt)) {
+        if (!this.tryLoadLootTable(nbt))
             ContainerHelper.loadAllItems(nbt, this.items);
-        }
-//        super.read(state, nbt);
-//        if (nbt.contains("CustomName", 8))
-//            this.customName = Component.Serializer.fromJson(nbt.getString("CustomName"));
 
-        if (nbt.contains("candle1DippedTimes", Tag.TAG_INT))
-            candle1DippedTimes = nbt.getInt("candle1DippedTimes");
-        if (nbt.contains("candle2DippedTimes", Tag.TAG_INT))
-            candle2DippedTimes = nbt.getInt("candle2DippedTimes");
-        if (nbt.contains("candle3DippedTimes", Tag.TAG_INT))
-            candle3DippedTimes = nbt.getInt("candle3DippedTimes");
-        if (nbt.contains("candle1DippedTimesMax", Tag.TAG_INT))
-            candle1DippedTimesMax = nbt.getInt("candle1DippedTimesMax");
-        if (nbt.contains("candle2DippedTimesMax", Tag.TAG_INT))
-            candle2DippedTimesMax = nbt.getInt("candle2DippedTimesMax");
-        if (nbt.contains("candle3DippedTimesMax", Tag.TAG_INT))
-            candle3DippedTimesMax = nbt.getInt("candle3DippedTimesMax");
-        if (nbt.contains("candle1DryingTime", Tag.TAG_INT))
-            candle1DryingTime = nbt.getInt("candle1DryingTime");
-        if (nbt.contains("candle2DryingTime", Tag.TAG_INT))
-            candle2DryingTime = nbt.getInt("candle2DryingTime");
-        if (nbt.contains("candle3DryingTime", Tag.TAG_INT))
-            candle3DryingTime = nbt.getInt("candle3DryingTime");
-        if (nbt.contains("candle1DippingTime", Tag.TAG_INT))
-            candle1DippingTime = nbt.getInt("candle1DippingTime");
-        if (nbt.contains("candle2DippingTime", Tag.TAG_INT))
-            candle2DippingTime = nbt.getInt("candle2DippingTime");
-        if (nbt.contains("candle3DippingTime", Tag.TAG_INT))
-            candle3DippingTime = nbt.getInt("candle3DippingTime");
-        if (nbt.contains("candle1Dunking", Tag.TAG_INT))
-            candle1Dunking = nbt.getInt("candle1Dunking") == 1;
-        if (nbt.contains("candle2Dunking", Tag.TAG_INT))
-            candle2Dunking = nbt.getInt("candle2Dunking") == 1;
-        if (nbt.contains("candle3Dunking", Tag.TAG_INT))
-            candle3Dunking = nbt.getInt("candle3Dunking") == 1;
-        if (nbt.contains("candle1Crafting", Tag.TAG_INT))
-            candle1Crafting = nbt.getInt("candle1Crafting") == 1;
-        if (nbt.contains("candle2Crafting", Tag.TAG_INT))
-            candle2Crafting = nbt.getInt("candle2Crafting") == 1;
-        if (nbt.contains("candle3Crafting", Tag.TAG_INT))
-            candle3Crafting = nbt.getInt("candle3Crafting") == 1;
-        if (nbt.contains("candle1Crafted", Tag.TAG_INT))
-            candle1Crafted = nbt.getInt("candle1Crafted") == 1;
-        if (nbt.contains("candle2Crafted", Tag.TAG_INT))
-            candle2Crafted = nbt.getInt("candle2Crafted") == 1;
-        if (nbt.contains("candle3Crafted", Tag.TAG_INT))
-            candle3Crafted = nbt.getInt("candle3Crafted") == 1;
-
-        if (nbt.contains("candle1Output"))
-            candle1Output = ItemStack.of(nbt.getCompound("candle1Output"));
-        if (nbt.contains("candle2Output"))
-            candle2Output = ItemStack.of(nbt.getCompound("candle2Output"));
-        if (nbt.contains("candle3Output"))
-            candle3Output = ItemStack.of(nbt.getCompound("candle3Output"));
+        if (nbt.contains("slot0"))
+            dipperSlots.get(0).load(nbt.getCompound("slot0"));
+        if (nbt.contains("slot1"))
+            dipperSlots.get(1).load(nbt.getCompound("slot1"));
+        if (nbt.contains("slot2"))
+            dipperSlots.get(2).load(nbt.getCompound("slot2"));
         super.load(nbt);
 
     }
@@ -792,83 +463,19 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         super.saveAdditional(compound);
         ContainerHelper.saveAllItems(compound, this.items);
 
-        compound.putInt("candle1DippedTimes", candle1DippedTimes);
-        compound.putInt("candle2DippedTimes", candle2DippedTimes);
-        compound.putInt("candle3DippedTimes", candle3DippedTimes);
-
-        compound.putInt("candle1DippedTimesMax", candle1DippedTimesMax);
-        compound.putInt("candle2DippedTimesMax", candle2DippedTimesMax);
-        compound.putInt("candle3DippedTimesMax", candle3DippedTimesMax);
-
-        compound.putInt("candle1DryingTime", candle1DryingTime);
-        compound.putInt("candle2DryingTime", candle2DryingTime);
-        compound.putInt("candle3DryingTime", candle3DryingTime);
-
-        compound.putInt("candle1DippingTime", candle1DippingTime);
-        compound.putInt("candle2DippingTime", candle2DippingTime);
-        compound.putInt("candle3DippingTime", candle3DippingTime);
-
-        compound.putInt("candle1Dunking", candle1Dunking ? 1 : 0);
-        compound.putInt("candle2Dunking", candle2Dunking ? 1 : 0);
-        compound.putInt("candle3Dunking", candle3Dunking ? 1 : 0);
-
-        compound.putInt("candle1Crafted", candle1Crafted ? 1 : 0);
-        compound.putInt("candle2Crafted", candle2Crafted ? 1 : 0);
-        compound.putInt("candle3Crafted", candle3Crafted ? 1 : 0);
-
-        compound.putInt("candle1Crafting", candle1Crafting ? 1 : 0);
-        compound.putInt("candle2Crafting", candle2Crafting ? 1 : 0);
-        compound.putInt("candle3Crafting", candle3Crafting ? 1 : 0);
-
-        compound.put("candle1Output", candle1Output.save(new CompoundTag()));
-        compound.put("candle2Output", candle2Output.save(new CompoundTag()));
-        compound.put("candle3Output", candle3Output.save(new CompoundTag()));
+        compound.put("slot0", dipperSlots.get(0).save());
+        compound.put("slot1", dipperSlots.get(1).save());
+        compound.put("slot2", dipperSlots.get(2).save());
     }
 
 
-    //    @Override
     public CompoundTag save(CompoundTag compound) {
         super.saveAdditional(compound);
-//        compound.put("inv", itemHandler.serializeNBT());
-//        if (this.customName != null)
-//            compound.putString("CustomName", Component.Serializer.toJson(this.customName));
         ContainerHelper.saveAllItems(compound, this.items);
 
-        compound.putInt("candle1DippedTimes", candle1DippedTimes);
-        compound.putInt("candle2DippedTimes", candle2DippedTimes);
-        compound.putInt("candle3DippedTimes", candle3DippedTimes);
-
-        compound.putInt("candle1DippedTimesMax", candle1DippedTimesMax);
-        compound.putInt("candle2DippedTimesMax", candle2DippedTimesMax);
-        compound.putInt("candle3DippedTimesMax", candle3DippedTimesMax);
-
-        compound.putInt("candle1DryingTime", candle1DryingTime);
-        compound.putInt("candle2DryingTime", candle2DryingTime);
-        compound.putInt("candle3DryingTime", candle3DryingTime);
-
-        compound.putInt("candle1DippingTime", candle1DippingTime);
-        compound.putInt("candle2DippingTime", candle2DippingTime);
-        compound.putInt("candle3DippingTime", candle3DippingTime);
-
-        compound.putInt("candle1Dunking", candle1Dunking ? 1 : 0);
-        compound.putInt("candle2Dunking", candle2Dunking ? 1 : 0);
-        compound.putInt("candle3Dunking", candle3Dunking ? 1 : 0);
-
-        compound.putInt("candle1Crafted", candle1Crafted ? 1 : 0);
-        compound.putInt("candle2Crafted", candle2Crafted ? 1 : 0);
-        compound.putInt("candle3Crafted", candle3Crafted ? 1 : 0);
-
-        compound.putInt("candle1Crafting", candle1Crafting ? 1 : 0);
-        compound.putInt("candle2Crafting", candle2Crafting ? 1 : 0);
-        compound.putInt("candle3Crafting", candle3Crafting ? 1 : 0);
-
-        compound.putInt("candle1Crafting", candle1Crafting ? 1 : 0);
-        compound.putInt("candle2Crafting", candle2Crafting ? 1 : 0);
-        compound.putInt("candle3Crafting", candle3Crafting ? 1 : 0);
-
-        compound.put("candle1Output", candle1Output.save(new CompoundTag()));
-        compound.put("candle2Output", candle2Output.save(new CompoundTag()));
-        compound.put("candle3Output", candle3Output.save(new CompoundTag()));
+        compound.put("slot0", dipperSlots.get(0).save());
+        compound.put("slot1", dipperSlots.get(1).save());
+        compound.put("slot2", dipperSlots.get(2).save());
 
         return compound;
     }
@@ -889,27 +496,6 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         this.deserializeNBT(pkt.getTag());
     }
 
-    public static double getDistanceToEntity(Entity entity, BlockPos pos) {
-        double deltaX = entity.position().x() - pos.getX() - 0.5f;
-        double deltaY = entity.position().y() - pos.getY() - 0.5f;
-        double deltaZ = entity.position().z() - pos.getZ() - 0.5f;
-
-        return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY) + (deltaZ * deltaZ));
-    }
-
-    public static double getDistance(float x1, float y1, float x2, float y2) {
-        double deltaX = x2 - x1;
-        double deltaY = y2 - y1;
-
-        return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
-    }
-
-
-//    @Override
-//    public double getMaxRenderDistanceSquared() {
-//        return 4096D;
-//    }
-
     @Override
     public AABB getRenderBoundingBox() {
         return super.getRenderBoundingBox().inflate(5, 5, 5);
@@ -926,7 +512,7 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
     }
 
     public float getSpeed(double pos, double posTo) {
-        return (float) (0.01f + 0.10f * (Math.abs(pos - posTo) / 3f));
+        return (float) (0.0001f + 0.15f * (Math.abs(pos - posTo)));
     }
 
     public Vec3 rotateAroundVec(Vec3 vector3dCenter, float rotation, Vec3 vector3d) {
@@ -958,170 +544,63 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         if (!player.isShiftKeyDown()) {
             if (!player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
                 Random rand = new Random();
-                if (this.items.get(0).isEmpty()) {
-                    putItems(0, player.getItemInHand(InteractionHand.MAIN_HAND));
-                    candle1DryingTime = candleDryingTimeStart;
-                    candle1Crafted = false;
-                    level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-                    return 1;
-                } else if (this.items.get(1).isEmpty()) {
-                    putItems(1, player.getItemInHand(InteractionHand.MAIN_HAND));
-                    candle2DryingTime = candleDryingTimeStart;
-                    candle2Crafted = false;
-                    level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-                    return 1;
-                } else if (this.items.get(2).isEmpty()) {
-                    putItems(2, player.getItemInHand(InteractionHand.MAIN_HAND));
-                    candle3DryingTime = candleDryingTimeStart;
-                    candle3Crafted = false;
-                    level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-                    return 1;
+
+                for(int i = 0; i < 3; i++){
+                    if (this.items.get(i).isEmpty()) {
+                        putItems(i, player.getItemInHand(InteractionHand.MAIN_HAND));
+                        dipperSlots.get(i).dryingTicks = DRYING_START_TICKS;
+                        level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
+                        return 1;
+                    }
                 }
-            } else {
-//                Random rand = new Random();
-//                if (!this.items.get(0).isEmpty() && candle1Crafted) {
-//                    this.items.set(0, ItemStack.EMPTY);
-//                    candle1DippedTimes = 0;
-//                    this.items.get(0).shrink(1);
-//                    candle1DippingTime = candleDippingTimeMax;
-//                    candle1Dunking = false;
-//                    candle1Crafted = false;
-//                    candle1DryingTime = candleDryingTimeMax;
-//                    player.inventory.placeItemBackInInventory(candle1Output);
-//                    candle1Output = ItemStack.EMPTY;
-//
-//                    level.playSound((Player) null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-//                    if (candle1Crafting) {
-//                        candle1Crafting = false;
-//                        setChanged();();
-//                    }
-//                    return 1;
-//
-//                } else if (!this.items.get(1).isEmpty() && candle2Crafted) {
-//                    this.items.set(1, ItemStack.EMPTY);
-//                    candle2DippedTimes = 0;
-//                    candle2DippingTime = candleDippingTimeMax;
-//                    candle2Dunking = false;
-//                    candle2Crafted = false;
-//                    candle2DryingTime = candleDryingTimeMax;
-//                    player.inventory.placeItemBackInInventory(candle2Output);
-//                    candle2Output = ItemStack.EMPTY;
-//
-//                    level.playSound((Player) null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-//                    if (candle2Crafting) {
-//                        candle2Crafting = false;
-//                        setChanged();();
-//                    }
-//                    return 1;
-//
-//                } else if (!this.items.get(2).isEmpty() && candle3Crafted) {
-//                    this.items.set(2, ItemStack.EMPTY);
-//                    candle3DippedTimes = 0;
-//                    candle3DippingTime = candleDippingTimeMax;
-//                    candle3Dunking = false;
-//                    candle3Crafted = false;
-//                    candle3DryingTime = candleDryingTimeMax;
-//                    player.inventory.placeItemBackInInventory(candle3Output);
-//                    candle3Output = ItemStack.EMPTY;
-//
-//                    level.playSound((Player) null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-//                    if (candle3Crafting) {
-//                        candle3Crafting = false;
-//                        setChanged();();
-//                    }
-//                    return 1;
-//
-//                }
             }
-            if (candle1Crafted) {
-                candle1DippedTimes = 0;
-                candle1DippingTime = candle1DippingTimeMax;
-                candle1Dunking = false;
-                candle1Crafted = false;
-                candle1DryingTime = candle1DryingTimeMax;
-                player.inventory.placeItemBackInInventory(this.items.get(0).copy());
-                level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                this.items.set(0, ItemStack.EMPTY);
-                candle1Output = ItemStack.EMPTY;
-            }
-            if (candle2Crafted) {
-                candle2DippedTimes = 0;
-                candle2DippingTime = candle2DippingTimeMax;
-                candle2Dunking = false;
-                candle2Crafted = false;
-                candle2DryingTime = candle2DryingTimeMax;
-                player.inventory.placeItemBackInInventory(this.items.get(1).copy());
-                level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                this.items.set(1, ItemStack.EMPTY);
-                candle2Output = ItemStack.EMPTY;
-            }
-            if (candle3Crafted) {
-                candle3DippedTimes = 0;
-                candle3DippingTime = candle3DippingTimeMax;
-                candle3Dunking = false;
-                candle3Crafted = false;
-                candle3DryingTime = candle3DryingTimeMax;
-                player.inventory.placeItemBackInInventory(this.items.get(2).copy());
-                level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                this.items.set(2, ItemStack.EMPTY);
-                candle3Output = ItemStack.EMPTY;
+
+            for(int i = 0; i < 3; i++){
+                DipperSlot dipperSlot = dipperSlots.get(i);
+                if (dipperSlot.isFinished()) {
+                    dipperSlot.timesDipped = 0;
+                    dipperSlot.dippingTicks = dipperSlot.dippingTicksMax;
+                    dipperSlot.state = DipperState.NON;
+                    dipperSlot.dryingTicks = dipperSlot.dryingTicksMax;
+                    player.inventory.placeItemBackInInventory(this.items.get(i).copy());
+                    level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
+                    this.items.set(i, ItemStack.EMPTY);
+                    dipperSlot.output = ItemStack.EMPTY;
+                }
             }
         } else {
-            if (!this.items.get(0).isEmpty() && !candle1Crafting) {
-
-                candle1DippedTimes = 0;
-                candle1DippingTime = candle1DippingTimeMax;
-                candle1Dunking = false;
-                candle1Crafted = false;
-                candle1DryingTime = candle1DryingTimeMax;
-                player.inventory.placeItemBackInInventory(this.items.get(0).copy());
-                level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                this.items.set(0, ItemStack.EMPTY);
-                candle1Output = ItemStack.EMPTY;
-            }
-            if (!this.items.get(1).isEmpty() && !candle2Crafting) {
-
-                candle2DippedTimes = 0;
-                candle2DippingTime = candle2DippingTimeMax;
-                candle2Dunking = false;
-                candle2Crafted = false;
-                candle2DryingTime = candle2DryingTimeMax;
-                player.inventory.placeItemBackInInventory(this.items.get(1).copy());
-                level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                this.items.set(1, ItemStack.EMPTY);
-                candle2Output = ItemStack.EMPTY;
-            }
-            if (!this.items.get(2).isEmpty() && !candle3Crafting) {
-
-                candle3DippedTimes = 0;
-                candle3DippingTime = candle3DippingTimeMax;
-                candle3Dunking = false;
-                candle3Crafted = false;
-                candle3DryingTime = candle3DryingTimeMax;
-                player.inventory.placeItemBackInInventory(this.items.get(2).copy());
-                level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                this.items.set(2, ItemStack.EMPTY);
-                candle3Output = ItemStack.EMPTY;
+            for(int i = 0; i < 3; i++){
+                DipperSlot dipperSlot = dipperSlots.get(i);
+                if (!this.items.get(i).isEmpty() && !dipperSlot.isCrafting()) {
+                    dipperSlot.timesDipped = 0;
+                    dipperSlot.dippingTicks = dipperSlot.dippingTicksMax;
+                    dipperSlot.state = DipperState.NON;
+                    dipperSlot.dryingTicks = dipperSlot.dryingTicksMax;
+                    player.inventory.placeItemBackInInventory(this.items.get(i).copy());
+                    level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
+                    this.items.set(i, ItemStack.EMPTY);
+                    dipperSlot.output = ItemStack.EMPTY;
+                }
             }
         }
 
         return 0;
     }
 
-    //    @Override
     public void tick() {
 
-        if (level instanceof ServerLevel) {
+        if (level instanceof ServerLevel)
             craft();
-        }
 
-        closestPlayerPos = null;
-        closestDist = maxDist;
+        for(DipperSlot slot : dipperSlots)
+            slot.posLast = slot.pos;
+
         numberOfCandles = 0;
 
-        Vec3 targetPos1 = new Vec3(4f / 16f, 0f / 16f, 1f / 16f);
-        Vec3 targetPos2 = new Vec3(8f / 16f, 0f / 16f, 1f / 16f);
-        Vec3 targetPos3 = new Vec3(12f / 16f, 0f / 16f, 1f / 16f);
+        Vec3[] targetPos = new Vec3[3];
+        targetPos[0] = new Vec3(4f / 16f, 0f / 16f, 1f / 16f);
+        targetPos[1] = new Vec3(8f / 16f, 0f / 16f, 1f / 16f);
+        targetPos[2] = new Vec3(12f / 16f, 0f / 16f, 1f / 16f);
 
 
         if (level != null && level.getBlockEntity(this.worldPosition.below()) instanceof MixingCauldronTile cauldronTile) {
@@ -1130,158 +609,55 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             if (!fluidStack.isEmpty())
                 fillPercentage = Math.min(1, (float) fluidStack.getAmount() / cauldronTile.getTankCapacity(0));
             float height = MixingCauldronRenderer.MIN_Y + (MixingCauldronRenderer.MAX_Y - MixingCauldronRenderer.MIN_Y) * fillPercentage - 1 + 1 / 16f;
-            if (candle1Crafting && candle1DippedTimes < 3) {
-                candle1DryingTime--;
-                if (candle1DryingTime <= 0) {
-                    candle1DryingTime = candle1DryingTimeMax;
-                    candle1Dunking = true;
-                }
-                targetPos1 = new Vec3(targetPos1.x(), 5f / 16f + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
-            } else if (!this.items.get(0).isEmpty()) {
-                targetPos1 = new Vec3(targetPos1.x(), 5f / 16f + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
-            }
 
-            if (candle2Crafting && candle2DippedTimes < 3) {
-                candle2DryingTime--;
-                if (candle2DryingTime <= 0) {
-                    candle2DryingTime = candle2DryingTimeMax;
-                    candle2Dunking = true;
-                }
-                targetPos2 = new Vec3(targetPos2.x(), 5f / 16f + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
-            } else if (!this.items.get(1).isEmpty()) {
-                targetPos2 = new Vec3(targetPos2.x(), 5f / 16f + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
-            }
-            if (candle3Crafting && candle3DippedTimes < 3) {
-                candle3DryingTime--;
-                if (candle3DryingTime <= 0) {
-                    candle3DryingTime = candle3DryingTimeMax;
-                    candle3Dunking = true;
-                }
-                targetPos3 = new Vec3(targetPos3.x(), 5f / 16f + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
-            } else if (!this.items.get(2).isEmpty()) {
-                targetPos3 = new Vec3(targetPos3.x(), 5f / 16f + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
-            }
+            DipperSlot dipperSlot = dipperSlots.get(0);
+            if (dipperSlot.isDrying() || !this.items.get(0).isEmpty())
+                targetPos[0] = new Vec3(targetPos[0].x(), 5f / 16f + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
+            if (dipperSlot.isDunking())
+                targetPos[0] = new Vec3(targetPos[0].x(), height + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
+            if (dipperSlot.isFinished())
+                targetPos[0] = new Vec3(targetPos[0].x(), 10f / 16f + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
 
-            if (candle1Dunking) {
-                targetPos1 = new Vec3(targetPos1.x(), height + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
-                if (cauldronTile.getFluidStack().getAmount() > 0) {
-                    candle1DippingTime--;
-                }
-                candle1DryingTime = candle1DryingTimeMax;
-                if (candle1DippingTime <= 0) {
-                    candle1DippingTime = candle1DippingTimeMax;
-                    candle1Dunking = false;
-                    candle1DryingTime = candleDryingTimeStart;
-                    candle1DippedTimes++;
-                    chanceDecreaseLevel(candle1DecreaseAmount);
-                }
+            dipperSlot = dipperSlots.get(1);
+            if (dipperSlot.isDrying() || !this.items.get(1).isEmpty())
+                targetPos[1] = new Vec3(targetPos[1].x(), 5f / 16f + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
+            if (dipperSlot.isDunking())
+                targetPos[1] = new Vec3(targetPos[1].x(), height + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
+            if (dipperSlot.isFinished())
+                targetPos[1] = new Vec3(targetPos[1].x(), 10f / 16f + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
 
+            dipperSlot = dipperSlots.get(2);
+            if (dipperSlot.isDrying() || !this.items.get(2).isEmpty())
+                targetPos[2] = new Vec3(targetPos[2].x(), 5f / 16f + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
+            if (dipperSlot.isDunking())
+                targetPos[2] = new Vec3(targetPos[2].x(), height + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
+            if (dipperSlot.isFinished())
+                targetPos[2] = new Vec3(targetPos[2].x(), 10f / 16f + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
+
+            Direction dir = this.getBlockState().getValue(HorizontalDirectionalBlock.FACING);
+            int rot = dir == Direction.NORTH ? 180 : dir == Direction.SOUTH ? 0 : dir == Direction.EAST ? 90 : 270;
+
+            for(int i = 0; i < dipperSlots.size(); i++) {
+                targetPos[i] = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), rot, targetPos[i]);
+                DipperSlot slot = dipperSlots.get(i);
+                slot.pos = new Vec3(
+                        moveTo((float) slot.pos.x, (float) targetPos[i].x(), getSpeed((float) slot.pos.x, targetPos[i].x())),
+                        moveTo((float) slot.pos.y, (float) targetPos[i].y(), 0.75f * getSpeed((float) slot.pos.y, targetPos[i].y())),
+                        moveTo((float) slot.pos.z, (float) targetPos[i].z(), getSpeed((float) slot.pos.z, targetPos[i].z())));
             }
-            if (candle2Dunking) {
-                if (cauldronTile.getFluidStack().getAmount() > 0)
-                    candle2DippingTime--;
-                candle2DryingTime = candle2DryingTimeMax;
-                if (candle2DippingTime <= 0) {
-                    candle2DippingTime = candle2DippingTimeMax;
-                    candle2Dunking = false;
-                    candle2DryingTime = candleDryingTimeStart;
-                    candle2DippedTimes++;
-                    chanceDecreaseLevel(candle2DecreaseAmount);
-                }
-
-                targetPos2 = new Vec3(targetPos2.x(), height + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
-            }
-            if (candle3Dunking) {
-                if (cauldronTile.getFluidStack().getAmount() > 0)
-                    candle3DippingTime--;
-                candle3DryingTime = candle3DryingTimeMax;
-                if (candle3DippingTime <= 0) {
-                    candle3DippingTime = candle3DippingTimeMax;
-                    candle3Dunking = false;
-                    candle3DryingTime = candleDryingTimeStart;
-                    candle3DippedTimes++;
-                    chanceDecreaseLevel(candle3DecreaseAmount);
-                }
-
-                targetPos3 = new Vec3(targetPos3.x(), height + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
-            }
-
-            if (candle1DippedTimes >= candle1DippedTimesMax)
-                targetPos1 = new Vec3(targetPos1.x(), 10f / 16f + Math.sin((this.level.getGameTime()) / 16f) / 32f, 8f / 16f);
-            if (candle2DippedTimes >= candle2DippedTimesMax)
-                targetPos2 = new Vec3(targetPos2.x(), 10f / 16f + Math.sin((this.level.getGameTime() + 20f) / 14f) / 32f, 8f / 16f);
-            if (candle3DippedTimes >= candle3DippedTimesMax)
-                targetPos3 = new Vec3(targetPos3.x(), 10f / 16f + Math.sin((this.level.getGameTime() + 40f) / 15f) / 32f, 8f / 16f);
-
-            if (this.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.NORTH) {
-                targetPos1 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 180, targetPos1);
-                targetPos2 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 180, targetPos2);
-                targetPos3 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 180, targetPos3);
-            } else if (this.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH) {
-                targetPos1 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 0, targetPos1);
-                targetPos2 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 0, targetPos2);
-                targetPos3 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 0, targetPos3);
-            } else if (this.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.EAST) {
-                targetPos1 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 90, targetPos1);
-                targetPos2 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 90, targetPos2);
-                targetPos3 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 90, targetPos3);
-            } else if (this.getBlockState().getValue(HorizontalDirectionalBlock.FACING) == Direction.WEST) {
-                targetPos1 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 270, targetPos1);
-                targetPos2 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 270, targetPos2);
-                targetPos3 = rotateAroundVec(new Vec3(0.5f, 0, 0.5f), 270, targetPos3);
-            }
-            candlePos1 = new Vec3(
-                    moveTo((float) candlePos1.x, (float) targetPos1.x(), getSpeed((float) candlePos1.x, targetPos1.x())),
-                    moveTo((float) candlePos1.y, (float) targetPos1.y(), 0.75f * getSpeed((float) candlePos1.y, targetPos1.y())),
-                    moveTo((float) candlePos1.z, (float) targetPos1.z(), getSpeed((float) candlePos1.z, targetPos1.z())));
-            candlePos2 = new Vec3(
-                    moveTo((float) candlePos2.x, (float) targetPos2.x(), getSpeed((float) candlePos2.x, targetPos2.x())),
-                    moveTo((float) candlePos2.y, (float) targetPos2.y(), 0.75f * getSpeed((float) candlePos2.y, targetPos2.y())),
-                    moveTo((float) candlePos2.z, (float) targetPos2.z(), getSpeed((float) candlePos2.z, targetPos2.z())));
-            candlePos3 = new Vec3(
-                    moveTo((float) candlePos3.x, (float) targetPos3.x(), getSpeed((float) candlePos3.x, targetPos3.x())),
-                    moveTo((float) candlePos3.y, (float) targetPos3.y(), 0.75f * getSpeed((float) candlePos3.y, targetPos3.y())),
-                    moveTo((float) candlePos3.z, (float) targetPos3.z(), getSpeed((float) candlePos3.z, targetPos3.z())));
 
         }
 
-
-//            if(closestPlayerPos != null) {
-//                if(degreesFlopped == 0)
-//                    degreesSpun = (int)moveToAngle(degreesSpun, 270 - (int)getAngle(closestPlayerPos), 3);
-//
-//                degreesFlopped = moveTo(degreesFlopped, 0, 5);
-//            }
-//            else
-//            {
-//                degreesFlopped = moveTo(degreesFlopped, 90, 3);
-//            }
-//
-//            if(degreesFlopped == 0)
-//                degreesOpened = moveTo(degreesOpened, (float)(closestDist * (360 / maxDist))/4, 3);
-//            else
-//                degreesOpened = moveTo(degreesOpened, 90, 2);
 
 
     }
 
-    private void chanceDecreaseLevel(int amount) {
-        BlockState blockState = level.getBlockState(this.worldPosition.below());
-        Random random = new Random();
-
+    private void decreaseFluid(int amount) {
         if (level.getBlockEntity(this.worldPosition.below()) instanceof MixingCauldronTile cauldronTile && !level.isClientSide()) {
-
             cauldronTile.getFluidStack().shrink(amount);
-            if (cauldronTile.getFluidStack().getAmount() % 10 == 1)
-                cauldronTile.getFluidStack().shrink(1);
-            if (cauldronTile.getFluidStack().getAmount() % 10 == 9)
-                cauldronTile.getFluidStack().grow(1);
             cauldronTile.setChanged();
             HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new EmitParticlesPacket(worldPosition.below(), 10, false));
-
         }
-
-
     }
 
     @Override
@@ -1294,23 +670,17 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
     }
 
     public boolean canPlaceItem(int index, ItemStack stack) {
-
         return this.items.get(index).isEmpty();
     }
 
     @Override
-    public boolean canTakeItemThroughFace(int p_19239_, ItemStack p_19240_, Direction p_19241_) {
-        return true;
+    public boolean canTakeItemThroughFace(int index, ItemStack p_19240_, Direction p_19241_) {
+        return !dipperSlots.get(index).isCrafting();
     }
 
     @Override
     public int getContainerSize() {
         return this.items.size();
     }
-
-//    @Override
-//    public int getContainerSize() {
-//        return 0;
-//    }
 
 }

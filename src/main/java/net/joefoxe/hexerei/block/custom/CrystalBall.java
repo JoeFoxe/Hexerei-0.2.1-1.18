@@ -10,6 +10,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -26,9 +29,11 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -43,7 +48,6 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
 
     public static final IntegerProperty ANGLE = IntegerProperty.create("angle", 0, 180);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    public static final BooleanProperty PLAYER_NEAR = BooleanProperty.create("player_near");
 
     @Override
     public RenderShape getRenderShape(BlockState iBlockState) {
@@ -61,10 +65,11 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
     public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
         return false;
     }
-    // hitbox REMEMBER TO DO THIS
+
     public static final VoxelShape SHAPE = Stream.of(
-            Block.box(5.5, 0, 5.5, 10.5, 4, 10.5),
-            Block.box(5.5, 6, 5.5, 10.5, 12, 10.5)
+            Block.box(5.5, 0, 5.5, 10.5, 2, 10.5),
+            Block.box(6.5, 2, 6.5, 9.5, 4, 9.5),
+            Block.box(4, 4, 4, 12, 12, 12)
     ).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
 
 
@@ -73,16 +78,37 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
         return SHAPE;
     }
 
+    @Override
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        BlockEntity tileEntity = level.getBlockEntity(pos);
+
+        if(player.getItemInHand(handIn).isEmpty()) {
+
+            if (level.isClientSide) {
+//                if (tileEntity instanceof CrystalBallTile crystalBallTile) {
+//                    crystalBallTile.centerYawIncrement = Mth.clamp(crystalBallTile.centerYawIncrement + (crystalBallTile.centerYawIncrement > 0 ? 1 : -1) + (crystalBallTile.centerYawIncrement / 10), -100, 100);
+//                    crystalBallTile.lastInteractedWith = level.getGameTime();
+//                }
+            } else {
+                level.gameEvent(player, GameEvent.BLOCK_ACTIVATE, pos);
+                level.blockEvent(pos, state.getBlock(), 1, 0);
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        return InteractionResult.PASS;
+    }
+
 //    @SuppressWarnings("deprecation")
 //    @Override
-//    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+//    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
 //        ItemStack itemstack = player.getItemInHand(handIn);
-//        if(!worldIn.isClientSide()) {
+//        if(!level.isClientSide()) {
 //
-//            BlockEntity tileEntity = worldIn.getBlockEntity(pos);
+//            BlockEntity tileEntity = level.getBlockEntity(pos);
 //
 //            if(tileEntity instanceof CofferTile) {
-//                MenuProvider containerProvider = createContainerProvider(worldIn, pos);
+//                MenuProvider containerProvider = createContainerProvider(level, pos);
 //
 //                NetworkHooks.openGui(((ServerPlayer)player), containerProvider, tileEntity.getPos());
 //
@@ -95,7 +121,7 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
 
     public CrystalBall(Properties properties) {
         super(properties.noOcclusion());
-        this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, Boolean.FALSE).setValue(PLAYER_NEAR, Boolean.FALSE));
+        this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, Boolean.FALSE));
     }
 
 
@@ -114,23 +140,15 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(HorizontalDirectionalBlock.FACING, ANGLE, WATERLOGGED, PLAYER_NEAR);
+        builder.add(HorizontalDirectionalBlock.FACING, ANGLE, WATERLOGGED);
     }
 
-    public void setAngle(Level worldIn, BlockPos pos, BlockState state, int angle) {
-        worldIn.setBlock(pos, state.setValue(ANGLE, Mth.clamp(angle, 0, 180)), 2);
+    public void setAngle(Level level, BlockPos pos, BlockState state, int angle) {
+        level.setBlock(pos, state.setValue(ANGLE, Mth.clamp(angle, 0, 180)), 2);
     }
 
-    public int getAngle(Level worldIn, BlockPos pos) {
-        return worldIn.getBlockState(pos).getValue(ANGLE);
-    }
-
-    public void setPlayerNear(Level worldIn, BlockPos pos, BlockState state, boolean near) {
-        worldIn.setBlock(pos, state.setValue(PLAYER_NEAR, near), 1);
-    }
-
-    public boolean getPlayerNear(Level worldIn, BlockPos pos) {
-        return worldIn.getBlockState(pos).getValue(PLAYER_NEAR);
+    public int getAngle(Level level, BlockPos pos) {
+        return level.getBlockState(pos).getValue(ANGLE);
     }
 
     @SuppressWarnings("deprecation")
@@ -141,8 +159,8 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
 
     @SuppressWarnings("deprecation")
     @Override
-    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
-        return canSupportCenter(worldIn, pos.below(), Direction.UP);
+    public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        return canSupportCenter(level, pos.below(), Direction.UP);
     }
 
     @Override
@@ -173,19 +191,19 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
 //        super.animateTick(state, world, pos, rand);
 //    }
 //
-//    private MenuProvider createContainerProvider(Level worldIn, BlockPos pos) {
+//    private MenuProvider createContainerProvider(Level level, BlockPos pos) {
 //        return new MenuProvider() {
 //            @Override
 //            public Component getDisplayName() {
-//                if(((CofferTile)worldIn.getBlockEntity(pos)).customName != null)
-//                    return Component.translatable(((CofferTile)worldIn.getBlockEntity(pos)).customName.getString());
+//                if(((CofferTile)level.getBlockEntity(pos)).customName != null)
+//                    return Component.translatable(((CofferTile)level.getBlockEntity(pos)).customName.getString());
 //                return Component.translatable("screen.hexerei.coffer");
 //            }
 //
 //            @Nullable
 //            @Override
 //            public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-//                return new CofferContainer(i, worldIn, pos, playerInventory, playerEntity);
+//                return new CofferContainer(i, level, pos, playerInventory, playerEntity);
 //            }
 //        };
 //    }

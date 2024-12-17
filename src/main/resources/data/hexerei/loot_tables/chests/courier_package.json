@@ -1,0 +1,96 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:packing_peanut",
+          "weight": 1
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 3.0,
+        "min": 2.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:waxing_kit",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:mushroom_witch_hat",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:broom_brush",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:candle",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:herb_jar",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:courier_letter",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:dried_sage_bundle",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:infused_fabric",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:gold_rings",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:small_satchel",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:honey_bottle",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cake",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:golden_apple",
+          "weight": 5
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 1.0,
+        "min": 2.0
+      }
+    }
+  ],
+  "random_sequence": "hexerei:chests/nature_coven_1"
+}

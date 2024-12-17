@@ -1,0 +1,53 @@
+{
+  "variants": {
+    "facing=east,state=sealed": {
+      "model": "hexerei:block/courier_package",
+      "y": 270
+    },
+    "facing=north,state=sealed": {
+      "model": "hexerei:block/courier_package",
+      "y": 180
+    },
+    "facing=south,state=sealed": {
+      "model": "hexerei:block/courier_package"
+    },
+    "facing=west,state=sealed": {
+      "model": "hexerei:block/courier_package",
+      "y": 90
+    },
+
+
+    "facing=east,state=opened": {
+      "model": "hexerei:block/courier_package_open",
+      "y": 270
+    },
+    "facing=north,state=opened": {
+      "model": "hexerei:block/courier_package_open",
+      "y": 180
+    },
+    "facing=south,state=opened": {
+      "model": "hexerei:block/courier_package_open"
+    },
+    "facing=west,state=opened": {
+      "model": "hexerei:block/courier_package_open",
+      "y": 90
+    },
+
+
+    "facing=east,state=closed": {
+      "model": "hexerei:block/courier_package_not_sealed",
+      "y": 270
+    },
+    "facing=north,state=closed": {
+      "model": "hexerei:block/courier_package_not_sealed",
+      "y": 180
+    },
+    "facing=south,state=closed": {
+      "model": "hexerei:block/courier_package_not_sealed"
+    },
+    "facing=west,state=closed": {
+      "model": "hexerei:block/courier_package_not_sealed",
+      "y": 90
+    }
+  }
+}

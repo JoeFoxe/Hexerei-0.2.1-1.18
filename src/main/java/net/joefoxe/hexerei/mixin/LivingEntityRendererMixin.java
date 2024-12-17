@@ -28,6 +28,8 @@ public abstract class LivingEntityRendererMixin {
 
         Entity vehicle = entity.getVehicle();
         if(vehicle instanceof BroomEntity broom){
+            if(broom.deltaMovementOld == null)
+                broom.deltaMovementOld = broom.getDeltaMovement();
             float deltaMovementY = Mth.lerp(partialTicks, (float)broom.deltaMovementOld.y(), (float)broom.getDeltaMovement().y());
             float deltaRotation = Mth.lerp(partialTicks, (float)broom.deltaRotationOld, (float)broom.deltaRotation);
 

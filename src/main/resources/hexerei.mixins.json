@@ -19,6 +19,7 @@
     "light.HexereiLightEntityMixin"
   ],
   "mixins": [
+    "AbstractCandleBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

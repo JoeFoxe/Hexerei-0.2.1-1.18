@@ -35,6 +35,12 @@ public class ModParticleUtil {
         event.registerSpriteSet(ModParticleTypes.MOON_BRUSH_3.get(), MoonBroomParticle.Factory::new);
         event.registerSpriteSet(ModParticleTypes.MOON_BRUSH_4.get(), MoonBroomParticle.Factory::new);
         event.registerSpriteSet(ModParticleTypes.STAR_BRUSH.get(), StarBroomParticle.Provider::new);
+        event.registerSpriteSet(ModParticleTypes.OWL_TELEPORT.get(), OwlTeleportParticle.Factory::new);
+        event.registerSpriteSet(ModParticleTypes.OWL_TELEPORT_BARN.get(), OwlTeleportParticle.Factory::new);
+        event.registerSpriteSet(ModParticleTypes.OWL_TELEPORT_BARRED.get(), OwlTeleportParticle.Factory::new);
+        event.registerSpriteSet(ModParticleTypes.OWL_TELEPORT_SNOWY.get(), OwlTeleportParticle.Factory::new);
+        event.registerSpriteSet(ModParticleTypes.MAHOGANY_LEAVES.get(), FlowingLeavesParticle.Factory::new);
+        event.registerSpriteSet(ModParticleTypes.WITCH_HAZEL_LEAVES.get(), FlowingLeavesParticle.Factory::new);
     }
 
 

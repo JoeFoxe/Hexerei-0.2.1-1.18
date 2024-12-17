@@ -38,6 +38,16 @@
       "hexerei:crow_caw_03"
     ]
   },
+  "owl_hoot": {
+    "subtitle": "sounds.hexerei.owl_hoot",
+    "sounds": [
+      "hexerei:owl_hoot_01",
+      "hexerei:owl_hoot_02",
+      "hexerei:owl_hoot_03",
+      "hexerei:owl_hoot_04",
+      "hexerei:owl_hoot_05"
+    ]
+  },
   "book_turn_page_slow": {
     "subtitle": "sounds.hexerei.book_turn_page_slow",
     "sounds": [

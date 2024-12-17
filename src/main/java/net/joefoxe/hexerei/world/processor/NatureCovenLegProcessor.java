@@ -7,9 +7,13 @@ import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -20,6 +24,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.List;
 
 /**
  * Dynamically generates support legs.
@@ -33,38 +38,18 @@ public class NatureCovenLegProcessor extends StructureProcessor {
     @ParametersAreNonnullByDefault
     @Override
     public StructureTemplate.StructureBlockInfo process(LevelReader worldReader, BlockPos jigsawPiecePos, BlockPos jigsawPieceBottomCenterPos, StructureTemplate.StructureBlockInfo blockInfoLocal, StructureTemplate.StructureBlockInfo blockInfoGlobal, StructurePlaceSettings structurePlacementData, @Nullable StructureTemplate template) {
-        if (blockInfoGlobal.state().getBlock() == Blocks.YELLOW_STAINED_GLASS_PANE) {
-            ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
-            ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
-            RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
+        BlockPos worldPos = blockInfoGlobal.pos();
 
-            // Always replace the glass itself with witch hazel pillar
-            currentChunk.setBlockState(blockInfoGlobal.pos(), ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState(), false);
-            blockInfoGlobal = new StructureTemplate.StructureBlockInfo(blockInfoGlobal.pos(), ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState(), blockInfoGlobal.nbt());
+        BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos().set(worldPos);
 
-            // Generate vertical pillar down
-            BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
-            BlockState currBlock = worldReader.getBlockState(mutable);
-            int itor = 0;
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
-                if(itor != 1)
-                    currentChunk.setBlockState(mutable, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState(), false);
-                else
-                    currentChunk.setBlockState(mutable, ModBlocks.POLISHED_WITCH_HAZEL_LAYERED.get().defaultBlockState(), false);
-                mutable.move(Direction.DOWN);
-                currBlock = worldReader.getBlockState(mutable);
+        ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
+        ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
 
-                if(!(currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
-                    currentChunk.setBlockState(mutable.above(), Blocks.MUD_BRICKS.defaultBlockState(), false);
-                    break;
-                }
+        if (blockInfoGlobal.state().getBlock() == Blocks.RED_STAINED_GLASS_PANE) {
 
-                itor++;
+            if(worldReader instanceof WorldGenRegion worldGenRegion && !worldGenRegion.getCenter().equals(new ChunkPos(currentPos))) {
+                return getReturnBlock(worldPos, blockInfoGlobal.state());
             }
-        } else if (blockInfoGlobal.state().getBlock() == Blocks.RED_STAINED_GLASS_PANE) {
-            ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
-            ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
-            RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
 
             // Always replace the observer itself with a ladder and grab the correct facing of the ladder from the ladder placed above
             BlockState newState = ModBlocks.WILLOW_VINES_PLANT.get().defaultBlockState();
@@ -75,12 +60,12 @@ public class NatureCovenLegProcessor extends StructureProcessor {
             // Generate vertical pillar down
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+            while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, newState, false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);
 
-                if(!(currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+                if(!(currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                     currentChunk.setBlockState(mutable.above(), ModBlocks.WILLOW_VINES.get().defaultBlockState(), false);
                     break;
                 }
@@ -92,6 +77,10 @@ public class NatureCovenLegProcessor extends StructureProcessor {
 
     protected StructureProcessorType<?> getType() {
         return Hexerei.NATURE_COVEN_LEG_PROCESSOR;
+    }
+    private static StructureTemplate.StructureBlockInfo getReturnBlock(BlockPos worldPos, BlockState originalReplacementState) {
+        return originalReplacementState == null || originalReplacementState.is(Blocks.STRUCTURE_VOID) ?
+                null : new StructureTemplate.StructureBlockInfo(worldPos, originalReplacementState, null);
     }
 }
 

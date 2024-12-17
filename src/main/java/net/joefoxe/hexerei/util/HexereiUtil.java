@@ -747,4 +747,60 @@ public class HexereiUtil {
         }
         return false;
     }
+
+    public static float[] rgbToHsl(float r, float g, float b) {
+        float[] hsl = new float[3];
+
+        float max = Math.max(r, Math.max(g, b));
+        float min = Math.min(r, Math.min(g, b));
+        float delta = max - min;
+
+        // Lightness
+        hsl[2] = (max + min) / 2.0f;
+
+        if (delta == 0) {
+            hsl[0] = 0;
+            hsl[1] = 0;
+        } else {
+            // Saturation
+            hsl[1] = hsl[2] < 0.5f ? delta / (max + min) : delta / (2.0f - max - min);
+
+            // Hue
+            if (max == r) {
+                hsl[0] = (g - b) / delta + (g < b ? 6.0f : 0.0f);
+            } else if (max == g) {
+                hsl[0] = (b - r) / delta + 2.0f;
+            } else {
+                hsl[0] = (r - g) / delta + 4.0f;
+            }
+            hsl[0] /= 6.0f;
+        }
+
+        return hsl;
+    }
+
+    public static float[] hslToRgb(float h, float s, float l) {
+        float r, g, b;
+
+        if (s == 0) {
+            r = g = b = l; // Achromatic
+        } else {
+            float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
+            float p = 2.0f * l - q;
+            r = hueToRgb(p, q, h + 1.0f / 3.0f);
+            g = hueToRgb(p, q, h);
+            b = hueToRgb(p, q, h - 1.0f / 3.0f);
+        }
+
+        return new float[] { r, g, b };
+    }
+
+    public static float hueToRgb(float p, float q, float t) {
+        if (t < 0.0f) t += 1.0f;
+        if (t > 1.0f) t -= 1.0f;
+        if (t < 1.0f / 6.0f) return p + (q - p) * 6.0f * t;
+        if (t < 1.0f / 2.0f) return q;
+        if (t < 2.0f / 3.0f) return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
+        return p;
+    }
 }

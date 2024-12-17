@@ -1,8 +1,11 @@
 package net.joefoxe.hexerei.data.candle;
 
+import net.joefoxe.hexerei.block.custom.Candle;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +13,21 @@ import java.util.List;
 public class CandleData {
 
     public boolean returnToBlock;
+    public int returnToBlockLastTick;
     public boolean hasCandle;
     public float x;
     public float y;
     public float z;
+    public float xO;
+    public float yO;
+    public float zO;
+    public float xTarget;
+    public float yTarget;
+    public float zTarget;
     public int height;
     public boolean lit;
-    public int meltTimer;
-    public static int meltTimerMAX = 6000;
+    public float meltTimer;
+    public static int meltTimerMAX = 100;
     public int dyeColor;
     public int cooldown;
     public CandleLayer base;
@@ -28,7 +38,8 @@ public class CandleData {
     public AbstractCandleEffect effect;
     public ArrayList<AbstractCandleEffect> effects;
     public Component customName;
-    public List<ResourceLocation> effectParticle;
+    public List<String> effectParticle;
+    public int baseHeight = 0;
 
     public CandleData(int dyeColor, boolean returnToBlock, float x, float y, float z, int height, int meltTimer, AbstractCandleEffect effect){
         this.dyeColor = dyeColor;
@@ -36,32 +47,90 @@ public class CandleData {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.xTarget = x;
+        this.yTarget = y;
+        this.zTarget = z;
+
         this.height = height;
         this.meltTimer = meltTimer;
         this.effect = effect;
         this.effects = new ArrayList<>();
-        this.effects.add(effect);
+        if (effect != null)
+            this.effects.add(effect);
         this.effectParticle = null;
         this.cooldown = 0;
 
-        this.base = new CandleLayer(1, 1,1, 1,1,null,  false);
-        this.herb = new CandleLayer(1, 1,1, 1,1,null,  false);
-        this.glow = new CandleLayer(1, 1,1, 1,1,null,  false);
-        this.swirl = new CandleLayer(1, 1,1, 1,1,null, false);
+        this.base = new CandleLayer();
+        this.herb = new CandleLayer();
+        this.glow = new CandleLayer();
+        this.swirl = new CandleLayer();
 
+    }
 
-//        herbLayer = new ResourceLocation(Hexerei.MOD_ID, "textures/block/candle_herb_layer.png");
-//        baseLayer = new ResourceLocation(Hexerei.MOD_ID, "textures/block/candle_base_layer.png");
-//        glowLayer = new ResourceLocation(Hexerei.MOD_ID, "textures/block/candle_glow_layer.png");
-//        swirlLayer = new ResourceLocation(Hexerei.MOD_ID, "textures/block/candle_swirl_layer.png");
+    public CandleData() {
+        this(Candle.BASE_COLOR, false, 0, 0, 0, 7, CandleData.meltTimerMAX, null);
+    }
+
+    public void setNotReturn(int returnToBlockLastTick) {
+        this.returnToBlock = false;
+        this.returnToBlockLastTick = returnToBlockLastTick;
+    }
+
+    public float getMeltingSpeedMultiplier() {
+        return base.meltingSpeedMultiplier * herb.meltingSpeedMultiplier * glow.meltingSpeedMultiplier * swirl.meltingSpeedMultiplier;
+    }
+
+    public float getRadiusMultiplier() {
+        return base.radiusMultiplier * herb.radiusMultiplier * glow.radiusMultiplier * swirl.radiusMultiplier;
+    }
+
+    public float getEffectAmplifierMultiplier() {
+        return base.effectAmplifierMultiplier * herb.effectAmplifierMultiplier * glow.effectAmplifierMultiplier * swirl.effectAmplifierMultiplier;
+    }
+
+    public float getEffectCooldownMultiplier() {
+        return base.effectCooldownMultiplier * herb.effectCooldownMultiplier * glow.effectCooldownMultiplier * swirl.effectCooldownMultiplier;
+    }
+
+    public float getEffectDurationMultiplier() {
+        return base.effectDurationMultiplier * herb.effectDurationMultiplier * glow.effectDurationMultiplier * swirl.effectDurationMultiplier;
     }
 
     public boolean hasBase(){
         return base.layer != null;
     }
 
+    public boolean hasHerb(){
+        return herb.layer != null;
+    }
+
+    public boolean hasGlow(){
+        return glow.layer != null;
+    }
+
+    public boolean hasSwirl(){
+        return swirl.layer != null;
+    }
+
     public void setEffect(AbstractCandleEffect effect){
         this.effect = effect;
+    }
+
+    public void setOldPos(){
+        this.xO = this.x;
+        this.yO = this.y;
+        this.zO = this.z;
+    }
+    public void move(){
+        this.x = HexereiUtil.moveTo(this.x, this.xTarget, Mth.abs(this.xTarget - this.x) * 0.075f + 0.00125f);
+        this.y = HexereiUtil.moveTo(this.y, this.yTarget, Mth.abs(this.yTarget - this.y) * 0.115f + 0.00125f);
+        this.z = HexereiUtil.moveTo(this.z, this.zTarget, Mth.abs(this.zTarget - this.z) * 0.075f + 0.00125f);
+    }
+    public void moveInstantlyToTarget(){
+        this.x = this.xTarget;
+        this.y = this.yTarget;
+        this.z = this.zTarget;
+        setOldPos();
     }
 
 
@@ -75,70 +144,41 @@ public class CandleData {
     }
 
     public CompoundTag save(){
-        CompoundTag tag = new CompoundTag();
-        tag.putInt("dyeColor", this.dyeColor);
-        tag.putInt("height", this.height);
-        tag.putInt("meltTimer", this.meltTimer);
-        tag.putBoolean("hasCandle", this.hasCandle);
-        tag.putBoolean("lit", this.lit);
-        tag.putBoolean("returnToBlock", this.returnToBlock);
-        tag.putFloat("x", this.x);
-        tag.putFloat("y", this.y);
-        tag.putFloat("z", this.z);
+        return save(new CompoundTag(), false);
+    }
+    public CompoundTag save(CompoundTag tag, boolean asItem){
+        if(this.dyeColor != Candle.BASE_COLOR)
+            tag.putInt("dyeColor", this.dyeColor);
+        if(this.height < 7)
+            tag.putInt("height", this.height);
+        if(!asItem) {
+            tag.putFloat("meltTimer", this.meltTimer);
+            tag.putBoolean("hasCandle", this.hasCandle);
+            tag.putBoolean("lit", this.lit);
+            tag.putBoolean("returnToBlock", this.returnToBlock);
+            tag.putInt("cooldown", this.cooldown);
+        }
+        if(this.effect != null && !this.effect.isEmpty())
+            tag.putString("effect", this.effect.getLocationName());
 
-        tag.putString("effect", this.effect.getLocationName());
-        tag.putInt("cooldown", this.cooldown);
-
-        if(this.effectParticle != null) {
+        if(this.effectParticle != null && this.effectParticle.size() > 0) {
             CompoundTag compoundTag = new CompoundTag();
             for(int i = 0; i < this.effectParticle.size(); i++){
-                compoundTag.putString("particle" + i, this.effectParticle.get(i).toString());
+                compoundTag.putString("particle" + i, this.effectParticle.get(i));
                 tag.put("effectParticle", compoundTag);
             }
         }
         if(this.base.layer != null) {
-            CompoundTag ct = new CompoundTag();
-            ct.putFloat("meltingSpeedMultiplier", this.base.meltingSpeedMultiplier);
-            ct.putFloat("radiusMultiplier", this.base.radiusMultiplier);
-            ct.putFloat("effectAmplifierMultiplier", this.base.effectAmplifierMultiplier);
-            ct.putFloat("effectCooldownMultiplier", this.base.effectCooldownMultiplier);
-            ct.putFloat("effectDurationMultiplier", this.base.effectDurationMultiplier);
-            ct.putBoolean("layerFromBlockLocation", this.base.layerFromBlockLocation);
-            ct.putString("layer", this.base.layer.toString());
-            tag.put("base", ct);
+            tag.put("base", this.base.save());
         }
         if(this.herb.layer != null) {
-            CompoundTag ct = new CompoundTag();
-            ct.putFloat("meltingSpeedMultiplier", this.herb.meltingSpeedMultiplier);
-            ct.putFloat("radiusMultiplier", this.herb.radiusMultiplier);
-            ct.putFloat("effectAmplifierMultiplier", this.herb.effectAmplifierMultiplier);
-            ct.putFloat("effectCooldownMultiplier", this.herb.effectCooldownMultiplier);
-            ct.putFloat("effectDurationMultiplier", this.herb.effectDurationMultiplier);
-            ct.putBoolean("layerFromBlockLocation", this.herb.layerFromBlockLocation);
-            ct.putString("layer", this.herb.layer.toString());
-            tag.put("herb", ct);
+            tag.put("herb", this.herb.save());
         }
         if(this.glow.layer != null) {
-            CompoundTag ct = new CompoundTag();
-            ct.putFloat("meltingSpeedMultiplier", this.glow.meltingSpeedMultiplier);
-            ct.putFloat("radiusMultiplier", this.glow.radiusMultiplier);
-            ct.putFloat("effectAmplifierMultiplier", this.glow.effectAmplifierMultiplier);
-            ct.putFloat("effectCooldownMultiplier", this.glow.effectCooldownMultiplier);
-            ct.putFloat("effectDurationMultiplier", this.glow.effectDurationMultiplier);
-            ct.putBoolean("layerFromBlockLocation", this.glow.layerFromBlockLocation);
-            ct.putString("layer", this.glow.layer.toString());
-            tag.put("glow", ct);
+            tag.put("glow", this.glow.save());
         }
         if(this.swirl.layer != null) {
-            CompoundTag ct = new CompoundTag();
-            ct.putFloat("meltingSpeedMultiplier", this.swirl.meltingSpeedMultiplier);
-            ct.putFloat("radiusMultiplier", this.swirl.radiusMultiplier);
-            ct.putFloat("effectAmplifierMultiplier", this.swirl.effectAmplifierMultiplier);
-            ct.putFloat("effectCooldownMultiplier", this.swirl.effectCooldownMultiplier);
-            ct.putFloat("effectDurationMultiplier", this.swirl.effectDurationMultiplier);
-            ct.putBoolean("layerFromBlockLocation", this.swirl.layerFromBlockLocation);
-            ct.putString("layer", this.swirl.layer.toString());
-            tag.put("swirl", ct);
+            tag.put("swirl", this.swirl.save());
         }
         if(this.customName != null)
             tag.putString("customName", Component.Serializer.toJson(this.customName));
@@ -146,55 +186,91 @@ public class CandleData {
         return tag;
     }
 
-    public void load(CompoundTag tag){
-        this.dyeColor = tag.getInt("dyeColor");
-        this.height = tag.getInt("height");
-        this.meltTimer = tag.getInt("meltTimer");
-        this.hasCandle = tag.getBoolean("hasCandle");
-        this.lit = tag.getBoolean("lit");
-        this.returnToBlock = tag.getBoolean("returnToBlock");
-        this.x = tag.getFloat("x");
-        this.y = tag.getFloat("y");
-        this.z = tag.getFloat("z");
+    public void load(CompoundTag tag, boolean fromItem){
+        if(tag.contains("dyeColor"))
+            this.dyeColor = tag.getInt("dyeColor");
+        else
+            this.dyeColor = Candle.BASE_COLOR;
+
+        if(tag.contains("height"))
+            this.height = tag.getInt("height");
+        else
+            this.height = 7;
+
+        if(tag.contains("meltTimer"))
+            this.meltTimer = tag.getFloat("meltTimer");
+        else
+            this.meltTimer = meltTimerMAX;
+
+        if(tag.contains("hasCandle"))
+            this.hasCandle = tag.getBoolean("hasCandle");
+        else
+            this.hasCandle = fromItem;
+
+        if(tag.contains("lit"))
+            this.lit = tag.getBoolean("lit");
+        else
+            this.lit = false;
+
+        if(tag.contains("returnToBlock"))
+            this.returnToBlock = tag.getBoolean("returnToBlock");
+        else
+            this.returnToBlock = true;
 
         if(tag.contains("effect")) {
             setEffect(CandleEffects.getEffect(tag.getString("effect")));
             this.cooldown = tag.getInt("cooldown");
+        } else {
+            this.effect = null;
+            this.cooldown = 0;
         }
 
         if(tag.contains("effectParticle")) {
             this.effectParticle = new ArrayList<>();
             CompoundTag compoundTag = tag.getCompound("effectParticle");
             for(int i = 0; i < compoundTag.size(); i++) {
-                this.effectParticle.add(new ResourceLocation(compoundTag.getString("particle" + i)));
+                this.effectParticle.add(compoundTag.getString("particle" + i));
             }
+        } else {
+            this.effectParticle = new ArrayList<>();
         }
         if(tag.contains("base")) {
             CompoundTag ct = tag.getCompound("base");
             this.base = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
                     new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
-        }
+        } else
+            this.base = new CandleLayer();
         if(tag.contains("herb")) {
             CompoundTag ct = tag.getCompound("herb");
             this.herb = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
                     new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
-        }
+        } else
+            this.herb = new CandleLayer();
         if(tag.contains("glow")) {
             CompoundTag ct = tag.getCompound("glow");
             this.glow = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
                     new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
-        }
+        } else
+            this.glow = new CandleLayer();
         if(tag.contains("swirl")) {
             CompoundTag ct = tag.getCompound("swirl");
             this.swirl = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
                     new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
-        }
+        } else
+            this.swirl = new CandleLayer();
         if(tag.contains("customName"))
             this.customName = Component.Serializer.fromJson(tag.getString("customName"));
+        else
+            this.customName = null;
+
+
+    }
+    public void load(CompoundTag tag){
+        load(tag, false);
 
     }
 

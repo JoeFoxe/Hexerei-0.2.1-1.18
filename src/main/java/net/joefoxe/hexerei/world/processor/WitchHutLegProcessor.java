@@ -7,6 +7,8 @@ import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelReader;
@@ -34,6 +36,13 @@ public class WitchHutLegProcessor extends StructureProcessor {
     @Override
     public StructureTemplate.StructureBlockInfo process(LevelReader worldReader, BlockPos jigsawPiecePos, BlockPos jigsawPieceBottomCenterPos, StructureTemplate.StructureBlockInfo blockInfoLocal, StructureTemplate.StructureBlockInfo blockInfoGlobal, StructurePlaceSettings structurePlacementData, @Nullable StructureTemplate template) {
         if (blockInfoGlobal.state().getBlock() == Blocks.WHITE_STAINED_GLASS_PANE) {
+            BlockPos worldPos = blockInfoGlobal.pos();
+
+            BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos().set(worldPos);
+
+            if(worldReader instanceof WorldGenRegion worldGenRegion && !worldGenRegion.getCenter().equals(new ChunkPos(currentPos))) {
+                return getReturnBlock(worldPos, blockInfoGlobal.state());
+            }
             ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
             ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
             RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
@@ -45,12 +54,19 @@ public class WitchHutLegProcessor extends StructureProcessor {
             // Generate vertical pillar down
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+            while (mutable.getY() > worldReader.getMinBuildHeight() && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, Blocks.SPRUCE_LOG.defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);
             }
         } else if (blockInfoGlobal.state().getBlock() == Blocks.RED_STAINED_GLASS_PANE) {
+            BlockPos worldPos = blockInfoGlobal.pos();
+
+            BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos().set(worldPos);
+
+            if(worldReader instanceof WorldGenRegion worldGenRegion && !worldGenRegion.getCenter().equals(new ChunkPos(currentPos))) {
+                return getReturnBlock(worldPos, blockInfoGlobal.state());
+            }
             ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
             ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
             RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
@@ -62,12 +78,19 @@ public class WitchHutLegProcessor extends StructureProcessor {
             // Generate vertical pillar down
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+            while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, ModBlocks.MAHOGANY_LOG.get().defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);
             }
         } else if (blockInfoGlobal.state().getBlock() == Blocks.YELLOW_STAINED_GLASS_PANE) {
+            BlockPos worldPos = blockInfoGlobal.pos();
+
+            BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos().set(worldPos);
+
+            if(worldReader instanceof WorldGenRegion worldGenRegion && !worldGenRegion.getCenter().equals(new ChunkPos(currentPos))) {
+                return getReturnBlock(worldPos, blockInfoGlobal.state());
+            }
             ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
             ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
             RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
@@ -79,12 +102,19 @@ public class WitchHutLegProcessor extends StructureProcessor {
             // Generate vertical pillar down
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+            while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, Blocks.OAK_LOG.defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);
             }
         } else if (blockInfoGlobal.state().getBlock() == Blocks.PURPLE_STAINED_GLASS_PANE) {
+            BlockPos worldPos = blockInfoGlobal.pos();
+
+            BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos().set(worldPos);
+
+            if(worldReader instanceof WorldGenRegion worldGenRegion && !worldGenRegion.getCenter().equals(new ChunkPos(currentPos))) {
+                return getReturnBlock(worldPos, blockInfoGlobal.state());
+            }
             ChunkPos currentChunkPos = new ChunkPos(blockInfoGlobal.pos());
             ChunkAccess currentChunk = worldReader.getChunk(currentChunkPos.x, currentChunkPos.z);
             RandomSource random = structurePlacementData.getRandom(blockInfoGlobal.pos());
@@ -96,7 +126,7 @@ public class WitchHutLegProcessor extends StructureProcessor {
             // Generate vertical pillar down
             BlockPos.MutableBlockPos mutable = blockInfoGlobal.pos().below().mutable();
             BlockState currBlock = worldReader.getBlockState(mutable);
-            while (mutable.getY() > 0 && (currBlock.isAir() || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+            while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
                 currentChunk.setBlockState(mutable, ModBlocks.WILLOW_LOG.get().defaultBlockState(), false);
                 mutable.move(Direction.DOWN);
                 currBlock = worldReader.getBlockState(mutable);
@@ -108,6 +138,12 @@ public class WitchHutLegProcessor extends StructureProcessor {
 
     protected StructureProcessorType<?> getType() {
         return Hexerei.WITCH_HUT_LEG_PROCESSOR;
+    }
+
+
+    private static StructureTemplate.StructureBlockInfo getReturnBlock(BlockPos worldPos, BlockState originalReplacementState) {
+        return originalReplacementState == null || originalReplacementState.is(Blocks.STRUCTURE_VOID) ?
+                null : new StructureTemplate.StructureBlockInfo(worldPos, originalReplacementState, null);
     }
 }
 

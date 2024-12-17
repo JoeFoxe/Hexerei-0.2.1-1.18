@@ -19,6 +19,12 @@ public class ModTileEntities {
     public static final RegistryObject<BlockEntityType<CofferTile>> COFFER_TILE = TILE_ENTITIES.register(
             "coffer_entity", () -> BlockEntityType.Builder.of(CofferTile::new, ModBlocks.COFFER.get()).build(null));
 
+    public static final RegistryObject<BlockEntityType<CourierPackageTile>> COURIER_PACKAGE_TILE = TILE_ENTITIES.register(
+            "courier_package_tile", () -> BlockEntityType.Builder.of(CourierPackageTile::new, ModBlocks.COURIER_PACKAGE.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<CourierLetterTile>> COURIER_LETTER_TILE = TILE_ENTITIES.register(
+            "courier_letter_tile", () -> BlockEntityType.Builder.of(CourierLetterTile::new, ModBlocks.COURIER_LETTER.get()).build(null));
+
 
     public static final RegistryObject<BlockEntityType<HerbJarTile>> HERB_JAR_TILE = TILE_ENTITIES.register(
             "herb_jar_entity", () -> BlockEntityType.Builder.of(HerbJarTile::new, ModBlocks.HERB_JAR.get()).build(null));
@@ -31,6 +37,9 @@ public class ModTileEntities {
 
     public static final RegistryObject<BlockEntityType<BroomStandTile>> BROOM_STAND_TILE = TILE_ENTITIES.register(
             "broom_stand_entity", () -> BlockEntityType.Builder.of(BroomStandTile::new, ModBlocks.MAHOGANY_BROOM_STAND.get(), ModBlocks.MAHOGANY_BROOM_STAND_WALL.get(), ModBlocks.WILLOW_BROOM_STAND.get(), ModBlocks.WILLOW_BROOM_STAND_WALL.get(), ModBlocks.WITCH_HAZEL_BROOM_STAND.get(), ModBlocks.WITCH_HAZEL_BROOM_STAND_WALL.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<OwlCourierDepotTile>> OWL_COURIER_DEPOT_TILE = TILE_ENTITIES.register(
+            "owl_courier_depot_entity", () -> BlockEntityType.Builder.of(OwlCourierDepotTile::new, ModBlocks.MAHOGANY_COURIER_DEPOT.get(), ModBlocks.MAHOGANY_COURIER_DEPOT_WALL.get(), ModBlocks.WILLOW_COURIER_DEPOT.get(), ModBlocks.WILLOW_COURIER_DEPOT_WALL.get(), ModBlocks.WITCH_HAZEL_COURIER_DEPOT.get(), ModBlocks.WITCH_HAZEL_COURIER_DEPOT_WALL.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<CandleTile>> CANDLE_TILE = TILE_ENTITIES.register(
             "candle_entity", () -> BlockEntityType.Builder.of(CandleTile::new, ModBlocks.CANDLE.get()).build(null));

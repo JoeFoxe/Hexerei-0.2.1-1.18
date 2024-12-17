@@ -7,8 +7,8 @@
     "item": "hexerei:candle",
     "nbt": {
       "base": {
-        "layer": "minecraft:textures/block/redstone_block.png",
-        "layerFromBlockLocation": false
+        "layer": "minecraft:redstone_block",
+        "layerFromBlockLocation": true
       }
     }
   }

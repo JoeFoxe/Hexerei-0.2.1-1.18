@@ -27,6 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
@@ -41,14 +42,29 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
 
 
     @Override
-    public void render(CrystalBallTile tileEntityIn, float partialTicks, PoseStack matrixStackIn,
+    public void render(CrystalBallTile tileEntityIn, float partialTicks, PoseStack poseStack,
                        MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
 
         if(!tileEntityIn.getLevel().getBlockState(tileEntityIn.getBlockPos()).hasBlockEntity() || !(tileEntityIn.getLevel().getBlockEntity(tileEntityIn.getBlockPos()) instanceof CrystalBallTile))
             return;
 
+        renderMoon(tileEntityIn, poseStack, partialTicks, bufferIn);
 
+        poseStack.pushPose();
+        poseStack.translate(8f / 16f, 8f / 16f, 8f / 16f);
+        poseStack.translate(0f/16f , tileEntityIn.orbOffset/16f, 0f/16f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
 
+        renderBlock(poseStack, bufferIn, combinedLightIn, combinedOverlayIn, ModBlocks.CRYSTAL_BALL_ORB.get().defaultBlockState(), null, 0xFFFFFF);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        renderBlock(poseStack, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_STAND.get().defaultBlockState());
+        poseStack.popPose();
+
+    }
+
+    public void renderMoon(CrystalBallTile tileEntityIn, PoseStack poseStack, float partialTicks, MultiBufferSource bufferIn) {
         int xOffset = 0;
         int yOffset = 0;
         switch(MoonPhases.MoonCondition.getMoonPhase(tileEntityIn.getLevel())){
@@ -90,70 +106,10 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
             }
         }
 
-        DyeColor col = HexereiUtil.getDyeColorNamed("jeb_", 0);
-        float f = 1;
-        float f1 = 1;
-        float f2 = 1;
-        if(col != null){
+        renderQuad(tileEntityIn, poseStack, xOffset, yOffset, bufferIn.getBuffer(ModRenderTypes.MOON_PHASE), partialTicks);
 
-            float f3 = (((Hexerei.getClientTicks()) / 10f * 4) % 16) / (float) 16;
-
-            DyeColor col2 = HexereiUtil.getDyeColorNamed("jeb_", 1);
-
-            float[] afloat1 = Sheep.getColorArray(col);
-            float[] afloat2 = Sheep.getColorArray(col2);
-            f = afloat1[0] * (1.0F - f3) + afloat2[0] * f3;
-            f1 = afloat1[1] * (1.0F - f3) + afloat2[1] * f3;
-            f2 = afloat1[2] * (1.0F - f3) + afloat2[2] * f3;
-
-        }
-
-//        matrixStackIn.pushPose();
-//
-//        matrixStackIn.translate(0.5f, 9f / 16f, 0.5f);
-//        matrixStackIn.translate(0f/16f , tileEntityIn.orbOffset/16f, 0f/16f);
-//        matrixStackIn.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
-//        matrixStackIn.scale(-0.025F, -0.025F, 0.025F);
-//
-//        VertexConsumer buffer = bufferIn.getBuffer(ModRenderTypes.MOON_PHASE);
-//        Matrix4f matrix = matrixStackIn.last().pose();
-//
-//        float size = 8f;
-//
-//        buffer.vertex(matrix, size, -size, 0.01f).color(1, 1, 1, tileEntityIn.moonAlpha).uv(xOffset / 256f, yOffset / 256f).uv2(0xF000F0).endVertex();
-//        buffer.vertex(matrix, size, size, 0.01f).color(1, 1, 1, tileEntityIn.moonAlpha).uv(xOffset / 256f, (yOffset + 8) / 256f).uv2(0xF000F0).endVertex();
-//        buffer.vertex(matrix, -size, size, 0.01f).color(1, 1, 1, tileEntityIn.moonAlpha).uv((xOffset + 8) / 256f, (yOffset + 8) / 256f).uv2(0xF000F0).endVertex();
-//        buffer.vertex(matrix, -size, -size, 0.01f).color(1, 1, 1, tileEntityIn.moonAlpha).uv((xOffset + 8) / 256f, yOffset / 256f).uv2(0xF000F0).endVertex();
-//
-//        matrixStackIn.popPose();
-        renderQuad(tileEntityIn, matrixStackIn, xOffset, yOffset, bufferIn.getBuffer(ModRenderTypes.MOON_PHASE), partialTicks);
-
-        matrixStackIn.pushPose();
-        matrixStackIn.translate(8f / 16f, 9f / 16f, 8f / 16f);
-        matrixStackIn.translate(0f/16f , tileEntityIn.orbOffset/16f, 0f/16f);
-        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
-
-        renderBlock(matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModBlocks.CRYSTAL_BALL_ORB.get().defaultBlockState(), null, 0xFFFFFF);
-        matrixStackIn.popPose();
-
-        matrixStackIn.pushPose();
-        matrixStackIn.translate(8f/16f , 7f/16f, 8f/16f);
-        matrixStackIn.translate(0f/16f , tileEntityIn.largeRingOffset/16f, 0f/16f);
-        matrixStackIn.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 6));
-        renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_LARGE_RING.get().defaultBlockState());
-        matrixStackIn.popPose();
-
-        matrixStackIn.pushPose();
-        matrixStackIn.translate(8f/16f , 4.5f/16f, 8f/16f);
-        matrixStackIn.translate(0f/16f , tileEntityIn.smallRingOffset/16f, 0f/16f);
-        matrixStackIn.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 6));
-        renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_SMALL_RING.get().defaultBlockState());
-        matrixStackIn.popPose();
-
-        matrixStackIn.pushPose();
-        renderBlock(matrixStackIn, bufferIn, combinedLightIn, ModBlocks.CRYSTAL_BALL_STAND.get().defaultBlockState());
-        matrixStackIn.popPose();
-
+        if (bufferIn instanceof MultiBufferSource.BufferSource bufferSource)
+            bufferSource.endBatch(ModRenderTypes.MOON_PHASE);
     }
 
     public void renderQuad(CrystalBallTile tileEntityIn, PoseStack poseStack, int xOffset, int yOffset, VertexConsumer consumer, float partialTicks) {
@@ -168,25 +124,55 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
             offsetMap.add(new Vector3f[]{bottomVertices[(i + 1) % 4], bottomVertices[i], topVertices[(i) % 4], topVertices[(i + 1) % 4]});
         }
         poseStack.pushPose();
-        poseStack.translate(0.5f,9f / 16f,0.5f);
+        poseStack.translate(0.5f,8f / 16f,0.5f);
         poseStack.translate(0f/16f , tileEntityIn.orbOffset/16f, 0f/16f);
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(-Mth.rotLerp(partialTicks, tileEntityIn.degreesSpunOld, tileEntityIn.degreesSpun) * 4));
-        poseStack.scale(0.25f,0.25f,0.25f);
-        drawWobblyCube(poseStack, 1f, 0.86f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
-        drawWobblyCube(poseStack, 0.85f, 0.5f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
-        drawWobblyCube(poseStack, 1.12f, 0.6f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
+        float inc = Math.max(0, Math.abs(tileEntityIn.centerYawIncrement) - 10) / 90f;
+        float vscale = 1 - inc * 0.59f;
+        float hscale = 1 + inc * 0.59f;
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(-lerpAngle(tileEntityIn.centerYawO, tileEntityIn.centerYaw, partialTicks)));
+        poseStack.mulPose(Axis.XP.rotationDegrees(lerpAngle(tileEntityIn.centerPitchO, tileEntityIn.centerPitch, partialTicks)));
+        poseStack.mulPose(Axis.YP.rotationDegrees(90));
+
+        float scale = 0.18f + (0.07f * (1 - inc));
+        poseStack.scale(scale, scale, scale);
+
+        drawWobblyCube(poseStack, 0.8f * vscale, 0.8f * hscale, 0.86f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
+        drawWobblyCube(poseStack, 0.68f * vscale, 0.68f * hscale, 0.5f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
+        drawWobblyCube(poseStack, 0.896f * vscale, 0.896f * hscale, 0.6f * tileEntityIn.moonAlpha, offsetMap, bottomVertices, topVertices, consumer, xOffset, yOffset);
         poseStack.popPose();
     }
 
-    public static void drawWobblyCube(PoseStack poseStack, float scale, float alpha, Collection<Vector3f[]> offsetMap, Vector3f[] bottomVertices, Vector3f[] topVertices, VertexConsumer consumer, int xOffset, int yOffset) {
-        poseStack.pushPose();
-        poseStack.scale(scale,scale,scale);
-        for (Vector3f[] offsets : offsetMap) {
-            drawSide(poseStack, alpha, offsets, consumer, xOffset, yOffset);
+    public static float lerpAngle(float startAngle, float endAngle, float alpha) {
+        startAngle = normalizeAngle(startAngle);
+        endAngle = normalizeAngle(endAngle);
+        float difference = endAngle - startAngle;
+        if (difference > 180.0f) {
+            difference -= 360.0f;
+        } else if (difference < -180.0f) {
+            difference += 360.0f;
         }
-        drawSide(poseStack, alpha, new Vector3f[]{bottomVertices[3], bottomVertices[2], bottomVertices[1], bottomVertices[0]}, consumer, xOffset, yOffset);
-        drawSide(poseStack, alpha, topVertices, consumer, xOffset, yOffset);
+        return normalizeAngle(startAngle + alpha * difference); }
+    private static float normalizeAngle(float angle) {
+        while (angle > 180.0f) {
+            angle -= 360.0f;
+        } while (angle < -180.0f) {
+            angle += 360.0f;
+        } return angle;
+    }
+
+    public static void drawWobblyCube(PoseStack poseStack, float vscale, float hscale, float alpha, Collection<Vector3f[]> offsetMap, Vector3f[] bottomVertices, Vector3f[] topVertices, VertexConsumer consumer, int xOffset, int yOffset) {
+        poseStack.pushPose();
+        poseStack.scale(hscale,vscale,hscale);
+
+        drawSide(poseStack, alpha, offsetMap.stream().toList().get(0), consumer, xOffset, yOffset);
+        drawSide(poseStack, alpha, offsetMap.stream().toList().get(1), consumer, xOffset + 8, yOffset);
+        drawSide(poseStack, alpha, offsetMap.stream().toList().get(2), consumer, xOffset + 8, yOffset + 8);
+        drawSide(poseStack, alpha, offsetMap.stream().toList().get(3), consumer, xOffset + 16, yOffset);
+
+        drawSide(poseStack, alpha, new Vector3f[]{bottomVertices[3], bottomVertices[2], bottomVertices[1], bottomVertices[0]}, consumer, xOffset + 16, yOffset + 8);
+        drawSide(poseStack, alpha, topVertices, consumer, xOffset, yOffset + 8);
         poseStack.popPose();
     }
 
@@ -195,28 +181,11 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
         poseStack.translate(-0.5f, -0.5f, -0.5f);
 
         Matrix4f matrix = poseStack.last().pose();
-//        DyeColor col = HexereiUtil.getDyeColorNamed("jeb_", 0); // for potential color changing if dyed?
-        float f = 1;
-        float f1 = 1;
-        float f2 = 1;
-//        if(col != null){
-//
-//            float f3 = (((Hexerei.getClientTicks()) / 10f * 4) % 16) / (float) 16;
-//
-//            DyeColor col2 = HexereiUtil.getDyeColorNamed("jeb_", 1);
-//
-//            float[] afloat1 = Sheep.getColorArray(col);
-//            float[] afloat2 = Sheep.getColorArray(col2);
-//            f = afloat1[0] * (1.0F - f3) + afloat2[0] * f3;
-//            f1 = afloat1[1] * (1.0F - f3) + afloat2[1] * f3;
-//            f2 = afloat1[2] * (1.0F - f3) + afloat2[2] * f3;
-//
-//        }
 
-        consumer.vertex(matrix, offsets[0].x(), offsets[0].y(), offsets[0].z()).color(f, f1, f2, alpha).uv((xOffset) / 256f, (yOffset + 8) / 256f).uv2(0xF000F0).endVertex();
-        consumer.vertex(matrix, offsets[1].x(), offsets[1].y(), offsets[1].z()).color(f, f1, f2, alpha).uv((xOffset + 8) / 256f, (yOffset + 8) / 256f).uv2(0xF000F0).endVertex();
-        consumer.vertex(matrix, offsets[2].x(), offsets[2].y(), offsets[2].z()).color(f, f1, f2, alpha).uv((xOffset + 8) / 256f, yOffset / 256f).uv2(0xF000F0).endVertex();
-        consumer.vertex(matrix, offsets[3].x(), offsets[3].y(), offsets[3].z()).color(f, f1, f2, alpha).uv((xOffset) / 256f, yOffset / 256f).uv2(0xF000F0).endVertex();
+        consumer.vertex(matrix, offsets[0].x(), offsets[0].y(), offsets[0].z()).color(1, 1, 1, alpha).uv((xOffset + 8) / 256f, (yOffset + 8) / 256f).uv2(0xF000F0).endVertex();
+        consumer.vertex(matrix, offsets[1].x(), offsets[1].y(), offsets[1].z()).color(1, 1, 1, alpha).uv((xOffset) / 256f, (yOffset + 8) / 256f).uv2(0xF000F0).endVertex();
+        consumer.vertex(matrix, offsets[2].x(), offsets[2].y(), offsets[2].z()).color(1, 1, 1, alpha).uv((xOffset) / 256f, yOffset / 256f).uv2(0xF000F0).endVertex();
+        consumer.vertex(matrix, offsets[3].x(), offsets[3].y(), offsets[3].z()).color(1, 1, 1, alpha).uv((xOffset + 8) / 256f, yOffset / 256f).uv2(0xF000F0).endVertex();
 
         poseStack.popPose();
     }
@@ -234,22 +203,22 @@ public class CrystalBallRenderer implements BlockEntityRenderer<CrystalBallTile>
         }
     }
 
-    private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
+    private void renderItem(ItemStack stack, Level level, PoseStack poseStack, MultiBufferSource bufferIn,
                             int combinedLightIn) {
         Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
-                OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
+                OverlayTexture.NO_OVERLAY, poseStack, bufferIn, level, 1);
     }
 
 
-    private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, BlockState state) {
-        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
+    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, BlockState state) {
+        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, poseStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
 
     }
-    private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, BlockState state, float red, float green, float blue) {
-        renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, red, green, blue);
+    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, BlockState state, float red, float green, float blue) {
+        renderSingleBlock(state, poseStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, red, green, blue);
     }
-    private void renderBlock(PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, BlockState state, RenderType renderType, int color) {
-        renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModelData.EMPTY, renderType, color);
+    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, BlockState state, RenderType renderType, int color) {
+        renderSingleBlock(state, poseStack, bufferIn, combinedLightIn, combinedOverlayIn, ModelData.EMPTY, renderType, color);
 
     }
 

@@ -17,10 +17,10 @@ import net.joefoxe.hexerei.compat.CurioCompat;
 import net.joefoxe.hexerei.compat.GlassesCurioRender;
 import net.joefoxe.hexerei.config.HexConfig;
 import net.joefoxe.hexerei.container.ModContainers;
+import net.joefoxe.hexerei.data.books.BookManager;
 import net.joefoxe.hexerei.data.books.PageDrawing;
 import net.joefoxe.hexerei.data.datagen.ModRecipeProvider;
-import net.joefoxe.hexerei.data.datagen.WorldGenProvider;
-import net.joefoxe.hexerei.data.recipes.HexereiRecipeProvider;
+import net.joefoxe.hexerei.data.owl.OwlCourierDepotSavedData;
 import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.data.tags.ModBiomeTagsProvider;
 import net.joefoxe.hexerei.event.ClientEvents;
@@ -38,10 +38,8 @@ import net.joefoxe.hexerei.screen.*;
 import net.joefoxe.hexerei.sounds.ModSounds;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.joefoxe.hexerei.util.*;
-import net.joefoxe.hexerei.world.biome.ModBiomes;
 import net.joefoxe.hexerei.world.biomemods.ModBiomeModifiers;
 import net.joefoxe.hexerei.world.gen.ModFeatures;
-import net.joefoxe.hexerei.world.gen.ModPlacedFeatures;
 import net.joefoxe.hexerei.world.processor.DarkCovenLegProcessor;
 import net.joefoxe.hexerei.world.processor.MangroveTreeLegProcessor;
 import net.joefoxe.hexerei.world.processor.NatureCovenLegProcessor;
@@ -61,6 +59,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.AxeItem;
@@ -75,8 +76,8 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -199,6 +200,7 @@ public class Hexerei {
 		try {
 			Thread thread = new Thread(HexereiSupporterBenefits::init);
 			thread.setDaemon(true);
+			thread.setName("supporter-lookup");
 			thread.start();
 		} catch(Exception err) {
 			err.printStackTrace();
@@ -227,6 +229,7 @@ public class Hexerei {
 		// Register ourselves for server and other game events we are interested in
 		MinecraftForge.EVENT_BUS.register(this);
 
+		MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, this::playerLogin);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, this::gatherData);
 
 		curiosLoaded = ModList.get().isLoaded("curios");
@@ -244,6 +247,15 @@ public class Hexerei {
 	}
 
 
+
+	public void playerLogin(PlayerEvent.PlayerLoggedInEvent event){
+		ServerPlayer player = (ServerPlayer) event.getEntity();
+		ServerLevel serverWorld = player.serverLevel();
+		MinecraftServer server = player.getServer();
+		OwlCourierDepotSavedData.get().syncToClient();
+		BookManager.sendBookPagesToClient();
+		BookManager.sendBookEntriesToClient();
+	}
 	@OnlyIn(Dist.CLIENT)
 	public void setupCrowPerchRenderer() {
 		MinecraftForge.EVENT_BUS.register(CrowPerchRenderer.class);
@@ -284,6 +296,9 @@ public class Hexerei {
 
 			SpawnPlacements.register(ModEntityTypes.CROW.get(), SpawnPlacements.Type.ON_GROUND,
 					Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
+			SpawnPlacements.register(ModEntityTypes.OWL.get(), SpawnPlacements.Type.ON_GROUND,
+					Heightmap.Types.MOTION_BLOCKING, Animal::checkAnimalSpawnRules);
+
 			LightManager.init();
 
 			((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(ModBlocks.MANDRAKE_PLANT.getId(), ModBlocks.POTTED_MANDRAKE_PLANT);
@@ -346,9 +361,11 @@ public class Hexerei {
 
 			MenuScreens.register(ModContainers.MIXING_CAULDRON_CONTAINER.get(), MixingCauldronScreen::new);
 			MenuScreens.register(ModContainers.COFFER_CONTAINER.get(), CofferScreen::new);
+			MenuScreens.register(ModContainers.PACKAGE_CONTAINER.get(), CourierPackageScreen::new);
 			MenuScreens.register(ModContainers.HERB_JAR_CONTAINER.get(), HerbJarScreen::new);
 			MenuScreens.register(ModContainers.BROOM_CONTAINER.get(), BroomScreen::new);
 			MenuScreens.register(ModContainers.CROW_CONTAINER.get(), CrowScreen::new);
+			MenuScreens.register(ModContainers.OWL_CONTAINER.get(), OwlScreen::new);
 			MenuScreens.register(ModContainers.CROW_FLUTE_CONTAINER.get(), CrowFluteScreen::new);
 			MenuScreens.register(ModContainers.WOODCUTTER_CONTAINER.get(), WoodcutterScreen::new);
 
@@ -422,11 +439,11 @@ public class Hexerei {
 		MinecraftForge.EVENT_BUS.register(new CrowFluteEvent());
 		MinecraftForge.EVENT_BUS.register(new CrowWhitelistEvent());
 
-		MinecraftForge.EVENT_BUS.register(new PageDrawing());
 		glassesZoomKeyPressEvent = new GlassesZoomKeyPressEvent();
 		MinecraftForge.EVENT_BUS.register(glassesZoomKeyPressEvent);
 
 		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+			MinecraftForge.EVENT_BUS.register(new PageDrawing());
 			if (ModList.get().isLoaded("ars_nouveau")) net.joefoxe.hexerei.compat.LightManagerCompat.fallbackToArs();
 		});
 

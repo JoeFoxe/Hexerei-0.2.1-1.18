@@ -1,10 +1,7 @@
 package net.joefoxe.hexerei.client.renderer.entity;
 
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
-import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
-import net.joefoxe.hexerei.client.renderer.entity.custom.ModBoatEntity;
-import net.joefoxe.hexerei.client.renderer.entity.custom.ModChestBoatEntity;
+import net.joefoxe.hexerei.client.renderer.entity.custom.*;
 import net.joefoxe.hexerei.item.ModItemGroup;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.resources.ResourceLocation;
@@ -63,13 +60,12 @@ public class ModEntityTypes {
                     () -> EntityType.Builder.of(CrowEntity::new,
                                     MobCategory.CREATURE).sized(0.375F, 0.5F).setTrackingRange(64).setUpdateInterval(1)
                             .build(new ResourceLocation(Hexerei.MOD_ID, "crow").toString()));
-//    public static final RegistryObject<EntityType<CrowEntity>> CROW = addEntityWithEgg("crow", 0x161616, 0x333333, 0.375F, 0.5F, CrowEntity::new, MobCategory.CREATURE);
 
-//    public static final RegistryObject<EntityType<CrowEntity>> CROW =
-//            ENTITY_TYPES.register("crow",
-//                    () -> EntityType.Builder.<CrowEntity>of(CrowEntity::new,
-//                                    MobCategory.MISC).size(0.35F, 0.35F)
-//                            .build(new ResourceLocation(Hexerei.MOD_ID, "crow").toString()));
+    public static final RegistryObject<EntityType<OwlEntity>> OWL =
+            ENTITY_TYPES.register("owl",
+                    () -> EntityType.Builder.of(OwlEntity::new,
+                                    MobCategory.CREATURE).sized(0.5F, 0.65F).setTrackingRange(64).setUpdateInterval(1)
+                            .build(new ResourceLocation(Hexerei.MOD_ID, "owl").toString()));
 //
 //    public static final EntityType<EntityCrow> CROW = registerEntity(EntityType.Builder.create(EntityCrow::new, MobCategory.CREATURE).size(0.45F, 0.45F), "crow");
 
@@ -83,6 +79,7 @@ public class ModEntityTypes {
     @SubscribeEvent
     public static void addEntityAttributes(EntityAttributeCreationEvent event) {
         event.put(CROW.get(), CrowEntity.createAttributes());
+        event.put(OWL.get(), OwlEntity.createAttributes());
     }
 
 //    public static final RegistryObject<SpawnEggItem> CROW_SPAWN_EGG = ModItems.ITEMS.register("crow_spawn_egg", () -> new SpawnEggItem(ModEntityTypes.CROW.get(), 0x161616, 0x333333, new Item.Properties().tab(ModItemGroup.HEXEREI_GROUP)));

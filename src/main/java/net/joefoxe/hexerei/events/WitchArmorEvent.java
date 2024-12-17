@@ -19,17 +19,11 @@ import net.minecraftforge.fml.common.Mod;
 public class WitchArmorEvent {
 
     @SubscribeEvent
-    public void onEntityJoinWorld(EntityJoinLevelEvent event) {
-        if (event.getEntity() instanceof Witch witch) {
-            witch.goalSelector.addGoal(7, new AvoidEntityGoal<>(witch, Player.class, (entity) -> isEquippedBy(entity, 2), 1, 0.5, 0.5, EntitySelector.NO_CREATIVE_OR_SPECTATOR::test));
-        }
-    }
-
-    @SubscribeEvent
     public void onLivingSetAttackTarget(LivingChangeTargetEvent event) {
         if (event.getEntity() instanceof Witch witch) {
-            if (isEquippedBy(witch.getTarget(), 2))
-                witch.setTarget(null);
+            if (isEquippedBy(event.getNewTarget(), 2)) {
+                event.setNewTarget(null);
+            }
         }
     }
 

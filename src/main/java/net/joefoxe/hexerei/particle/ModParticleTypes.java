@@ -39,6 +39,13 @@ public class ModParticleTypes {
     public static final RegistryObject<SimpleParticleType> MOON_BRUSH_3 = PARTICLES.register("moon_brush_3", () -> new SimpleParticleType(true));
     public static final RegistryObject<SimpleParticleType> MOON_BRUSH_4 = PARTICLES.register("moon_brush_4", () -> new SimpleParticleType(true));
     public static final RegistryObject<SimpleParticleType> STAR_BRUSH = PARTICLES.register("star_brush", () -> new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> OWL_TELEPORT = PARTICLES.register("owl_teleport", () -> new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> OWL_TELEPORT_BARN = PARTICLES.register("owl_teleport_barn", () -> new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> OWL_TELEPORT_BARRED = PARTICLES.register("owl_teleport_barred", () -> new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> OWL_TELEPORT_SNOWY = PARTICLES.register("owl_teleport_snowy", () -> new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> MAHOGANY_LEAVES = PARTICLES.register("mahogany_leaves", () -> new SimpleParticleType(true));
+    public static final RegistryObject<SimpleParticleType> WITCH_HAZEL_LEAVES = PARTICLES.register("witch_hazel_leaves", () -> new SimpleParticleType(true));
+
 //    public static final RegistryObject<SimpleParticleType> DOWSING_ROD_1 = PARTICLES.register("dowsing_rod_1", () -> new SimpleParticleType(true));
 //    public static final RegistryObject<SimpleParticleType> DOWSING_ROD_2 = PARTICLES.register("dowsing_rod_2", () -> new SimpleParticleType(true));
 

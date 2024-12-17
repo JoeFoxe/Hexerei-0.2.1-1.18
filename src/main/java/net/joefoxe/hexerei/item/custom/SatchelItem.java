@@ -31,7 +31,7 @@ public class SatchelItem extends BroomAttachmentItem implements DyeableLeatherIt
 
     public static int getColorStatic(ItemStack p_41122_) {
         CompoundTag compoundtag = p_41122_.getTagElement("display");
-        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0x422F1E;
+        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0x493422;
     }
 
 

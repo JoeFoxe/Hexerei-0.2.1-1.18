@@ -2,7 +2,7 @@
 	"parent": "hexerei:block/infused_fabric_carpet/slab/special_carpet_corner_270",
 	"textures": {
 		"face": "hexerei:block/waxed_infused_fabric_ornate_simple",
-		"outer": "hexerei:block/infused_fabric_outter"
+		"outer": "hexerei:block/infused_fabric_outter_dark"
 	},
 	"render_type": "cutout_mipped"
 }

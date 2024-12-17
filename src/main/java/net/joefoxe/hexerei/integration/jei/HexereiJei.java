@@ -25,10 +25,7 @@ import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.fluid.PotionFluid;
 import net.joefoxe.hexerei.fluid.PotionFluidHandler;
 import net.joefoxe.hexerei.fluid.PotionMixingRecipes;
-import net.joefoxe.hexerei.screen.BroomScreen;
-import net.joefoxe.hexerei.screen.CofferScreen;
-import net.joefoxe.hexerei.screen.CrowScreen;
-import net.joefoxe.hexerei.screen.MixingCauldronScreen;
+import net.joefoxe.hexerei.screen.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
@@ -284,6 +281,18 @@ public class HexereiJei implements IModPlugin {
             }
         });
 
+        registration.addGuiContainerHandler(OwlScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(OwlScreen gui) {
+                List<Rect2i> ret = new ArrayList<>();
+                if (!gui.quirkSideBarHidden){
+                    Rect2i rect2i = new Rect2i(gui.getGuiLeft() + 174, gui.getGuiTop() + 37, 26, 26);
+                    ret.add(rect2i);
+                }
+                return ret;
+            }
+        });
+
         registration.addGuiContainerHandler(CofferScreen.class, new IGuiContainerHandler<>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(CofferScreen gui) {
@@ -363,7 +372,7 @@ public class HexereiJei implements IModPlugin {
         List<WoodcutterRecipe> woodcutter_recipes = rm.getAllRecipesFor(WoodcutterRecipe.Type.INSTANCE);
         registration.addRecipes(new RecipeType<>(WoodcutterRecipeCategory.UID, WoodcutterRecipe.class), woodcutter_recipes);
 
-        List<CauldronEmptyingRecipe> bottling_recipes = rm.getAllRecipesFor(ModRecipeTypes.CAULDRON_EMPTYING_TYPE.get());
+        List<CauldronEmptyingRecipe> bottling_recipes = BottlingRecipeJEI.getRecipeList(rm);
         registration.addRecipes(new RecipeType<>(BottlingRecipeCategory.UID, CauldronEmptyingRecipe.class), bottling_recipes);
 
         List<BloodSigilRecipeJEI> blood_sigil_recipes = BloodSigilRecipeJEI.getRecipeList();

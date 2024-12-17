@@ -45,6 +45,8 @@ public class HexereiTags {
 		public static final TagKey<Item> FLOWER_BIPRODUCT = createTag("flower_biproduct");
 		public static final TagKey<Item> INFUSED_FABRIC_CARPET = createTag("infused_fabric_carpet");
 		public static final TagKey<Item> INFUSED_FABRIC_BLOCK = createTag("infused_fabric_block");
+		public static final TagKey<Item> OWL_TAMING_FOOD = createTag("owl_taming_food");
+		public static final TagKey<Item> OWL_BREEDING_FOOD = createTag("owl_breeding_food");
 
 		private static TagKey<Item> createTag(String name) {
 			return ItemTags.create(new ResourceLocation(Hexerei.MOD_ID, name));

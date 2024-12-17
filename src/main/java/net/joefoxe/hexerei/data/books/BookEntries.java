@@ -48,6 +48,7 @@ public class BookEntries {
             String string = paragraph.getString("name");
 
             int num = paragraph.getInt("num");
+            int numLast = numOfPages;
             numOfPages += num;
             ArrayList<BookPageEntry> pageEntryList = new ArrayList<>();
             for(int k = 0; k < num; k++){
@@ -56,11 +57,11 @@ public class BookEntries {
                 String location = pageEntries.getString("location" + k);
                 int pageNum = pageEntries.getInt("pageNum" + k);
 
-                BookPageEntry bookChapter = new BookPageEntry(location, pageNum);
+                BookPageEntry bookChapter = new BookPageEntry(location, pageNum, i, k);
                 pageEntryList.add(bookChapter);
             }
 
-            BookChapter bookChapter = new BookChapter(pageEntryList, string, numOfPages, numOfPages);
+            BookChapter bookChapter = new BookChapter(pageEntryList, string, numLast + 1, numOfPages, i);
             list.add(bookChapter);
         }
 

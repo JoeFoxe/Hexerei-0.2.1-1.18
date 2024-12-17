@@ -3,7 +3,7 @@
 	"parent": "block/block",
 	"render_type": "cutout",
 	"textures": {
-		"2": "hexerei:block/infused_fabric_outter",
+		"2": "hexerei:block/infused_fabric_outter_dark",
 		"particle": "hexerei:block/infused_fabric_ornate",
 		"top": "hexerei:block/infused_fabric_ornate"
 	},

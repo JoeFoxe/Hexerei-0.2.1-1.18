@@ -4,9 +4,10 @@
       "paragraph_box": [
         {
           "x": 7,
-          "y": 0,
-          "height": 18,
-          "width": 32
+          "y": -0.5,
+          "height": 2,
+          "width": 32,
+          "verticalAlign": "middle"
         }
       ],
       "passage_text": "book.hexerei.items_index_page_2.passage_1",
@@ -18,37 +19,37 @@
       "type": "item",
       "x": 0,
       "y": 1,
-      "name": "hexerei:book_of_shadows"
+      "name": "hexerei:reading_glasses"
     },
     {
       "type": "item",
       "x": 1,
       "y": 1,
-      "name": "hexerei:book_of_shadows_altar"
+      "name": "hexerei:book_of_shadows"
     },
     {
       "type": "item",
       "x": 2,
       "y": 1,
-      "name": "hexerei:mixing_cauldron"
+      "name": "hexerei:book_of_shadows_altar"
     },
     {
       "type": "item",
       "x": 3,
       "y": 1,
-      "name": "hexerei:coffer"
+      "name": "hexerei:mixing_cauldron"
     },
     {
       "type": "item",
       "x": 4,
       "y": 1,
-      "name": "hexerei:herb_jar"
+      "name": "hexerei:coffer"
     },
     {
       "type": "item",
       "x": 5,
       "y": 1,
-      "name": "hexerei:sage_burning_plate"
+      "name": "hexerei:herb_jar"
     },
 
 
@@ -208,7 +209,7 @@
       "type": "item",
       "x": 0,
       "y": 6,
-      "name": "hexerei:warhammer"
+      "name": "hexerei:sage_burning_plate"
     },
     {
       "type": "item",
@@ -238,7 +239,7 @@
       "type": "item",
       "x": 5,
       "y": 6,
-      "name": "hexerei:flowering_lily_pad"
+      "name": "hexerei:animal_fat"
     }
 
 

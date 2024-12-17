@@ -407,24 +407,24 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         float minV = sprite.getV(CORNERS * 16);
         float maxV = sprite.getV((1 - CORNERS) * 16);
 
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(minU, minV).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(minU, maxV).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(maxU, maxV).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(maxU, minV).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
 
 
         float shading = 0.75f;
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).uv2(light).normal(-1, 0, 0).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
 
 
         shading = 0.45f;
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).uv2(light).normal(0, 0, -1).endVertex();
+        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
     }
 
     private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,

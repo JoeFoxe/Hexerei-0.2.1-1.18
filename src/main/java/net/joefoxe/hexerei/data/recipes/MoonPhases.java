@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.data.recipes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 public class MoonPhases {
     public enum MoonCondition implements StringRepresentable {
@@ -30,57 +31,40 @@ public class MoonPhases {
             return "tooltip.hexerei." + name;
         }
         public static MoonCondition getMoonCondition(String str) {
-            switch (str) {
-                case "new_moon":
-                    return NEW_MOON;
-                case "waxing_crescent":
-                    return WAXING_CRESCENT;
-                case "first_quarter":
-                    return FIRST_QUARTER;
-                case "waxing_gibbous":
-                    return WAXING_GIBBOUS;
-                case "full_moon":
-                    return FULL_MOON;
-                case "waning_gibbous":
-                    return WANING_GIBBOUS;
-                case "last_quarter":
-                    return LAST_QUARTER;
-                case "waning_crescent":
-                    return WANING_CRESCENT;
-                default:
-                    return NONE;
-            }
+            return switch (str) {
+                case "new_moon" -> NEW_MOON;
+                case "waxing_crescent" -> WAXING_CRESCENT;
+                case "first_quarter" -> FIRST_QUARTER;
+                case "waxing_gibbous" -> WAXING_GIBBOUS;
+                case "full_moon" -> FULL_MOON;
+                case "waning_gibbous" -> WANING_GIBBOUS;
+                case "last_quarter" -> LAST_QUARTER;
+                case "waning_crescent" -> WANING_CRESCENT;
+                default -> NONE;
+            };
         }
 
         public static MoonCondition getMoonPhase(Level level) {
+
             long time = level.getDayTime();
-            int days = (int) (time / 24000L);
-            int phase = days % 8;
-            if (time % 24000 < 12300 || time % 24000 > 23850) {
+            int phase = level.getMoonPhase();
+            if (time % 24000 < 12300 || time % 24000 > 23850) {// (time % 24000 < 12300 || time % 24000 > 23850) {
                 return NONE;
             }
-            switch (phase) {
-                case 0:
-                    return FULL_MOON;
-                case 1:
-                    return WANING_GIBBOUS;
-                case 2:
-                    return LAST_QUARTER;
-                case 3:
-                    return WANING_CRESCENT;
-                case 4:
-                    return NEW_MOON;
-                case 5:
-                    return WAXING_CRESCENT;
-                case 6:
-                    return FIRST_QUARTER;
-                default:
-                    return WAXING_GIBBOUS;
-            }
+            return switch (phase) {
+                case 0 -> FULL_MOON;
+                case 1 -> WANING_GIBBOUS;
+                case 2 -> LAST_QUARTER;
+                case 3 -> WANING_CRESCENT;
+                case 4 -> NEW_MOON;
+                case 5 -> WAXING_CRESCENT;
+                case 6 -> FIRST_QUARTER;
+                default -> WAXING_GIBBOUS;
+            };
         }
 
         @Override
-        public String getSerializedName() {
+        public @NotNull String getSerializedName() {
             return switch (this){
                 default -> "none";
                 case NEW_MOON -> NEW_MOON.getName();

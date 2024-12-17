@@ -2,46 +2,63 @@ package net.joefoxe.hexerei.item;
 
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.block.custom.OwlCourierDepot;
 import net.joefoxe.hexerei.client.renderer.entity.ModEntityTypes;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.ModBoatEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.ModChestBoatEntity;
 import net.joefoxe.hexerei.client.renderer.entity.model.*;
 import net.joefoxe.hexerei.config.HexConfig;
+import net.joefoxe.hexerei.container.CofferContainer;
 import net.joefoxe.hexerei.data.books.HexereiBookItem;
+import net.joefoxe.hexerei.data.loot.CopyCourierLetterDataFunction;
+import net.joefoxe.hexerei.data.loot.CopyCourierPackageDataFunction;
 import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.item.custom.*;
 import net.joefoxe.hexerei.item.custom.bottles.*;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
+import net.joefoxe.hexerei.tileentity.OwlCourierDepotTile;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.BroomEnderSatchelBrushParticlePacket;
+import net.joefoxe.hexerei.util.message.OpenOwlCourierDepotNameEditorPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.SlabBlock;
-import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.Half;
-import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
+import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -51,6 +68,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -66,6 +84,9 @@ public class ModItems {
 			DeferredRegister.create(ForgeRegistries.ITEMS, Hexerei.MOD_ID);
 
 
+	public static final DeferredRegister<LootItemFunctionType> LOOT_FUNCTION_TYPES = DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE.location(), Hexerei.MOD_ID);
+	public static final RegistryObject<LootItemFunctionType> COPY_PACKAGE_DATA = LOOT_FUNCTION_TYPES.register("copy_package_data", () -> new LootItemFunctionType(new CopyCourierPackageDataFunction.Serializer()));
+	public static final RegistryObject<LootItemFunctionType> COPY_LETTER_DATA = LOOT_FUNCTION_TYPES.register("copy_letter_data", () -> new LootItemFunctionType(new CopyCourierLetterDataFunction.Serializer()));
 	public static final RegistryObject<Item> BOOK_OF_SHADOWS = ITEMS.register("book_of_shadows",
 			() -> new HexereiBookItem(new Item.Properties().stacksTo(1)));
 
@@ -185,21 +206,6 @@ public class ModItems {
 					}
 					super.appendHoverText(stack, world, tooltip, flagIn);
 				}
-
-
-				@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = "hexerei", bus = Mod.EventBusSubscriber.Bus.MOD)
-				static class ColorRegisterHandler {
-					@SubscribeEvent(priority = EventPriority.HIGHEST)
-					public static void registerSatchelColors(RegisterColorHandlersEvent.Item event) {
-						SatchelItem.ItemHandlerConsumer items = event.getItemColors()::register;
-						// s = stack, t = tint-layer
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, SMALL_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, MEDIUM_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, LARGE_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? BroomSeatItem.getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, BROOM_SEAT.get());
-
-					}
-				}
 			});
 
 	public static final RegistryObject<Item> MEDIUM_SATCHEL = ITEMS.register("medium_satchel",
@@ -226,21 +232,6 @@ public class ModItems {
 						tooltip.add(Component.translatable("tooltip.hexerei.broom_attachments").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 					}
 					super.appendHoverText(stack, world, tooltip, flagIn);
-				}
-
-
-				@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = "hexerei", bus = Mod.EventBusSubscriber.Bus.MOD)
-				static class ColorRegisterHandler {
-					@SubscribeEvent(priority = EventPriority.HIGHEST)
-					public static void registerSatchelColors(RegisterColorHandlersEvent.Item event) {
-						SatchelItem.ItemHandlerConsumer items = event.getItemColors()::register;
-						// s = stack, t = tint-layer
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, SMALL_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, MEDIUM_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, LARGE_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? BroomSeatItem.getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, BROOM_SEAT.get());
-
-					}
 				}
 
 			});
@@ -273,19 +264,6 @@ public class ModItems {
 				}
 
 
-				@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = "hexerei", bus = Mod.EventBusSubscriber.Bus.MOD)
-				static class ColorRegisterHandler {
-					@SubscribeEvent(priority = EventPriority.HIGHEST)
-					public static void registerSatchelColors(RegisterColorHandlersEvent.Item event) {
-						SatchelItem.ItemHandlerConsumer items = event.getItemColors()::register;
-						// s = stack, t = tint-layer
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, SMALL_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, MEDIUM_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, LARGE_SATCHEL.get());
-						items.register((s, t) -> t == 1 ? BroomSeatItem.getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, BROOM_SEAT.get());
-
-					}
-				}
 			});
 
 
@@ -920,13 +898,13 @@ public class ModItems {
 	public static final RegistryObject<Item> CROW_FLUTE = ITEMS.register("crow_flute",
 			() -> new CrowFluteItem(new Item.Properties()));
 
-//    public static final RegistryObject<SpawnEggItem> CROW_SPAWN_EGG = ITEMS.register("crow_spawn_egg", () ->
-//            new SpawnEggItem((EntityType<CrowEntity>)EntityType.Builder.<CrowEntity>of(CrowEntity::new, MobCategory.CREATURE)
-//            .build(Hexerei.MOD_ID + ":" + "crow"), 0x161616, 0x333333, new Item.Properties()));
-
 
 	public static final RegistryObject<ForgeSpawnEggItem> CROW_SPAWN_EGG = ITEMS.register("crow_spawn_egg",
 			() -> new ForgeSpawnEggItem(ModEntityTypes.CROW, 0x161616, 0x333333,
+					new Item.Properties()));
+
+	public static final RegistryObject<ForgeSpawnEggItem> OWL_SPAWN_EGG = ITEMS.register("owl_spawn_egg",
+			() -> new ForgeSpawnEggItem(ModEntityTypes.OWL, 0x4B3822, 0xCAB18F,
 					new Item.Properties()));
 
 
@@ -1080,6 +1058,109 @@ public class ModItems {
 
 	public static final RegistryObject<Item> CANDLE = ITEMS.register("candle",
 			() -> new CandleItem(ModBlocks.CANDLE.get(), new Item.Properties()));
+
+
+
+	public static final RegistryObject<Item> PACKING_PEANUT = ITEMS.register("packing_peanut",
+			() -> new Item(new Item.Properties().food(new FoodProperties.Builder().saturationMod(1).nutrition(1).alwaysEat().build())));
+	public static final RegistryObject<Item> COURIER_PACKAGE = ITEMS.register("courier_package",
+			() -> new CourierPackageItem(ModBlocks.COURIER_PACKAGE.get(), new Item.Properties()) {
+
+			});
+	public static final RegistryObject<Item> COURIER_LETTER = ITEMS.register("courier_letter",
+			() -> new CourierLetterItem(ModBlocks.COURIER_LETTER.get(), new Item.Properties()) {
+
+			});
+
+	public static final RegistryObject<StandingAndWallBlockItem> WILLOW_COURIER_DEPOT = ITEMS.register("willow_courier_depot",
+			() -> new StandingAndWallBlockItem(ModBlocks.WILLOW_COURIER_DEPOT.get(), ModBlocks.WILLOW_COURIER_DEPOT_WALL.get(), (new Item.Properties()), Direction.DOWN) {
+				@Override
+				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+					if (Screen.hasShiftDown()) {
+						tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+						tooltip.add(Component.translatable("tooltip.hexerei.courier_depot").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					} else {
+						tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					}
+				}
+
+
+				@Override
+				protected boolean updateCustomBlockEntityTag(BlockPos pPos, Level pLevel, @Nullable Player pPlayer, ItemStack pStack, BlockState pState) {
+					boolean flag = super.updateCustomBlockEntityTag(pPos, pLevel, pPlayer, pStack, pState);
+					if (!pLevel.isClientSide && !flag && pPlayer != null) {
+						BlockEntity blockentity = pLevel.getBlockEntity(pPos);
+						if (blockentity instanceof OwlCourierDepotTile) {
+							Block block = pLevel.getBlockState(pPos).getBlock();
+							if (block instanceof OwlCourierDepot depotBlock) {
+								HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new OpenOwlCourierDepotNameEditorPacket(pPos));
+							}
+						}
+					}
+
+					return flag;
+				}
+			});
+
+	public static final RegistryObject<StandingAndWallBlockItem> MAHOGANY_COURIER_DEPOT = ITEMS.register("mahogany_courier_depot",
+			() -> new StandingAndWallBlockItem(ModBlocks.MAHOGANY_COURIER_DEPOT.get(), ModBlocks.MAHOGANY_COURIER_DEPOT_WALL.get(), (new Item.Properties()), Direction.DOWN) {
+				@Override
+				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+					if (Screen.hasShiftDown()) {
+						tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+						tooltip.add(Component.translatable("tooltip.hexerei.courier_depot").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					} else {
+						tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					}
+				}
+
+
+				@Override
+				protected boolean updateCustomBlockEntityTag(BlockPos pPos, Level pLevel, @Nullable Player pPlayer, ItemStack pStack, BlockState pState) {
+					boolean flag = super.updateCustomBlockEntityTag(pPos, pLevel, pPlayer, pStack, pState);
+					if (!pLevel.isClientSide && !flag && pPlayer != null) {
+						BlockEntity blockentity = pLevel.getBlockEntity(pPos);
+						if (blockentity instanceof OwlCourierDepotTile) {
+							Block block = pLevel.getBlockState(pPos).getBlock();
+							if (block instanceof OwlCourierDepot depotBlock) {
+								HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new OpenOwlCourierDepotNameEditorPacket(pPos));
+							}
+						}
+					}
+
+					return flag;
+				}
+			});
+
+	public static final RegistryObject<StandingAndWallBlockItem> WITCH_HAZEL_COURIER_DEPOT = ITEMS.register("witch_hazel_courier_depot",
+			() -> new StandingAndWallBlockItem(ModBlocks.WITCH_HAZEL_COURIER_DEPOT.get(), ModBlocks.WITCH_HAZEL_COURIER_DEPOT_WALL.get(), (new Item.Properties()), Direction.DOWN) {
+				@Override
+				public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+					if (Screen.hasShiftDown()) {
+						tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+						tooltip.add(Component.translatable("tooltip.hexerei.courier_depot").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					} else {
+						tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+					}
+				}
+
+
+				@Override
+				protected boolean updateCustomBlockEntityTag(BlockPos pPos, Level pLevel, @Nullable Player pPlayer, ItemStack pStack, BlockState pState) {
+					boolean flag = super.updateCustomBlockEntityTag(pPos, pLevel, pPlayer, pStack, pState);
+					if (!pLevel.isClientSide && !flag && pPlayer != null) {
+						BlockEntity blockentity = pLevel.getBlockEntity(pPos);
+						if (blockentity instanceof OwlCourierDepotTile) {
+							Block block = pLevel.getBlockState(pPos).getBlock();
+							if (block instanceof OwlCourierDepot depotBlock) {
+								HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new OpenOwlCourierDepotNameEditorPacket(pPos));
+							}
+						}
+					}
+
+					return flag;
+				}
+			});
 
 
 	public static final RegistryObject<StandingAndWallBlockItem> MAHOGANY_BROOM_STAND = ITEMS.register("mahogany_broom_stand",
@@ -1631,8 +1712,19 @@ public class ModItems {
 				}
 			});
 
+	public static final RegistryObject<Item> POLISHED_WITCH_HAZEL_TRAPDOOR = ITEMS.register("polished_witch_hazel_trapdoor",
+			() -> new BlockItem(ModBlocks.POLISHED_WITCH_HAZEL_TRAPDOOR.get(), new Item.Properties()));
+
+	public static final RegistryObject<Item> POLISHED_WILLOW_TRAPDOOR = ITEMS.register("polished_willow_trapdoor",
+			() -> new BlockItem(ModBlocks.POLISHED_WILLOW_TRAPDOOR.get(), new Item.Properties()));
+
+	public static final RegistryObject<Item> POLISHED_MAHOGANY_TRAPDOOR = ITEMS.register("polished_mahogany_trapdoor",
+			() -> new BlockItem(ModBlocks.POLISHED_MAHOGANY_TRAPDOOR.get(), new Item.Properties()));
+
 	public static void register(IEventBus eventBus) {
 		ITEMS.register(eventBus);
+		LOOT_FUNCTION_TYPES.register(eventBus);
+
 	}
 
 }

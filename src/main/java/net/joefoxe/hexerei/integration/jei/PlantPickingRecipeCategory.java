@@ -67,7 +67,6 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
         this.icon = helper.createDrawableItemStack(new ItemStack(ModBlocks.MANDRAKE_PLANT.get()));
     }
 
-    // TODO do jei for plant picking as well, so people know where mandrake roots come from
 
     @Override
     public List<Component> getTooltipStrings(PlantPickingRecipeJEI recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
@@ -127,35 +126,11 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
 
                 if (recipe.getInput().getItem() instanceof BlockItem blockItem){
 
-                    RenderSystem.enableDepthTest();
-                    guiGraphics.pose().pushPose();
 
-                    guiGraphics.pose().translate(xOffset, yOffset, 0);
-                    guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
-                    guiGraphics.pose().translate(-3, -15, 0);
-                    guiGraphics.pose().scale(17, 17, 17);
-                    MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-                    Vec3 rotationOffset = new Vec3(0, 0, 0);
-
-                    float zRot = 0;
-                    float xRot = 20;
-                    float yRot = 30;
-
-                    guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
-                    guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
-                    guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
-                    guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
-                    guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+                    int ticks = (int)(Hexerei.getClientTicks() / 30f);
+                    int max_age = 0;
 
                     BlockState blockState = blockItem.getBlock().defaultBlockState();
-                    RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-                    RenderSystem.enableBlend();
-                    RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-                   int ticks = (int)(Hexerei.getClientTicks() / 30f);
-                   int max_age = 0;
-
                     if (blockState.hasProperty(BlockStateProperties.AGE_1)) {
                         max_age = 1;
                         blockState = blockState.setValue(BlockStateProperties.AGE_1, Mth.clamp(ticks % (max_age + 1), 0, max_age));
@@ -181,6 +156,35 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
                         blockState = blockState.setValue(BlockStateProperties.AGE_7, Mth.clamp(ticks % (max_age + 1), 0, max_age));
                     }
 
+                    if (Mth.clamp(ticks % (max_age + 1), 0, max_age) == max_age)
+                        guiGraphics.blit(TEXTURE, 56, 23, 3, 59, 13, 16);
+
+                    RenderSystem.enableDepthTest();
+                    guiGraphics.pose().pushPose();
+
+                    guiGraphics.pose().translate(xOffset, yOffset, 0);
+                    guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+                    guiGraphics.pose().translate(-3, -15, 0);
+                    guiGraphics.pose().scale(17, 17, 17);
+                    MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+                    Vec3 rotationOffset = new Vec3(0, 0, 0);
+
+                    float zRot = 0;
+                    float xRot = 20;
+                    float yRot = 30;
+
+                    guiGraphics.pose().translate(rotationOffset.x, rotationOffset.y, rotationOffset.z);
+                    guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(zRot));
+                    guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(xRot));
+                    guiGraphics.pose().mulPose(Axis.YP.rotationDegrees(yRot));
+                    guiGraphics.pose().translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+
+                    RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
+                    RenderSystem.enableBlend();
+                    RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+
                     renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, blockState, 0xFFFFFFFF);
                     if(blockState.hasProperty(PickableDoublePlant.HALF)){
                         guiGraphics.pose().pushPose();
@@ -191,9 +195,6 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
                     }
 
                     guiGraphics.pose().popPose();
-
-                    if (Mth.clamp(ticks % (max_age + 1), 0, max_age) == max_age)
-                        guiGraphics.blit(TEXTURE, 41, -1, 3, 59, 13, 16);
                 }
             }
         }, 74, 0);

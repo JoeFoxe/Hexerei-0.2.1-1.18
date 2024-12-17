@@ -3,6 +3,6 @@
   "textures": {
     "texture": "hexerei:block/polished_mahogany_trapdoor"
   },
-  "render_type": "translucent"
+  "render_type": "solid"
 }
 

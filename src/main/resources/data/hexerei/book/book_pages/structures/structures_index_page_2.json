@@ -38,8 +38,9 @@
       "texture": "hexerei:textures/book/pictures/witch_hut.png",
       "hyperlink":
       {
-        "chapter": 5,
-        "page": 3
+        "chapter": 4,
+        "page": 3,
+        "id": "hexerei:book_pages/structures/structures_witch_hut_page_1"
       },
       "tooltip": [
         {
@@ -87,8 +88,9 @@
       "texture": "hexerei:textures/book/pictures/dark_coven.png",
       "hyperlink":
       {
-        "chapter": 5,
-        "page": 5
+        "chapter": 4,
+        "page": 5,
+        "id": "hexerei:book_pages/structures/structures_dark_coven_page_1"
       },
       "tooltip": [
         {

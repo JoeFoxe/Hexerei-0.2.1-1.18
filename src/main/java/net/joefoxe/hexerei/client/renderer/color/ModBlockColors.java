@@ -57,9 +57,7 @@ public class ModBlockColors {
                 ModBlocks.COFFER.get()
         );
 
-        blockColors.register((state, reader, pos, color) -> {
-                    return reader != null && pos != null ? ConnectingCarpetDyed.getColorValue(state, pos, reader) : HexereiUtil.getColorValue(DyeColor.BLACK);
-                },
+        blockColors.register((state, reader, pos, color) -> ConnectingCarpetDyed.getColorValue(state),
                 ModBlocks.INFUSED_FABRIC_CARPET.get(),
                 ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(),
                 ModBlocks.INFUSED_FABRIC_BLOCK.get(),

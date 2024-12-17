@@ -78,6 +78,16 @@ public class BookReloadListener extends SimpleJsonResourceReloadListener {
             }
         }
 
+        ArrayList<BookBlocks> blocksList = new ArrayList<>();
+        if (jsonObject.has("blocks")) {
+            JsonArray blocks = GsonHelper.getAsJsonArray(jsonObject, "blocks");
+            for (int i = 0; i < blocks.size(); i++) {
+                JsonObject obj = blocks.get(i).getAsJsonObject();
+
+                blocksList.add(BookBlocks.deserialize(obj));
+            }
+        }
+
         ArrayList<BookEntity> entityList = new ArrayList<>();
         if (jsonObject.has("entities")) {
             JsonArray entity = GsonHelper.getAsJsonArray(jsonObject, "entities");
@@ -112,8 +122,10 @@ public class BookReloadListener extends SimpleJsonResourceReloadListener {
 //        if(!itemHyperlink.equals("none"))
 //            BookManager.addBookItemHyperlink(itemHyperlink, )
 
-        BookManager.addBookPage(key, new BookPage(title, paragraphsList, itemsInSlotsList, entityList, imagesList, nonItemTooltipsList, itemHyperlink));
+        BookManager.addBookPage(key, new BookPage(title, paragraphsList, itemsInSlotsList, blocksList, entityList, imagesList, nonItemTooltipsList, itemHyperlink));
     }
+
+
 
     private static void addBookEntries(ResourceLocation key, JsonElement input) {
         JsonObject jsonObject = input.getAsJsonObject();
@@ -124,7 +136,7 @@ public class BookReloadListener extends SimpleJsonResourceReloadListener {
             JsonArray chapters = GsonHelper.getAsJsonArray(jsonObject, "chapters");
             for (int i = 0; i < chapters.size(); i++) {
                 JsonObject obj = chapters.get(i).getAsJsonObject();
-                BookChapter bookChapter = BookChapter.deserialize(obj, numberOfPages);
+                BookChapter bookChapter = BookChapter.deserialize(i, obj, numberOfPages);
                 numberOfPages += bookChapter.pages.size();
                 chaptersList.add(bookChapter);
             }

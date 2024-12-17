@@ -4,6 +4,7 @@ import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.AmethystBlock;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Block;
@@ -27,7 +28,8 @@ public class BuddingSelenite extends AmethystBlock {
         return PushReaction.DESTROY;
     }
 
-    public void randomTick(BlockState p_152728_, ServerLevel p_152729_, BlockPos p_152730_, Random p_152731_) {
+    @Override
+    public void randomTick(BlockState p_152728_, ServerLevel p_152729_, BlockPos p_152730_, RandomSource p_152731_) {
         if (p_152731_.nextInt(5) == 0) {
             Direction direction = DIRECTIONS[p_152731_.nextInt(DIRECTIONS.length)];
             BlockPos blockpos = p_152730_.relative(direction);

@@ -1,10 +1,14 @@
 package net.joefoxe.hexerei.data.candle;
 
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.CandleTile;
+import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -29,21 +33,26 @@ public class BonemealingCandleEffect extends AbstractCandleEffect{
 //        if (level.isClientSide()) return;
         if(candleData.lit){
 
-            if (candleData.cooldown >= MAX_TIME) {
-                BlockPos crop = findCrop(level, blockEntity.getBlockPos());
-                if (crop != null) {
-                    Block block = level.getBlockState(crop).getBlock();
-                    if ((!level.isClientSide()) && block instanceof CropBlock cropBlock) {
-                        ServerLevel serverLevel = (ServerLevel) level;
-                        cropBlock.performBonemeal(serverLevel, level.random, crop, level.getBlockState(crop));
-                        serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, crop.getX() + 0.5, crop.getY() + 0.5, crop.getZ() + 0.5, 10, 0.5, 0.5, 0.5, 0.2);
+            if (candleData.cooldown >= MAX_TIME * candleData.getEffectCooldownMultiplier()) {
+                for (int i = 0; i < 3; i++) {
+                    BlockPos crop = findCrop(level, blockEntity.getBlockPos());
+                    if (crop != null) {
+                        Block block = level.getBlockState(crop).getBlock();
+                        if ((!level.isClientSide()) && block instanceof CropBlock cropBlock) {
+                            ServerLevel serverLevel = (ServerLevel) level;
+                            cropBlock.performBonemeal(serverLevel, level.random, crop, level.getBlockState(crop));
+                            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, crop.getX() + 0.5, crop.getY() + 0.5, crop.getZ() + 0.5, 10, 0.5, 0.5, 0.5, 0.2);
+                        }
                     }
-
-                    candleData.cooldown = 0;
                 }
+                candleData.cooldown = 0;
             }
-            if(candleData.effectParticle != null && level.isClientSide() && candleData.effectParticle != null && candleData.effectParticle.size() > 0)
-                particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size())));
+            try {
+                if (candleData.effectParticle != null && level.isClientSide() && candleData.effectParticle != null && candleData.effectParticle.size() > 0)
+                    particle = ParticleArgument.readParticle(new StringReader(candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size()))), BuiltInRegistries.PARTICLE_TYPE.asLookup());
+            } catch (CommandSyntaxException e) {
+                // shrug
+            }
             candleData.cooldown = (candleData.cooldown + 1) % Integer.MAX_VALUE;
         }
 
@@ -55,8 +64,9 @@ public class BonemealingCandleEffect extends AbstractCandleEffect{
         for (BlockPos pos : area) {
             BlockPos relativePos = jarPos.offset(pos);
             BlockState state = level.getBlockState(relativePos);
-            if (!state.isAir() && state.getBlock() instanceof CropBlock) {
-                crops.add(relativePos);
+            if (!state.isAir() && state.getBlock() instanceof CropBlock cropBlock) {
+                if (cropBlock.isValidBonemealTarget(level, pos, state, level.isClientSide))
+                    crops.add(relativePos);
             }
         }
 

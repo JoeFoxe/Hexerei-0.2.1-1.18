@@ -7,13 +7,8 @@ import net.joefoxe.hexerei.block.connected.ModelSwapper;
 import net.joefoxe.hexerei.block.connected.StitchedSprite;
 import net.joefoxe.hexerei.client.renderer.entity.ModEntityTypes;
 import net.joefoxe.hexerei.client.renderer.entity.model.*;
-import net.joefoxe.hexerei.client.renderer.entity.render.BroomRenderer;
-import net.joefoxe.hexerei.client.renderer.entity.render.CrowRenderer;
-import net.joefoxe.hexerei.client.renderer.entity.render.ModBoatRenderer;
-import net.joefoxe.hexerei.client.renderer.entity.render.ModChestBoatRenderer;
-import net.joefoxe.hexerei.data.books.PageDrawing;
+import net.joefoxe.hexerei.client.renderer.entity.render.*;
 import net.joefoxe.hexerei.item.ModItemProperties;
-import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.BroomItem;
 import net.joefoxe.hexerei.item.custom.CofferItem;
 import net.joefoxe.hexerei.item.custom.HerbJarItem;
@@ -127,6 +122,7 @@ public class ClientProxy implements SidedProxy {
         e.registerBlockEntityRenderer(ModTileEntities.CRYSTAL_BALL_TILE.get(), context -> new CrystalBallRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.BOOK_OF_SHADOWS_ALTAR_TILE.get(), context -> new BookOfShadowsAltarRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.BROOM_STAND_TILE.get(), context -> new BroomStandRenderer());
+        e.registerBlockEntityRenderer(ModTileEntities.OWL_COURIER_DEPOT_TILE.get(), context -> new OwlCourierDepotRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.CANDLE_TILE.get(), context -> new CandleRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.CANDLE_DIPPER_TILE.get(), context -> new CandleDipperRenderer());
         e.registerBlockEntityRenderer(ModTileEntities.DRYING_RACK_TILE.get(), context -> new DryingRackRenderer());
@@ -136,13 +132,15 @@ public class ClientProxy implements SidedProxy {
         e.registerEntityRenderer(ModEntityTypes.HEXEREI_BOAT.get(), ModBoatRenderer::new);
         e.registerEntityRenderer(ModEntityTypes.HEXEREI_CHEST_BOAT.get(), ModChestBoatRenderer::new);
         e.registerEntityRenderer(ModEntityTypes.CROW.get(), CrowRenderer::new);
-        ModItemProperties.makeDowsingRod(ModItems.DOWSING_ROD.get());
+        e.registerEntityRenderer(ModEntityTypes.OWL.get(), OwlRenderer::new);
+        ModItemProperties.setup();
     }
 
     @SubscribeEvent
     public static void layerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(BroomModel.LAYER_LOCATION, BroomModel::createBodyLayerNone);
         event.registerLayerDefinition(BroomModel.POWER_LAYER_LOCATION, BroomModel::createBodyLayerEnlarge);
+        event.registerLayerDefinition(OwlModel.LAYER_LOCATION, OwlModel::createBodyLayerNone);
         event.registerLayerDefinition(CrowModel.LAYER_LOCATION, CrowModel::createBodyLayerNone);
         event.registerLayerDefinition(CrowModel.POWER_LAYER_LOCATION, CrowModel::createBodyLayerEnlarge);
         event.registerLayerDefinition(BroomBrushBaseModel.LAYER_LOCATION, BroomBrushBaseModel::createBodyLayerNone);

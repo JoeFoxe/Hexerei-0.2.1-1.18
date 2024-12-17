@@ -3,8 +3,15 @@ package net.joefoxe.hexerei.data.books;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,18 +22,20 @@ public class BookPage {
     public String itemHyperlink;
     public ArrayList<BookParagraph> paragraph;
     public ArrayList<BookItemsAndFluids> itemList;
+    public ArrayList<BookBlocks> blockList;
     public ArrayList<BookEntity> entityList;
     public ArrayList<BookImage> imageList;
     public ArrayList<BookNonItemTooltip> nonItemTooltipList;
 
 
-    public BookPage(String showTitle, ArrayList<BookParagraph> paragraph, ArrayList<BookItemsAndFluids> itemList, ArrayList<BookEntity> entityList, ArrayList<BookImage> imageList, ArrayList<BookNonItemTooltip> nonItemTooltipList, String itemHyperlink) {
+    public BookPage(String showTitle, ArrayList<BookParagraph> paragraph, ArrayList<BookItemsAndFluids> itemList, ArrayList<BookBlocks> blockList, ArrayList<BookEntity> entityList, ArrayList<BookImage> imageList, ArrayList<BookNonItemTooltip> nonItemTooltipList, String itemHyperlink) {
         this.showTitle = showTitle;
         this.itemHyperlink = itemHyperlink;
         this.paragraph = paragraph;
         this.itemList = itemList;
         this.entityList = entityList;
         this.imageList = imageList;
+        this.blockList = blockList;
         this.nonItemTooltipList = nonItemTooltipList;
     }
 
@@ -135,6 +144,71 @@ public class BookPage {
                 }
             }
         }
+
+
+        tag.putInt("numberOfBlocks", bookPage.blockList.size());
+        for(int i = 0; i < bookPage.blockList.size(); i++) {
+            CompoundTag compound = new CompoundTag();
+            String type = (((BookBlocks) (bookPage.blockList.toArray()[i])).type);
+            compound.putString("block_type" + i, type);
+
+            switch (type) {
+                case "block" -> {
+                    //(float x, float y, ItemStack block, boolean show_slot, List<Component> extra_tooltips)
+
+                    BlockState state = (((BookBlocks) bookPage.blockList.toArray()[i]).blockState);
+
+                    compound.putString("block", state.getBlock().getDescriptionId());
+                    CompoundTag properties = new CompoundTag();
+                    state.getValues().forEach((property, value) -> properties.putString(property.getName(), value.toString()));
+                    compound.put("block_properties", properties);
+
+
+                    compound.putFloat("block_x" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).x));
+                    compound.putFloat("block_y" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).y));
+                    compound.putString("block_tag" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).tag));
+                    compound.putBoolean("block_show_slot" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).show_slot));
+
+                    List<BookTooltipExtra> extra_tooltips_raw = (((BookBlocks) (bookPage.blockList.toArray()[i])).extra_tooltips_raw);
+                    compound.putInt("block_number_of_extra_tooltips" + i, extra_tooltips_raw.size());
+                    for (int k = 0; k < extra_tooltips_raw.size(); k++) {
+                        compound.putInt("block_extra_tooltips_color" + i + k, extra_tooltips_raw.get(k).color);
+                        compound.putString("block_extra_tooltips_color_hex" + i + k, extra_tooltips_raw.get(k).color_hex);
+                        compound.putString("block_extra_tooltips_text" + i + k, extra_tooltips_raw.get(k).text);
+                        compound.putString("block_extra_tooltips_type" + i + k, extra_tooltips_raw.get(k).type);
+                    }
+
+                    tag.put("blocks" + i, compound);
+                }
+                case "tag" -> {
+                    //(float x, float y, ItemStack block, boolean show_slot, List<Component> extra_tooltips)
+
+                    BlockState state = (((BookBlocks) bookPage.blockList.toArray()[i]).blockState);
+
+                    compound.putString("block", state.getBlock().getDescriptionId());
+                    CompoundTag properties = new CompoundTag();
+                    state.getValues().forEach((property, value) -> properties.putString(property.getName(), value.toString()));
+                    compound.put("block_properties", properties);
+
+
+                    compound.putFloat("block_x" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).x));
+                    compound.putFloat("block_y" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).y));
+                    compound.putString("block_tag" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).tag));
+                    compound.putBoolean("block_show_slot" + i, (((BookBlocks) (bookPage.blockList.toArray()[i])).show_slot));
+
+                    List<BookTooltipExtra> extra_tooltips_raw = (((BookBlocks) (bookPage.blockList.toArray()[i])).extra_tooltips_raw);
+                    compound.putInt("block_number_of_extra_tooltips" + i, extra_tooltips_raw.size());
+                    for (int k = 1; k < extra_tooltips_raw.size(); k++) {
+                        compound.putInt("block_extra_tooltips_color" + i + k, extra_tooltips_raw.get(k).color);
+                        compound.putString("block_extra_tooltips_color_hex" + i + k, extra_tooltips_raw.get(k).color_hex);
+                        compound.putString("block_extra_tooltips_text" + i + k, extra_tooltips_raw.get(k).text);
+                        compound.putString("block_extra_tooltips_type" + i + k, extra_tooltips_raw.get(k).type);
+                    }
+
+                    tag.put("blocks" + i, compound);
+                }
+            }
+        }
         tag.putInt("numberOfImages", bookPage.imageList.size());
         for(int i = 0; i < bookPage.imageList.size(); i++) {
             CompoundTag compound = new CompoundTag();
@@ -153,6 +227,7 @@ public class BookPage {
             int hyperlink_chapter = bookImage.hyperlink_chapter;
             int hyperlink_page = bookImage.hyperlink_page;
             String hyperlink_url = bookImage.hyperlink_url;
+            String hyperlink_id = bookImage.hyperlink_id;
 //            num = tag.getInt("image_numberOfImageEffects" + i);
             compound.putString("image_texture", texture);
             compound.putFloat("image_x", x);
@@ -168,6 +243,7 @@ public class BookPage {
             compound.putInt("image_hyperlink_chapter", hyperlink_chapter);
             compound.putInt("image_hyperlink_page", hyperlink_page);
             compound.putString("image_hyperlink_url", hyperlink_url);
+            compound.putString("image_hyperlink_id", hyperlink_id);
 
             List<BookTooltipExtra> extra_tooltips_raw = bookImage.extra_tooltips_raw;
             compound.putInt("image_number_of_extra_tooltips", extra_tooltips_raw.size());
@@ -204,6 +280,7 @@ public class BookPage {
             compound.putInt("hyperlink_chapter", nonItemTooltip.hyperlink_chapter);
             compound.putInt("hyperlink_page", nonItemTooltip.hyperlink_page);
             compound.putString("hyperlink_url", nonItemTooltip.hyperlink_url);
+            compound.putString("hyperlink_id", nonItemTooltip.hyperlink_id);
 
 
             List<BookTooltipExtra> extra_tooltips_raw = nonItemTooltip.extra_tooltips_raw;
@@ -261,8 +338,9 @@ public class BookPage {
                 float y = boxes.getFloat("box_y" + i + k);
                 float height = boxes.getFloat("box_height" + i + k);
                 float width = boxes.getFloat("box_width" + i + k);
+                String box_align = boxes.contains("align") ? boxes.getString("align") : "top";
 
-                BookParagraphElements bookParagraphElements = new BookParagraphElements(x, y, height, width);
+                BookParagraphElements bookParagraphElements = new BookParagraphElements(x, y, height, width, box_align);
                 boxList.add(bookParagraphElements);
             }
 
@@ -404,6 +482,110 @@ public class BookPage {
                 }
             }
         }
+        int numberOfBlocks = tag.getInt("numberOfBlocks");
+        ArrayList<BookBlocks> blockList = new ArrayList<>();
+        for(int i = 0; i < numberOfBlocks; i++)
+        {
+            CompoundTag blocks = tag.getCompound("blocks" + i);
+
+            String type = blocks.getString("block_type" + i);
+            switch (type) {
+                case "block" -> {
+                    //(float x, float y, ItemStack item, boolean show_slot, List<Component> extra_tooltips)
+
+                    Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(tag.getString("Block")));
+                    if (block == null) {
+                        block = Blocks.AIR; // Default to air if block is not found
+                    }
+
+                    BlockState state = block.defaultBlockState();
+                    CompoundTag properties = tag.getCompound("Properties");
+                    StateDefinition<Block, BlockState> stateDefinition = block.getStateDefinition();
+                    for (String key : properties.getAllKeys()) {
+                        Property<?> property = stateDefinition.getProperty(key);
+                        if (property != null) {
+                            state = setValueHelper(state, property, properties.getString(key));
+                        }
+                    }
+
+
+                    float x = blocks.getFloat("block_x" + i);
+                    float y = blocks.getFloat("block_y" + i);
+                    boolean show_slot = blocks.getBoolean("block_show_slot" + i);
+                    List<Component> extra_tooltips = new ArrayList<>();
+                    int block_number_of_extra_tooltips = blocks.getInt("block_number_of_extra_tooltips" + i);
+
+                    Component component = Component.translatable("");
+                    List<BookTooltipExtra> tooltipExtras = new ArrayList<>();
+                    for (int k = 0; k < block_number_of_extra_tooltips; k++) {
+                        int color = blocks.getInt("block_extra_tooltips_color" + i + k);
+                        String color_hex = blocks.getString("block_extra_tooltips_color_hex" + i + k);
+                        String text = blocks.getString("block_extra_tooltips_text" + i + k);
+                        String text_type = blocks.getString("block_extra_tooltips_type" + i + k);
+                        tooltipExtras.add(new BookTooltipExtra(color,color_hex, text, text_type));
+
+                        if (!color_hex.equals(""))
+                            color = (int) Long.parseLong(color_hex, 16);
+
+                        if (text_type.equals("trail")) {
+                            extra_tooltips.add(component);
+
+                            component = Component.translatable(text).withStyle(Style.EMPTY.withColor(color));
+                        } else if (text_type.equals("append")) {
+                            component.getSiblings().add(Component.translatable(text).withStyle(Style.EMPTY.withColor(color)));
+
+                        }
+
+                        if (!(k + 1 < block_number_of_extra_tooltips)) {
+                            if (!component.getString().equals(""))
+                                extra_tooltips.add(component);
+                        }
+
+                    }
+                    BookBlocks bookBlocks = new BookBlocks(x, y, state, show_slot, extra_tooltips, tooltipExtras);
+                    blockList.add(bookBlocks);
+                }
+                case "tag" -> {
+                    //(float x, float y, String tag, boolean showSlot, List<Component> extra_tooltips)
+                    float x = blocks.getFloat("block_x" + i);
+                    float y = blocks.getFloat("block_y" + i);
+                    boolean show_slot = blocks.getBoolean("block_show_slot" + i);
+                    String block_tag = blocks.getString("block_tag" + i);
+                    List<Component> extra_tooltips = new ArrayList<>();
+                    int block_number_of_extra_tooltips = blocks.getInt("block_number_of_extra_tooltips" + i);
+
+                    Component component = Component.translatable("");
+                    List<BookTooltipExtra> tooltipExtras = new ArrayList<>();
+                    for (int k = 1; k < block_number_of_extra_tooltips; k++) {
+                        int color = blocks.getInt("block_extra_tooltips_color" + i + k);
+                        String color_hex = blocks.getString("block_extra_tooltips_color_hex" + i + k);
+                        String text = blocks.getString("block_extra_tooltips_text" + i + k);
+                        String text_type = blocks.getString("block_extra_tooltips_type" + i + k);
+                        tooltipExtras.add(new BookTooltipExtra(color,color_hex, text, text_type));
+
+                        if (!color_hex.equals(""))
+                            color = (int) Long.parseLong(color_hex, 16);
+
+                        if (text_type.equals("trail")) {
+                            extra_tooltips.add(component);
+
+                            component = Component.translatable(text).withStyle(Style.EMPTY.withColor(color));
+                        } else if (text_type.equals("append")) {
+                            component.getSiblings().add(Component.translatable(text).withStyle(Style.EMPTY.withColor(color)));
+
+                        }
+
+                        if (!(k + 1 < block_number_of_extra_tooltips)) {
+                            if (!component.getString().equals(""))
+                                extra_tooltips.add(component);
+                        }
+
+                    }
+                    BookBlocks bookBlock = new BookBlocks(x, y, block_tag, show_slot, extra_tooltips, tooltipExtras);
+                    blockList.add(bookBlock);
+                }
+            }
+        }
         int numberOfImages = tag.getInt("numberOfImages");
         ArrayList<BookImage> imageList = new ArrayList<>();
         for(int i = 0; i < numberOfImages; i++)
@@ -429,6 +611,7 @@ public class BookPage {
             int hyperlink_chapter = image.getInt("image_hyperlink_chapter");
             int hyperlink_page = image.getInt("image_hyperlink_page");
             String hyperlink_url = image.getString("image_hyperlink_url");
+            String hyperlink_id = image.getString("image_hyperlink_id");
 
             List<Component> extra_tooltips = new ArrayList<>();
             int item_number_of_extra_tooltips = image.getInt("image_number_of_extra_tooltips");
@@ -471,7 +654,7 @@ public class BookPage {
                 BookImageEffect bookImageEffect = new BookImageEffect(type, speed, amount, bookImage);
                 effectList.add(bookImageEffect);
             }
-            BookImage bookImage = new BookImage(x, y, z, u, v, width, height, imageWidth, imageHeight, scale, texture, effectList, hyperlink_chapter, hyperlink_page, hyperlink_url, extra_tooltips, extra_tooltips_raw);
+            BookImage bookImage = new BookImage(x, y, z, u, v, width, height, imageWidth, imageHeight, scale, texture, effectList, hyperlink_chapter, hyperlink_page, hyperlink_url, hyperlink_id, extra_tooltips, extra_tooltips_raw);
             imageList.add(bookImage);
         }
 
@@ -508,6 +691,7 @@ public class BookPage {
             int hyperlink_chapter = nonItemTooltip.getInt("hyperlink_chapter");
             int hyperlink_page = nonItemTooltip.getInt("hyperlink_page");
             String hyperlink_url = nonItemTooltip.getString("hyperlink_url");
+            String hyperlink_id = nonItemTooltip.getString("hyperlink_id");
 
             List<Component> extra_tooltips = new ArrayList<>();
             int number_of_tooltips = nonItemTooltip.getInt("number_of_tooltips");
@@ -539,10 +723,13 @@ public class BookPage {
                 }
             }
 
-            BookNonItemTooltip bookNonItemTooltip = new BookNonItemTooltip(x, y, width, height, hyperlink_chapter, hyperlink_page, extra_tooltips, hyperlink_url, extra_tooltips_raw);
+            BookNonItemTooltip bookNonItemTooltip = new BookNonItemTooltip(x, y, width, height, hyperlink_chapter, hyperlink_page, extra_tooltips, hyperlink_url, hyperlink_id, extra_tooltips_raw);
             nonItemTooltipList.add(bookNonItemTooltip);
         }
 
-        return new BookPage(show_title, list, itemList, entityList, imageList, nonItemTooltipList, item_hyperlink);
+        return new BookPage(show_title, list, itemList, blockList, entityList, imageList, nonItemTooltipList, item_hyperlink);
+    }
+    private static <T extends Comparable<T>> BlockState setValueHelper(BlockState state, Property<T> property, String value) {
+        return property.getValue(value).map(v -> state.setValue(property, v)).orElse(state);
     }
 }

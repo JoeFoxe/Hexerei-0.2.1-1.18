@@ -1,6 +1,8 @@
 package net.joefoxe.hexerei.block.custom;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -16,15 +18,16 @@ import net.joefoxe.hexerei.tileentity.CandleTile;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -112,7 +115,7 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
                 try {
                     this.setSuccess(((BlockItem)item).place(new DirectionalPlaceContext(source.getLevel(), blockpos, direction, stack, direction)).consumesAction());
                 } catch (Exception exception) {
-                    LOGGER.error("Error trying to place shulker box at {}", blockpos, exception);
+                    LOGGER.error("Error trying to place candle at {}", blockpos, exception);
                 }
 
                 BlockEntity blockEntity = source.getLevel().getBlockEntity(blockpos);
@@ -122,25 +125,7 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
                 }
             }
 
-
-
             return stack;
-//
-//
-//            if (!flag) {
-//                return this.defaultDispenseItemBehavior.dispense(source, stack);
-//            }
-//
-//            d3 = -0.9D;
-//
-//            AbstractMinecart abstractminecart = AbstractMinecart.createMinecart(level, d0, d1 + d3, d2, AbstractMinecart.Type.RIDEABLE);
-//            if (stack.hasCustomHoverName()) {
-//                abstractminecart.setCustomName(stack.getHoverName());
-//            }
-//
-//            level.addFreshEntity(abstractminecart);
-//            stack.shrink(1);
-//            return stack;
         }
         protected void playSound(BlockSource p_42947_) {
             p_42947_.getLevel().levelEvent(1000, p_42947_.getPos(), 0);
@@ -208,27 +193,9 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
                 CandleData candleData = candleTile.candles.get(i);
                 if (candleData.hasCandle) {
                     ItemStack itemStack = new ItemStack(ModBlocks.CANDLE.get());
-                    if(candleData.dyeColor != Candle.BASE_COLOR)
-                        CandleItem.setColorStatic(itemStack, candleData.dyeColor);
-                    if(candleData.height < 7)
-                        CandleItem.setHeight(itemStack, candleData.height);
-                    if(candleData.herb.layer != null)
-                        CandleItem.setHerbLayer(itemStack, candleData.herb.layer.toString());
-                    if(candleData.base.layer != null)
-                        CandleItem.setBaseLayer(itemStack, candleData.base.layer.toString());
-                    if(candleData.glow.layer != null)
-                        CandleItem.setGlowLayer(itemStack, candleData.glow.layer.toString());
-                    if(candleData.swirl.layer != null)
-                        CandleItem.setSwirlLayer(itemStack, candleData.swirl.layer.toString());
-                    if(candleData.effect != null) {
-                        CandleItem.setEffectLocation(itemStack, candleData.effect.getLocationName());
-                    }
-                    if(candleData.effectParticle != null)
-                        CandleItem.setEffectParticle(itemStack, candleData.effectParticle);
-                    if(!itemStack.hasTag() || itemStack.getOrCreateTag().isEmpty())
-                        level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, new ItemStack(ModBlocks.CANDLE.get())));
-                    else
-                        popResource(level, pos, itemStack);
+                    candleData.save(itemStack.getOrCreateTag(), true);
+
+                    popResource(level, pos, itemStack);
                 }
             }
         }
@@ -244,29 +211,10 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
         ItemStack item = new ItemStack(ModItems.CANDLE.get());
         Optional<CandleTile> tileEntityOptional = Optional.ofNullable(getBlockEntity(worldIn, pos));
 
-//        int col = tileEntityOptional.map(CandleTile::getDyeColor).orElse(BASE_COLOR);
-//        if (col != BASE_COLOR && col != 0)
-//            setColor(item, tileEntityOptional.map(CandleTile::getDyeColor).orElse(BASE_COLOR));
-
         tileEntityOptional.ifPresent(candleTile -> {
             CandleData candleData = candleTile.candles.get(0);
+            candleData.save(item.getOrCreateTag(), true);
 
-            if (candleData.dyeColor != BASE_COLOR && candleData.dyeColor != 0)
-                setColor(item, candleData.dyeColor);
-            if(candleData.height < 7)
-                CandleItem.setHeight(item, candleData.height);
-            if(candleData.herb.layer != null)
-                CandleItem.setHerbLayer(item, candleData.herb.layer.toString());
-            if(candleData.base.layer != null)
-                CandleItem.setBaseLayer(item, candleData.base.layer.toString());
-            if(candleData.glow.layer != null)
-                CandleItem.setGlowLayer(item, candleData.glow.layer.toString());
-            if(candleData.swirl.layer != null)
-                CandleItem.setSwirlLayer(item, candleData.swirl.layer.toString());
-            if(candleData.effect != null)
-                CandleItem.setEffectLocation(item, candleData.effect.getLocationName());
-            if(candleData.effectParticle != null)
-                CandleItem.setEffectParticle(item, candleData.effectParticle);
         });
 
 
@@ -395,20 +343,23 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
         }
     }
 
-    public static void spawnParticleWave(Level worldIn, BlockPos pos, boolean spawnExtraSmoke, List<ResourceLocation> particle, int amount) {
+    public static void spawnParticleWave(Level worldIn, BlockPos pos, boolean spawnExtraSmoke, List<String> particle, int amount) {
         RandomSource random = worldIn.getRandom();
 
         for(int i = 0; i < amount; i++){
-            float rotation = random.nextFloat() * 360f;
-            Vec3 offset = new Vec3(random.nextDouble() * 2 * Math.cos(rotation), 0, random.nextDouble() * 2 * Math.sin(rotation));
+            float rotation = random.nextFloat() * 30f + (360f / amount) * i;
+            float ran = (float)random.nextDouble() * 0.15f + 0.15f;
+            Vec3 offset = new Vec3(ran * Math.cos(rotation), 0, ran * Math.sin(rotation));
 
             if(!particle.isEmpty()) {
-                ParticleType<?> type = ForgeRegistries.PARTICLE_TYPES.getValue(particle.get(random.nextInt(particle.size())));
-                if(type != null) {
-                    worldIn.addParticle((ParticleOptions) type, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
+                try {
+                    ParticleOptions options = ParticleArgument.readParticle(new StringReader(particle.get(random.nextInt(particle.size()))), BuiltInRegistries.PARTICLE_TYPE.asLookup());
+                    worldIn.addParticle(options, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
                     if (spawnExtraSmoke) {
-                        worldIn.addParticle((ParticleOptions) type, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
+                        worldIn.addParticle(options, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
                     }
+
+                } catch(CommandSyntaxException e) {
                 }
             }
         }
@@ -484,47 +435,22 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
         if (stack == null)
             return;
         withTileEntityDo(worldIn, pos, te -> {
+            int newCandlePos = 0;
             for(int i = 0; i < 4; i++){
                 if (!te.candles.get(i).hasCandle) {
                     if (stack.getItem() instanceof CandleItem candleItem) {
-                        te.candles.get(i).hasCandle = true;
-                        te.candles.get(i).dyeColor = CandleItem.getColorStatic(stack);
-                        te.candles.get(i).height = CandleItem.getHeight(stack);
-                        String herbLayer = CandleItem.getHerbLayer(stack);
-                        String baseLayer = CandleItem.getBaseLayer(stack);
-                        String glowLayer = CandleItem.getGlowLayer(stack);
-                        String swirlLayer = CandleItem.getSwirlLayer(stack);
-                        String effectLocation = CandleItem.getEffectLocation(stack);
-                        List<ResourceLocation> effectParticle = CandleItem.getEffectParticle(stack);
+                        te.candles.get(i).load(stack.getOrCreateTag(), true);
 
-                        if (herbLayer != null)
-                            te.candles.get(i).herb.layer = herbLayer.equals("minecraft:missingno") ? null : new ResourceLocation(herbLayer);
-                        else
-                            te.candles.get(i).herb.layer = null;
-
-                        if (baseLayer != null)
-                            te.candles.get(i).base.layer = baseLayer.equals("minecraft:missingno") ? null : new ResourceLocation(baseLayer);
-                        else
-                            te.candles.get(i).base.layer = null;
-
-                        if (glowLayer != null)
-                            te.candles.get(i).glow.layer = glowLayer.equals("minecraft:missingno") ? null : new ResourceLocation(glowLayer);
-                        else
-                            te.candles.get(i).glow.layer = null;
-
-                        if (swirlLayer != null)
-                            te.candles.get(i).swirl.layer = swirlLayer.equals("minecraft:missingno") ? null : new ResourceLocation(swirlLayer);
-                        else
-                            te.candles.get(i).swirl.layer = null;
-
-                        if (effectLocation != null)
-                            te.candles.get(i).setEffect(CandleEffects.getEffect(effectLocation).getCopy());
-                        else
-                            te.candles.get(i).effect = new AbstractCandleEffect();
-
-                        te.candles.get(i).effectParticle = effectParticle;
+                        te.setOffsetPos(true);
+                        newCandlePos = i;
                         break;
                     }
+                }
+            }
+            for(int i = 0; i < 4; i++){
+                if (te.candles.get(i).returnToBlock || i == newCandlePos){
+                    te.setOffsetPos(i);
+                    te.candles.get(i).moveInstantlyToTarget();
                 }
             }
             te.sync();
@@ -533,11 +459,6 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
             worldIn.updateNeighborsAt(pos.relative(direction), this);
         }
         super.setPlacedBy(worldIn, pos, state, placer, stack);
-
-//        if (stack.hasCustomHoverName()) {
-//            BlockEntity tileentity = worldIn.getBlockEntity(pos);
-//            ((CandleTile)tileentity).customName = stack.getHoverName();
-//        }
 
     }
 

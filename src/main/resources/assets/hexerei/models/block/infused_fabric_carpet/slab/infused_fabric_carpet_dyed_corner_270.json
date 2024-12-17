@@ -1,42 +1,8 @@
 {
-	"credit": "Made with Blockbench",
-	"parent": "block/thin_block",
+	"parent": "hexerei:block/infused_fabric_carpet/slab/special_carpet_corner_270",
 	"textures": {
-		"0": "hexerei:block/infused_fabric_dyed",
-		"1": "hexerei:block/infused_fabric_outter",
-		"particle": "hexerei:block/infused_fabric_dyed"
+		"face": "hexerei:block/infused_fabric_dyed",
+		"outer": "hexerei:block/infused_fabric_outter"
 	},
-	"elements": [
-		{
-			"from": [-0.001, -7, -0.001],
-			"to": [3.999, -5.5, 3.999],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, -8, 0]},
-			"faces": {
-				"north": {"uv": [0, 0, 4, 1], "texture": "#0", "tintindex": 0},
-				"east": {"uv": [0, 0, 4, 1], "texture": "#0", "tintindex": 0},
-				"south": {"uv": [0, 0, 4, 1], "texture": "#0", "tintindex": 0},
-				"west": {"uv": [0, 0, 4, 1], "texture": "#0", "tintindex": 0},
-				"up": {"uv": [0, 0, 4, 4], "texture": "#0", "tintindex": 0},
-				"down": {"uv": [0, 0, 4, 4], "texture": "#0", "tintindex": 0}
-			}
-		},
-		{
-			"from": [0.525, -6.25, -1.025],
-			"to": [3.525, -6.25, -0.025],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, -8, 0]},
-			"faces": {
-				"up": {"uv": [12, 0, 15, 1], "texture": "#1", "tintindex": 0},
-				"down": {"uv": [12, 0, 15, 1], "texture": "#1", "tintindex": 0}
-			}
-		},
-		{
-			"from": [-0.975, -6.25, 0.475],
-			"to": [0.025, -6.25, 3.475],
-			"rotation": {"angle": 0, "axis": "y", "origin": [0, -8, 0]},
-			"faces": {
-				"up": {"uv": [15, 0, 16, 3], "texture": "#1", "tintindex": 0},
-				"down": {"uv": [15, 0, 16, 3], "texture": "#1", "tintindex": 0}
-			}
-		}
-	]
+	"render_type": "cutout_mipped"
 }

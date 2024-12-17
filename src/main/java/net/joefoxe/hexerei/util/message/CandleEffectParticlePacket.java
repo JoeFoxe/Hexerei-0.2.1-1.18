@@ -21,13 +21,13 @@ import java.util.function.Supplier;
 public class CandleEffectParticlePacket {
     BlockPos pos;
 
-    List<ResourceLocation> particleLocations;
+    List<String> particleLocations;
 
     int livingId;
 
     int stage;
 
-    public CandleEffectParticlePacket(BlockPos pos, List<ResourceLocation> particleLocations, int livingId, int stage) {
+    public CandleEffectParticlePacket(BlockPos pos, List<String> particleLocations, int livingId, int stage) {
         this.pos = pos;
         this.particleLocations = particleLocations;
         this.livingId = livingId;
@@ -38,7 +38,7 @@ public class CandleEffectParticlePacket {
         buffer.writeBlockPos(object.pos);
         buffer.writeInt(object.particleLocations.size());
         for(int i = 0; i < object.particleLocations.size(); i++){
-            buffer.writeResourceLocation(object.particleLocations.get(i));
+            buffer.writeUtf(object.particleLocations.get(i));
         }
         buffer.writeInt(object.livingId);
         buffer.writeInt(object.stage);
@@ -47,9 +47,9 @@ public class CandleEffectParticlePacket {
     public static CandleEffectParticlePacket decode(FriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
         int size = buffer.readInt();
-        List<ResourceLocation> list = new ArrayList<>();
+        List<String> list = new ArrayList<>();
         for(int i = 0; i < size; i++){
-            list.add(buffer.readResourceLocation());
+            list.add(buffer.readUtf());
         }
 
 
@@ -75,7 +75,7 @@ public class CandleEffectParticlePacket {
                         PotionCandleEffect.spawnParticles(world, packet.particleLocations, livingEntity);
                     }
                     if(packet.stage == 1)
-                        Candle.spawnParticleWave(world, packet.pos, true, packet.particleLocations, 20);
+                        Candle.spawnParticleWave(world, packet.pos, true, packet.particleLocations, 10);
                 }
             }
         });

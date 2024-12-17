@@ -36,6 +36,6 @@
   "liquidOutput": {
     "fluid": "minecraft:water"
   },
-  "fluidLevelsConsumed": 333,
+  "fluidLevelsConsumed": 250,
   "moonRequirement": "full_moon"
 }

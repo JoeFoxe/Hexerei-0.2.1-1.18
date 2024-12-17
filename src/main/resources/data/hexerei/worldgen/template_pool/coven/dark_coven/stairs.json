@@ -1,0 +1,78 @@
+{
+  "name": "hexerei:coven/dark_coven/stairs",
+  "fallback": "hexerei:coven/dark_coven/terminators",
+  "elements": [
+    {
+      "weight": 2,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_up_01",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 6,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_up_02",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 6,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_up_03",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_down_01",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 6,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_down_02",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 6,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_down_03",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_down_turn_03",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+    {
+      "weight": 2,
+      "element": {
+        "location": "hexerei:coven/dark_coven/stairs/stairs_down_turn_04",
+        "processors": "hexerei:coven/dark_coven/dark_coven_legs",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+  ]
+}

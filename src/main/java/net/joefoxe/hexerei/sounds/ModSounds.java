@@ -12,6 +12,7 @@ public class ModSounds {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, Hexerei.MOD_ID);
 
+    public static RegistryObject<SoundEvent> OWL_HOOT = registerSoundEvent("owl_hoot");
     public static RegistryObject<SoundEvent> CROW_CAW = registerSoundEvent("crow_caw");
 
     public static RegistryObject<SoundEvent> CROW_FLUTE = registerSoundEvent("crow_flute");

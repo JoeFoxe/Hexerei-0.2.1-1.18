@@ -4,6 +4,7 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.ModEntityTypes;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
+import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -48,6 +49,15 @@ public class ModContainers {
                     else
                         return new CofferContainer(windowId, inv.player.getOffhandItem(), inv, inv.player, InteractionHand.OFF_HAND);
                 }
+            })));
+
+    public static final RegistryObject<MenuType<PackageContainer>> PACKAGE_CONTAINER
+            = CONTAINERS.register("package_container",
+            () -> IForgeMenuType.create(((windowId, inv, data) -> {
+
+                InteractionHand hand = data.readByte() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+                int slot = data.readByte();
+                return new PackageContainer(windowId, inv.player.getItemInHand(hand), inv, hand, slot);
             })));
 
     public static final RegistryObject<MenuType<HerbJarContainer>> HERB_JAR_CONTAINER
@@ -111,12 +121,25 @@ public class ModContainers {
             = CONTAINERS.register("crow_container",
             () -> IForgeMenuType.create(((windowId, inv, data) -> {
 
-                Level world = inv.player.level();//new BroomEntity(world, pos.getX(), pos.getY(), pos.getZ())
+                Level world = inv.player.level();
                 int id = data.readInt();
                 if(world.getEntity(id) != null)
                     return new CrowContainer(windowId,(CrowEntity)world.getEntity(id), inv, inv.player);
                 else
                     return new CrowContainer(windowId,new CrowEntity(ModEntityTypes.CROW.get(),world), inv, inv.player);
+
+            })));
+
+    public static final RegistryObject<MenuType<OwlContainer>> OWL_CONTAINER
+            = CONTAINERS.register("owl_container",
+            () -> IForgeMenuType.create(((windowId, inv, data) -> {
+
+                Level world = inv.player.level();
+                int id = data.readInt();
+                if(world.getEntity(id) != null)
+                    return new OwlContainer(windowId,(OwlEntity)world.getEntity(id), inv, inv.player);
+                else
+                    return new OwlContainer(windowId,new OwlEntity(ModEntityTypes.OWL.get(),world), inv, inv.player);
 
             })));
 

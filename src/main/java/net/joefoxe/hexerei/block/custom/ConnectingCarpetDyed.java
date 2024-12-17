@@ -274,16 +274,37 @@ public class ConnectingCarpetDyed extends CarpetBlock implements Waxed, CTDyable
 
     public static int getColorValue(ItemStack stack) {
         if (stack.hasTag() && stack.getTag() != null && stack.getTag().contains("color"))
-            return HexereiUtil.getColorValue(DyeColor.byName(stack.getOrCreateTag().getString("color"), DyeColor.WHITE));
-        return HexereiUtil.getColorValue(DyeColor.WHITE);
+            return getColorValue(DyeColor.byName(stack.getOrCreateTag().getString("color"), DyeColor.WHITE));
+        return getColorValue(DyeColor.WHITE);
     }
 
 
-    public static int getColorValue(BlockState state, BlockPos pos, BlockGetter level) {
-        int col = HexereiUtil.getColorValue(DyeColor.WHITE);
+    public static int getColorValue(BlockState state) {
+        int col = getColorValue(DyeColor.WHITE);
         if (state.getBlock() instanceof CTDyable ctDyable)
-            col = HexereiUtil.getColorValue(ctDyable.getDyeColor(state));
+            col = getColorValue(ctDyable.getDyeColor(state));
         return col;
+    }
+
+    public static float[] toDarkPastel(float[] rgb) {
+        float[] hsl = HexereiUtil.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+
+        // Increase lightness and decrease saturation
+        hsl[1] = Math.max(0.0f, hsl[1] - 0.3f); // Decrease saturation
+//        hsl[2] = Math.max(0.0f, hsl[2] - 0.2f); // Decrease lightness
+
+        return HexereiUtil.hslToRgb(hsl[0], hsl[1], hsl[2]);
+    }
+
+    public static int getColorValue(DyeColor color) {
+        if (color == null)
+            return 0;
+
+        float[] colors = toDarkPastel(color.getTextureDiffuseColors());
+        int r = (int) (colors[0] * 255.0F);
+        int g = (int) (colors[1] * 255.0F);
+        int b = (int) (colors[2] * 255.0F);
+        return r << 16 | g << 8 | b;
     }
 
     private static boolean canConnect(BlockState state1, BlockState state2){

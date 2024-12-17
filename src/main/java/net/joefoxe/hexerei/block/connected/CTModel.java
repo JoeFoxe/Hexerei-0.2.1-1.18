@@ -23,6 +23,7 @@ import java.util.Random;
 
 // CREDIT: https://github.com/Creators-of-Create/Create/tree/mc1.19/dev by simibubi & team
 // Under MIT-License: https://github.com/Creators-of-Create/Create/blob/mc1.19/dev/LICENSE
+// edits by JoeFoxe
 
 public class CTModel extends BakedModelWrapperWithData {
 
@@ -78,10 +79,22 @@ public class CTModel extends BakedModelWrapperWithData {
                 continue;
 
             CTSpriteShiftEntry spriteShift = behaviour.getShift(state, quad.getDirection(), quad.getSprite());
+            boolean hasTransparent = behaviour instanceof ConnectedTextureTransparentLayer;
+
+
             if (spriteShift == null)
                 continue;
-            if (quad.getSprite() != spriteShift.getOriginal())
+            if (!(quad.getSprite() == spriteShift.getOriginal() || hasTransparent))
                 continue;
+            if (behaviour instanceof ConnectedTextureTransparentLayer transparentLayer) {
+                CTSpriteShiftEntry transparentShift = transparentLayer.getTransparentShift(state, quad.getDirection(), quad.getSprite());
+                if (transparentShift == null)
+                    continue;
+                if (quad.getSprite() == transparentShift.getOriginal())
+                    spriteShift = transparentShift;
+                else if (quad.getSprite() != spriteShift.getOriginal())
+                    continue;
+            }
 
             BakedQuad newQuad = BakedQuadHelper.clone(quad);
             int[] vertexData = newQuad.getVertices();

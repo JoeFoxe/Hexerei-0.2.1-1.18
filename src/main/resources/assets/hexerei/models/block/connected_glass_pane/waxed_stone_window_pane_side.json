@@ -1,8 +1,25 @@
 {
   "parent": "hexerei:block/connected_glass_pane/side",
   "textures": {
-    "edge": "minecraft:block/stone",
-    "pane": "hexerei:block/waxed_stone_window_pane"
+    "particle": "hexerei:block/stone_window_pane"
   },
-  "render_type": "translucent"
+  "children": {
+    "cutout": {
+      "parent": "hexerei:block/connected_glass_pane/side",
+      "textures": {
+        "edge": "minecraft:block/stone",
+        "pane": "hexerei:block/waxed_stone_window_pane_cutout"
+      },
+      "render_type": "cutout"
+    },
+    "translucent": {
+      "parent": "hexerei:block/connected_glass_pane/side",
+      "textures": {
+        "edge": "minecraft:block/stone",
+        "pane": "hexerei:block/waxed_stone_window_pane_glass"
+      },
+      "render_type": "translucent"
+    }
+  },
+  "loader": "forge:composite"
 }

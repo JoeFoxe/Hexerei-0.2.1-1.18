@@ -12,6 +12,38 @@
       "passage_text": "book.hexerei.crafting_type.mixing_cauldron_heated"
     }
   ],
+  "blocks": [
+    {
+      "type": "tag",
+      "x": 3.75,
+      "y": 5.5,
+      "name": "hexerei:heat_sources",
+      "show_slot": true,
+
+      "extra_tooltips":[
+        {
+          "color_hex": "CC5522",
+          "text": "tooltip.hexerei.heat_source"
+        },{
+          "color_hex": 808080,
+          "text": "tooltip.hexerei.recipe_heated",
+          "type": "trail"
+        },{
+          "color_hex": 808080,
+          "text": "tooltip.hexerei.recipe_heated_1",
+          "type": "trail"
+        },{
+          "color_hex": 808080,
+          "text": "tooltip.hexerei.recipe_heated_2",
+          "type": "trail"
+        },{
+          "color_hex": 808080,
+          "text": "tooltip.hexerei.recipe_heated_3",
+          "type": "trail"
+        }
+      ]
+    }
+  ],
   "items_and_fluids": [
 
     {

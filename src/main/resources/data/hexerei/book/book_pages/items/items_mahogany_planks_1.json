@@ -4,9 +4,10 @@
       "paragraph_box": [
         {
           "x": 7,
-          "y": 0,
-          "height": 18,
-          "width": 32
+          "y": -0.5,
+          "height": 2,
+          "width": 32,
+          "verticalAlign": "middle"
         }
       ],
       "passage_text": "book.hexerei.items_mahogany_planks_1.passage_1",
@@ -31,6 +32,44 @@
       "x": 2.5,
       "y": 0.75,
       "name": "hexerei:mahogany_planks"
+    },
+
+    {
+      "type": "item",
+      "x": 2.5,
+      "y": 5.5,
+      "name": "hexerei:mahogany_woodcutter",
+
+      "extra_tooltips":[
+        {
+          "color_hex": "FFFFFF",
+          "text": "book.hexerei.items_woodcutter_planks"
+        }
+      ]
+    },
+    {
+      "type": "item",
+      "x": 1,
+      "y": 6.5,
+      "name": "hexerei:mahogany_connected"
+    },
+    {
+      "type": "item",
+      "x": 2,
+      "y": 6.5,
+      "name": "hexerei:polished_mahogany_connected"
+    },
+    {
+      "type": "item",
+      "x": 3,
+      "y": 6.5,
+      "name": "hexerei:polished_mahogany_pillar"
+    },
+    {
+      "type": "item",
+      "x": 4,
+      "y": 6.5,
+      "name": "hexerei:polished_mahogany_layered"
     }
   ],
   "images": [

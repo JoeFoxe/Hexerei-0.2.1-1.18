@@ -1,0 +1,23 @@
+
+{
+  "structures": [
+    {
+      "structure": "hexerei:owl_post_office",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "salt": 8675309,
+
+    "spacing": 21,
+
+    "separation": 12,
+
+    "type": "minecraft:random_spread",
+
+    "exclusion_zone": {
+      "chunk_count": 10,
+      "other_set": "hexerei:nature_coven"
+    }
+  }
+}

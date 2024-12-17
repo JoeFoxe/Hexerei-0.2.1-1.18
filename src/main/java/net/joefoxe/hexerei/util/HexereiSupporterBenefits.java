@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.io.BufferedReader;
@@ -12,12 +14,15 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 
+import static net.joefoxe.hexerei.Hexerei.LOGGER;
+
 public class HexereiSupporterBenefits {
 
     public static final List<UUID> supporters = new ArrayList<>();
 
     public static boolean matchesSupporterUUID(UUID uuid){
         return supporters.contains(uuid);
+
     }
 
     public static void init(){

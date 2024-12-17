@@ -55,6 +55,7 @@ jarJar.enable()
 
 mixin {
 	add(sourceSets.main.get(), "hexerei.refmap.json")
+	config("hexerei.mixins.json")
 }
 
 minecraft {

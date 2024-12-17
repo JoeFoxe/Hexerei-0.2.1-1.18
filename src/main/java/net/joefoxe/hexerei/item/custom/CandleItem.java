@@ -138,23 +138,27 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
     }
 
     @Override
-    public void setColor(ItemStack p_41116_, int p_41117_) {
-        DyeableLeatherItem.super.setColor(p_41116_, p_41117_);
+    public void setColor(ItemStack stack, int color) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putInt("dyeColor", color);
+//        DyeableLeatherItem.super.setColor(stack, color);
     }
 
     public static void setColorStatic(ItemStack stack, int color) {
-        stack.getOrCreateTagElement("display").putInt("color", color);
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putInt("dyeColor", color);
     }
 
 
-    public static void setHeight(ItemStack p_41116_, int p_41117_) {
-        p_41116_.getOrCreateTagElement("display").putInt("height", p_41117_);
+    public static void setHeight(ItemStack stack, int height) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putInt("height", height);
     }
 
     public static int getHeight(ItemStack stack) {
         if(stack.hasTag()){
-            CompoundTag compoundtag = stack.getTagElement("display");
-            return compoundtag != null && compoundtag.contains("height", 99) ? compoundtag.getInt("height") : 7;
+            CompoundTag compoundtag = stack.getOrCreateTag();
+            return compoundtag.contains("height", 99) ? compoundtag.getInt("height") : 7;
         }
         return 7;
     }
@@ -170,37 +174,18 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         }
         return 0;
     }
-
-    public static void setHerbLayer(ItemStack stack, String herbLayer) {
-        CompoundTag tag = stack.getOrCreateTagElement("herb");
-        if(herbLayer != null)
-            tag.putString("layer", herbLayer);
+    public static void setLayer(ItemStack stack, String layer, String target) {
+        CompoundTag tag = stack.getOrCreateTagElement(target);
+        if(layer != null)
+            tag.putString("layer", layer);
     }
 
-    public static void setBaseLayer(ItemStack stack, String baseLayer) {
-        CompoundTag tag = stack.getOrCreateTagElement("base");
-        if(baseLayer != null)
-            tag.putString("layer", baseLayer);
-    }
-
-    public static void setBaseLayerFromBlock(ItemStack stack, String baseLayer) {
-        CompoundTag tag = stack.getOrCreateTagElement("base");
-        if(baseLayer != null) {
-            tag.putString("layer", baseLayer);
+    public static void setLayerFromBlock(ItemStack stack, String layer, String target) {
+        CompoundTag tag = stack.getOrCreateTagElement(target);
+        if(layer != null) {
+            tag.putString("layer", layer);
             tag.putBoolean("layerFromBlockLocation", true);
         }
-    }
-
-    public static void setGlowLayer(ItemStack stack, String glowLayer) {
-        CompoundTag tag = stack.getOrCreateTagElement("glow");
-        if(glowLayer != null)
-            tag.putString("layer", glowLayer);
-    }
-
-    public static void setSwirlLayer(ItemStack stack, String swirlLayer) {
-        CompoundTag tag = stack.getOrCreateTagElement("swirl");
-        if(swirlLayer != null)
-            tag.putString("layer", swirlLayer);
     }
 
     public static void setEffectLocation(ItemStack stack, String effect) {
@@ -212,11 +197,11 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         }
     }
 
-    public static void setEffectParticle(ItemStack stack, List<ResourceLocation> effectParticle) {
+    public static void setEffectParticle(ItemStack stack, List<String> effectParticle) {
         CompoundTag tag = stack.getOrCreateTagElement("effectParticle");
         for(int i = 0; i < effectParticle.size(); i++){
             if (effectParticle.get(i) != null)
-                tag.putString("particle" + i, effectParticle.get(i).toString());
+                tag.putString("particle" + i, effectParticle.get(i));
             else {
                 tag.remove("particle");
             }
@@ -226,19 +211,16 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
     public static String getHerbLayer(ItemStack stack) {
         CompoundTag tag = stack.getTagElement("herb");
         if(tag == null) return null;
-        if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
-            if(tag.contains("layer")) {
-                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
-                if (holder.isPresent()) {
-                    BlockState blockState = holder.get().get().defaultBlockState();
-                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                    if (list.size() > 0)
-                        return list.get(0).getSprite().atlasLocation().getNamespace() + ":textures/" + list.get(0).getSprite().atlasLocation().getPath() + ".png";
-                }
-            }
-            return null;
-        }
+
         return tag.contains("layer") ? tag.getString("layer") : null;
+    }
+
+    public static boolean getLayerFromBlock(ItemStack stack, String target) {
+        return getLayerFromBlock(stack.getTagElement(target));
+    }
+    public static boolean getLayerFromBlock(CompoundTag tag) {
+        if(tag == null) return false;
+        return tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation");
     }
 
     public static String getBaseLayer(ItemStack stack) {
@@ -258,21 +240,7 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
 
     private static String getLayerLoc(CompoundTag tag) {
         if(tag == null) return null;
-        if(tag.contains("layerFromBlockLocation") && tag.getBoolean("layerFromBlockLocation")) {
-            if(tag.contains("layer")) {
-                Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(new ResourceLocation(tag.getString("layer")));
-                if (holder.isPresent()) {
-                    BlockState blockState = holder.get().get().defaultBlockState();
-                    List<BakedQuad> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).getQuads(blockState, Direction.NORTH, RandomSource.create());
-                    if (list.size() > 0) {
-                        TextureAtlasSprite sprite = list.get(0).getSprite();
 
-                        return sprite.contents().name().getNamespace() + ":textures/" + sprite.contents().name().getPath() + ".png";
-                    }
-                }
-            }
-            return null;
-        }
         return tag.contains("layer") ? tag.getString("layer") : null;
     }
 
@@ -284,13 +252,13 @@ public class CandleItem extends BlockItem implements DyeableLeatherItem {
         return null;
     }
 
-    public static List<ResourceLocation> getEffectParticle(ItemStack stack) {
+    public static List<String> getEffectParticle(ItemStack stack) {
         if(stack.hasTag()){
-            List<ResourceLocation> list = new ArrayList<>();
+            List<String> list = new ArrayList<>();
             CompoundTag tag = stack.getOrCreateTagElement("effectParticle");
 
             for(int i = 0; i < tag.size(); i++){
-                list.add(new ResourceLocation(tag.getString("particle" + i)));
+                list.add(tag.getString("particle" + i));
             }
 
             return list;

@@ -25,25 +25,17 @@ public class CrowContainer extends AbstractContainerMenu {
     private final IItemHandler playerInventory;
 
 
-
-//    public BroomContainer(int windowId, BroomEntity crow, Inventory inv) {
-//        this(windowId, inv, new SimpleContainer(5));
-//    }
-
     public CrowContainer(int windowId, CrowEntity crowEntity, Inventory playerInventory, Player player) {
         super(ModContainers.CROW_CONTAINER.get(), windowId);
         this.crowEntity = crowEntity;
         playerEntity = player;
         this.playerInventory = new InvWrapper(playerInventory);
 
-        crowEntity.sync();
         layoutPlayerInventorySlots(14, 147 - OFFSET);
 
         //add slots for crow
         if(crowEntity != null) {
             crowEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(h -> {
-
-//                addSlot(EquipmentSlot.HEAD)
 
 
                 addSlot(new SlotItemHandler(h, 0, 86, 50 - OFFSET) {

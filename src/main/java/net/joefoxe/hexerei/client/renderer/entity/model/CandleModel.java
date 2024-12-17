@@ -16,6 +16,9 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
+import java.util.List;
+import java.util.Map;
+
 public class CandleModel<T extends Entity> extends EntityModel<T> {
     // This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
     public static final ModelLayerLocation CANDLE_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_layer"), "main");
@@ -81,9 +84,9 @@ public class CandleModel<T extends Entity> extends EntityModel<T> {
 
         PartDefinition wax7 = partdefinition.addOrReplaceChild("wax7", CubeListBuilder.create().texOffs(0, 0).addBox(-1.0F, 9.0F, -1.0F, 2.0F, 7.0F, 2.0F,  cube), PartPose.offset(0.0F, 7.0F, 0.0F));
 
-        PartDefinition base = partdefinition.addOrReplaceChild("base", CubeListBuilder.create().texOffs(5, 6).addBox(-1.5F, -0.5F, -1.5F, 3.0F, 1.0F, 3.0F, cube), PartPose.offset(0.0F, 23.5F, 0.0F));
+        PartDefinition base = partdefinition.addOrReplaceChild("base", CubeListBuilder.create().texOffs(2, 11).addBox(-1.5F, -0.5F, -1.5F, 3.0F, 1.0F, 3.0F, cube), PartPose.offset(0.0F, 23.5F, 0.0F));
 
-        return LayerDefinition.create(meshdefinition, 32, 32);
+        return LayerDefinition.create(meshdefinition, 16, 16);
     }
     public static LayerDefinition createBaseLayer() {
         CubeDeformation cube = CubeDeformation.NONE;
@@ -107,7 +110,7 @@ public class CandleModel<T extends Entity> extends EntityModel<T> {
 
         PartDefinition wax7 = partdefinition.addOrReplaceChild("wax7", CubeListBuilder.create().texOffs(0, 0).addBox(-1.0F, 9.0F, -1.0F, 2.0F, 7.0F, 2.0F,  cube), PartPose.offset(0.0F, 7.0F, 0.0F));
 
-        PartDefinition base = partdefinition.addOrReplaceChild("base", CubeListBuilder.create().texOffs(0, 0).addBox(-1.5F, -0.5F, -1.5F, 3.0F, 1.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 23.5F, 0.0F));
+        PartDefinition base = partdefinition.addOrReplaceChild("base", CubeListBuilder.create().texOffs(2, 11).addBox(-1.5F, -0.5F, -1.5F, 3.0F, 1.0F, 3.0F, cube), PartPose.offset(0.0F, 23.5F, 0.0F));
 
         return LayerDefinition.create(meshdefinition, 16, 16);
     }

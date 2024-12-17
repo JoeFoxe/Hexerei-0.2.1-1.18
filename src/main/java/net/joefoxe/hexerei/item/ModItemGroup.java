@@ -4,6 +4,7 @@ import net.joefoxe.hexerei.Hexerei;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.DeferredRegister;
@@ -29,6 +30,25 @@ public class ModItemGroup {
 
 						if (!isBlacklist(entry.get()))
 							output.accept(stack);
+
+						if (stack.is(ModItems.INFUSED_FABRIC_BLOCK.get())) {
+							for (DyeColor color : DyeColor.values()) {
+								if (color.getName().equals("white"))
+									continue;
+								ItemStack newStack = ModItems.INFUSED_FABRIC_BLOCK.get().getDefaultInstance();
+								newStack.getOrCreateTag().putString("color", color.getName());
+								output.accept(newStack);
+							}
+						}
+						else if (stack.is(ModItems.INFUSED_FABRIC_CARPET.get())) {
+							for (DyeColor color : DyeColor.values()) {
+								if (color.getName().equals("white"))
+									continue;
+								ItemStack newStack = ModItems.INFUSED_FABRIC_CARPET.get().getDefaultInstance();
+								newStack.getOrCreateTag().putString("color", color.getName());
+								output.accept(newStack);
+							}
+						}
 					});
 				}
 			})

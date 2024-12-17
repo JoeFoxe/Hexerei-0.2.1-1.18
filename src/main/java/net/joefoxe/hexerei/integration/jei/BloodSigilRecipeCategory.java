@@ -169,7 +169,7 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
                 MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, recipe.getOutputFluid(), 1, 1, OverlayTexture.NO_OVERLAY);
                 guiGraphics.pose().popPose();
 
-                BloodSigilRecipeCategory.this.cauldronFG.draw(guiGraphics, -4, 0);
+                BloodSigilRecipeCategory.this.cauldronFG.draw(guiGraphics, 92, 28);
 
             }
         }, -34, 0);

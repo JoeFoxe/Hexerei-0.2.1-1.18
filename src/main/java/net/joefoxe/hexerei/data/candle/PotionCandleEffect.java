@@ -1,14 +1,16 @@
 package net.joefoxe.hexerei.data.candle;
 
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.joefoxe.hexerei.tileentity.CandleTile;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.CandleEffectParticlePacket;
+import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -44,25 +46,33 @@ public class PotionCandleEffect extends AbstractCandleEffect{
     @Override
     public void tick(Level level, CandleTile blockEntity, CandleData candleData) {
 
-//        if (level.isClientSide()) return;
+        if (this.effect == null) return;
+
         if(candleData.lit){
             if (candleData.cooldown >= MAX_TIME) {
-                int duration = 80;
-                assert effect != null;
-                if(effect.isInstantenous())
-                    duration = 1;
+                int duration = 10 * 20;
                 if (!level.isClientSide())
-                    applyEffects(level, blockEntity.getBlockPos(), 5, duration, 0, effect, candleData.effectParticle, candleData);
+                    applyEffects(level, blockEntity.getBlockPos(), 5, effect.isInstantenous() ? 1 : (int)(duration * candleData.getEffectDurationMultiplier()), Math.max(0, (int) candleData.getEffectAmplifierMultiplier() - 1), effect, candleData.effectParticle, candleData);
                 candleData.cooldown = 0;
             }
-//            level.addParticle();
-            if(candleData.effectParticle != null && level.isClientSide() && candleData.effectParticle != null && candleData.effectParticle.size() > 0)
-                particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size())));
+            if(candleData.effectParticle != null && level.isClientSide() && candleData.effectParticle != null && candleData.effectParticle.size() > 0) {
+
+                String resourceLocation = candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size()));
+                try {
+                    particle = ParticleArgument.readParticle(new StringReader(resourceLocation), BuiltInRegistries.PARTICLE_TYPE.asLookup());
+                } catch (CommandSyntaxException e) {
+                    e.printStackTrace();
+                }
+
+            }
             candleData.cooldown = (candleData.cooldown + 1) % Integer.MAX_VALUE;
         }
     }
 
-    private static void applyEffects(Level pLevel, BlockPos pPos, float size, int duration, int amplifier, @Nullable MobEffect pPrimary, List<ResourceLocation> particle, CandleData candleData) {
+
+
+
+    private static void applyEffects(Level pLevel, BlockPos pPos, float size, int duration, int amplifier, @Nullable MobEffect pPrimary, List<String> particle, CandleData candleData) {
         if (pPrimary != null) {
             AABB aabb = (new AABB(pPos)).inflate(size).expandTowards(0.0D, (size * 4) < 4 ? 4 : size * 4 , 0.0D);
             List<LivingEntity> list = pLevel.getEntitiesOfClass(LivingEntity.class, aabb);
@@ -81,15 +91,18 @@ public class PotionCandleEffect extends AbstractCandleEffect{
         }
     }
 
-    public static void spawnParticles(Level pLevel, List<ResourceLocation> particle, LivingEntity living) {
+    public static void spawnParticles(Level pLevel, List<String> particle, LivingEntity living) {
         float heightOffset = living.getBbHeight() / 4f;
         for(int i = 0; i < 5; i++){
             float rotation = random.nextFloat() * 360f;
             Vec3 offset = new Vec3(random.nextDouble() * 2 * Math.cos(rotation), 0, random.nextDouble() * 2 * Math.sin(rotation));
-            if(particle != null) {
-                ParticleType<?> type = ForgeRegistries.PARTICLE_TYPES.getValue(particle.get(random.nextInt(particle.size())));
-                if (type != null)
-                    pLevel.addParticle((ParticleOptions)type, living.getX(), living.getY() + heightOffset, living.getZ(), offset.x / 16f, (random.nextDouble() + 0.5d) * 0.015d, offset.z / 16f);
+            if (particle != null) {
+                try {
+                    pLevel.addParticle(ParticleArgument.readParticle(new StringReader(particle.get(random.nextInt(particle.size()))), BuiltInRegistries.PARTICLE_TYPE.asLookup()),
+                            living.getX(), living.getY() + heightOffset, living.getZ(), offset.x / 32f, (random.nextDouble() + 0.5d) * 0.015d, offset.z / 32f);
+                } catch (CommandSyntaxException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -103,10 +116,5 @@ public class PotionCandleEffect extends AbstractCandleEffect{
     public String getLocationName() {
         ResourceLocation loc = this.effect == null? null : ForgeRegistries.MOB_EFFECTS.getKey(this.effect);
         return loc != null ? loc.toString() : this.effect.getDescriptionId();
-    }
-
-    @Override
-    public ParticleOptions getParticleType() {
-        return ParticleTypes.HAPPY_VILLAGER;
     }
 }

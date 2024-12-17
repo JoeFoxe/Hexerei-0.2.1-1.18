@@ -1,0 +1,24 @@
+
+
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "hexerei:courier_package"
+        }
+      ],
+      "functions": [
+        {
+          "function": "hexerei:copy_package_data"
+        }
+      ],
+      "name": "main",
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "hexerei:blocks/courier_package"
+}

@@ -12,6 +12,7 @@ import java.util.Random;
 
 public interface CandleEffect {
 
+    String EMPTY = "hexerei:no_effect";
 
     Random random = new Random();
     List<BlockPos> area = Util.make(() -> {
@@ -37,7 +38,7 @@ public interface CandleEffect {
     }
 
     default String getLocationName() {
-        return "hexerei:no_effect";
+        return EMPTY;
     }
 
 }

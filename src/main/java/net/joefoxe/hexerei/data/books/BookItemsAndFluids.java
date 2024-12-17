@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -42,6 +43,7 @@ public class BookItemsAndFluids {
     public TagKey<Item> key;
     List<Component> extra_tooltips;
     List<BookTooltipExtra> extra_tooltips_raw;
+    public BakedModel modelCache = null;
 
     BookItemsAndFluids(float x, float y, ItemStack item){
         this.x = x;

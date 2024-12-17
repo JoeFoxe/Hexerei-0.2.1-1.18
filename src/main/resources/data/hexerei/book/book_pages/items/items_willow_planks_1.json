@@ -4,9 +4,10 @@
       "paragraph_box": [
         {
           "x": 7,
-          "y": 0,
-          "height": 18,
-          "width": 32
+          "y": -0.5,
+          "height": 2,
+          "width": 32,
+          "verticalAlign": "middle"
         }
       ],
       "passage_text": "book.hexerei.items_willow_planks_1.passage_1",
@@ -31,6 +32,44 @@
       "x": 2.5,
       "y": 0.75,
       "name": "hexerei:willow_planks"
+    },
+
+    {
+      "type": "item",
+      "x": 2.5,
+      "y": 5.5,
+      "name": "hexerei:willow_woodcutter",
+
+      "extra_tooltips":[
+        {
+          "color_hex": "FFFFFF",
+          "text": "book.hexerei.items_woodcutter_planks"
+        }
+      ]
+    },
+    {
+      "type": "item",
+      "x": 1,
+      "y": 6.5,
+      "name": "hexerei:willow_connected"
+    },
+    {
+      "type": "item",
+      "x": 2,
+      "y": 6.5,
+      "name": "hexerei:polished_willow_connected"
+    },
+    {
+      "type": "item",
+      "x": 3,
+      "y": 6.5,
+      "name": "hexerei:polished_willow_pillar"
+    },
+    {
+      "type": "item",
+      "x": 4,
+      "y": 6.5,
+      "name": "hexerei:polished_willow_layered"
     }
   ],
   "images": [

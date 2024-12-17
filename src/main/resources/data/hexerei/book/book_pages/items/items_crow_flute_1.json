@@ -4,9 +4,10 @@
       "paragraph_box": [
         {
           "x": 7,
-          "y": 0,
-          "height": 18,
-          "width": 32
+          "y": -0.5,
+          "height": 2,
+          "width": 32,
+          "verticalAlign": "middle"
         }
       ],
       "passage_text": "book.hexerei.items_crow_flute_1.passage_1",

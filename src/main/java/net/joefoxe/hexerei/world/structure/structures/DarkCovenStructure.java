@@ -1,22 +1,58 @@
 package net.joefoxe.hexerei.world.structure.structures;
 
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.world.structure.ModStructures;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
+import net.minecraft.core.*;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.worldgen.Pools;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.LevelHeightAccessor;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.JigsawBlock;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
-import net.minecraft.world.level.levelgen.structure.pools.JigsawPlacement;
-import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+import net.minecraft.world.level.levelgen.structure.pools.*;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import org.apache.commons.lang3.mutable.MutableObject;
+import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class DarkCovenStructure extends Structure {
 
@@ -54,6 +90,419 @@ public class DarkCovenStructure extends Structure {
         this.startHeight = startHeight;
         this.projectStartToHeightmap = projectStartToHeightmap;
         this.maxDistanceFromCenter = maxDistanceFromCenter;
+    }
+
+    static final Logger LOGGER = LogUtils.getLogger();
+
+    private boolean canBeReplaced(BlockState currBlock) {
+        return (currBlock.canBeReplaced() ||
+                currBlock.isAir() ||
+                currBlock.is(BlockTags.LEAVES) ||
+                currBlock.is(ModBlocks.WILLOW_FENCE.get()) ||
+                currBlock.is(ModBlocks.WILLOW_SLAB.get()) ||
+                currBlock.is(ModBlocks.WILLOW_STAIRS.get()) ||
+                currBlock.is(ModBlocks.MAHOGANY_SLAB.get()) ||
+                currBlock.is(ModBlocks.MAHOGANY_STAIRS.get()) ||
+                currBlock.is(Blocks.DARK_OAK_SLAB) ||
+                currBlock.is(Blocks.DARK_OAK_STAIRS) ||
+                currBlock.is(Blocks.WATER) ||
+                currBlock.is(Blocks.LAVA));
+    }
+    @Override
+    public void afterPlace(WorldGenLevel pLevel, StructureManager pStructureManager, ChunkGenerator pChunkGenerator, RandomSource pRandom, BoundingBox pBoundingBox, ChunkPos pChunkPos, PiecesContainer pPieces) {
+        super.afterPlace(pLevel, pStructureManager, pChunkGenerator, pRandom, pBoundingBox, pChunkPos, pPieces);
+
+
+        try {
+
+            for (BlockPos blockPos : BlockPos.betweenClosed(pBoundingBox.minX(), pBoundingBox.minY(), pBoundingBox.minZ(), pBoundingBox.maxX(), pBoundingBox.maxY(), pBoundingBox.maxZ())) {
+                if (pPieces.isInsidePiece(blockPos) && pLevel.isAreaLoaded(blockPos, 1) && pLevel.getBlockState(blockPos).is(Blocks.YELLOW_STAINED_GLASS_PANE)) {
+                    if (pLevel instanceof ServerLevel serverLevel) {
+                        // Always replace the glass itself with witch hazel pillar
+                        serverLevel.setBlockAndUpdate(blockPos, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState());
+
+                        // Generate vertical pillar down
+                        BlockPos.MutableBlockPos mutable = blockPos.below().mutable();
+                        BlockState currBlock = pLevel.getBlockState(mutable);
+                        while (mutable.getY() > 0 && canBeReplaced(currBlock)) {
+                            serverLevel.setBlockAndUpdate(mutable, Blocks.DARK_OAK_LOG.defaultBlockState());
+                            mutable.move(Direction.DOWN);
+                            currBlock = serverLevel.getBlockState(mutable);
+                        }
+                    } else if (pLevel instanceof WorldGenRegion worldGenRegion) {
+
+                        // Always replace the glass itself with witch hazel pillar
+                        worldGenRegion.setBlock(blockPos, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState(), 3);
+
+                        // Generate vertical pillar down
+                        BlockPos.MutableBlockPos mutable = blockPos.below().mutable();
+                        BlockState currBlock = pLevel.getBlockState(mutable);
+                        while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+                            worldGenRegion.setBlock(mutable, Blocks.DARK_OAK_LOG.defaultBlockState(), 3);
+                            mutable.move(Direction.DOWN);
+                            currBlock = worldGenRegion.getBlockState(mutable);
+                        }
+                    }
+
+
+                }
+            }
+
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+    }
+
+    public static Optional<Structure.GenerationStub> addPieces(Structure.GenerationContext pContext, Holder<StructureTemplatePool> pStartPool, Optional<ResourceLocation> pStartJigsawName, int pMaxDepth, BlockPos pPos, boolean pUseExpansionHack, Optional<Heightmap.Types> pProjectStartToHeightmap, int pMaxDistanceFromCenter) {
+        RegistryAccess registryaccess = pContext.registryAccess();
+        ChunkGenerator chunkgenerator = pContext.chunkGenerator();
+        StructureTemplateManager structuretemplatemanager = pContext.structureTemplateManager();
+        LevelHeightAccessor levelheightaccessor = pContext.heightAccessor();
+        WorldgenRandom worldgenrandom = pContext.random();
+        Registry<StructureTemplatePool> registry = registryaccess.registryOrThrow(Registries.TEMPLATE_POOL);
+        Rotation rotation = Rotation.getRandom(worldgenrandom);
+        StructureTemplatePool structuretemplatepool = pStartPool.value();
+        StructurePoolElement structurepoolelement = structuretemplatepool.getRandomTemplate(worldgenrandom);
+        if (structurepoolelement == EmptyPoolElement.INSTANCE) {
+            return Optional.empty();
+        } else {
+            BlockPos blockpos;
+            if (pStartJigsawName.isPresent()) {
+                ResourceLocation resourcelocation = pStartJigsawName.get();
+                Optional<BlockPos> optional = getRandomNamedJigsaw(structurepoolelement, resourcelocation, pPos, rotation, structuretemplatemanager, worldgenrandom);
+                if (optional.isEmpty()) {
+                    LOGGER.error("No starting jigsaw {} found in start pool {}", resourcelocation, pStartPool.unwrapKey().map((p_248484_) -> {
+                        return p_248484_.location().toString();
+                    }).orElse("<unregistered>"));
+                    return Optional.empty();
+                }
+
+                blockpos = optional.get();
+            } else {
+                blockpos = pPos;
+            }
+
+            Vec3i vec3i = blockpos.subtract(pPos);
+            BlockPos blockpos1 = pPos.subtract(vec3i);
+            PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(structuretemplatemanager, structurepoolelement, blockpos1, structurepoolelement.getGroundLevelDelta(), rotation, structurepoolelement.getBoundingBox(structuretemplatemanager, blockpos1, rotation));
+            BoundingBox boundingbox = poolelementstructurepiece.getBoundingBox();
+            int i = (boundingbox.maxX() + boundingbox.minX()) / 2;
+            int j = (boundingbox.maxZ() + boundingbox.minZ()) / 2;
+            int k;
+            if (pProjectStartToHeightmap.isPresent()) {
+                k = pPos.getY() + chunkgenerator.getFirstFreeHeight(i, j, pProjectStartToHeightmap.get(), levelheightaccessor, pContext.randomState());
+            } else {
+                k = blockpos1.getY();
+            }
+
+            int l = boundingbox.minY() + poolelementstructurepiece.getGroundLevelDelta();
+            poolelementstructurepiece.move(0, k - l, 0);
+            int i1 = k + vec3i.getY();
+            Consumer<StructurePiecesBuilder> pGenerator = (structurePiecesBuilder) -> {
+                List<PoolElementStructurePiece> list = Lists.newArrayList();
+                list.add(poolelementstructurepiece);
+                if (pMaxDepth > 0) {
+                    AABB aabb = new AABB((double)(i - pMaxDistanceFromCenter), (double)(i1 - pMaxDistanceFromCenter), (double)(j - pMaxDistanceFromCenter), (double)(i + pMaxDistanceFromCenter + 1), (double)(i1 + pMaxDistanceFromCenter + 1), (double)(j + pMaxDistanceFromCenter + 1));
+                    VoxelShape voxelshape = Shapes.join(Shapes.create(aabb), Shapes.create(AABB.of(boundingbox)), BooleanOp.ONLY_FIRST);
+                    addPieces(pContext.randomState(), pMaxDepth, pUseExpansionHack, chunkgenerator, structuretemplatemanager, levelheightaccessor, worldgenrandom, registry, poolelementstructurepiece, list, voxelshape, pProjectStartToHeightmap.orElse(null));
+                    list.forEach(structurePiecesBuilder::addPiece);
+                }
+            };
+
+            return Optional.of(new Structure.GenerationStub(new BlockPos(i, i1, j), pGenerator));
+        }
+    }
+
+    private static void addPieces(RandomState pRandomState, int pMaxDepth, boolean pUseExpansionHack, ChunkGenerator pChunkGenerator, StructureTemplateManager pStructureTemplateManager, LevelHeightAccessor pLevel, RandomSource pRandom, Registry<StructureTemplatePool> pPools, PoolElementStructurePiece p_227219_, List<PoolElementStructurePiece> pPieces, VoxelShape p_227221_, Heightmap.Types pType) {
+        Placer jigsawplacement$placer = new Placer(pPools, pMaxDepth, pChunkGenerator, pStructureTemplateManager, pPieces, pRandom);
+        jigsawplacement$placer.placing.addLast(new PieceState(p_227219_, new MutableObject<>(p_227221_), 0));
+
+        while(!jigsawplacement$placer.placing.isEmpty()) {
+            PieceState jigsawplacement$piecestate = jigsawplacement$placer.placing.removeFirst();
+            jigsawplacement$placer.tryPlacingChildren(jigsawplacement$piecestate.piece, jigsawplacement$piecestate.free, jigsawplacement$piecestate.depth, pUseExpansionHack, pLevel, pRandomState, pChunkGenerator, pType);
+        }
+
+    }
+
+    static final class Placer {
+        private final Registry<StructureTemplatePool> pools;
+        private final int maxDepth;
+        private final ChunkGenerator chunkGenerator;
+        private final StructureTemplateManager structureTemplateManager;
+        private final List<? super PoolElementStructurePiece> pieces;
+        private final RandomSource random;
+        final Deque<PieceState> placing = Queues.newArrayDeque();
+
+        Placer(Registry<StructureTemplatePool> pPools, int pMaxDepth, ChunkGenerator pChunkGenerator, StructureTemplateManager pStructureTemplateManager, List<? super PoolElementStructurePiece> pPieces, RandomSource pRandom) {
+            this.pools = pPools;
+            this.maxDepth = pMaxDepth;
+            this.chunkGenerator = pChunkGenerator;
+            this.structureTemplateManager = pStructureTemplateManager;
+            this.pieces = pPieces;
+            this.random = pRandom;
+        }
+
+        void tryPlacingChildren(PoolElementStructurePiece pPiece, MutableObject<VoxelShape> pFree, int pDepth, boolean pUseExpansionHack, LevelHeightAccessor pLevel, RandomState pRandomState, ChunkGenerator chunkGenerator, Heightmap.Types pType) {
+            StructurePoolElement structurepoolelement = pPiece.getElement();
+
+            BlockPos blockpos = pPiece.getPosition();
+            Rotation rotation = pPiece.getRotation();
+            StructureTemplatePool.Projection structuretemplatepool$projection = structurepoolelement.getProjection();
+            boolean flag = structuretemplatepool$projection == StructureTemplatePool.Projection.RIGID;
+            MutableObject<VoxelShape> mutableobject = new MutableObject<>();
+            BoundingBox boundingbox = pPiece.getBoundingBox();
+            int i = boundingbox.minY();
+
+            label129:
+            for(StructureTemplate.StructureBlockInfo structuretemplate$structureblockinfo : structurepoolelement.getShuffledJigsawBlocks(this.structureTemplateManager, blockpos, rotation, this.random)) {
+                Direction direction = JigsawBlock.getFrontFacing(structuretemplate$structureblockinfo.state());
+                BlockPos blockpos1 = structuretemplate$structureblockinfo.pos();
+                BlockPos blockpos2 = blockpos1.relative(direction);
+                int j = blockpos1.getY() - i;
+                int k = -1;
+
+
+
+                // hardcoded stairs for now, will change later on
+                BlockPos forwards = blockpos1.relative(direction, 15);
+                BlockPos left = blockpos1.relative(direction, 10).relative(direction.getCounterClockWise(), 6);
+                BlockPos right = blockpos1.relative(direction, 10).relative(direction.getClockWise(), 6);
+
+                StructureTemplate.StructureBlockInfo usingStructureBlockInf = structuretemplate$structureblockinfo;
+
+                int groundLevel = chunkGenerator.getFirstFreeHeight(blockpos2.getX() , blockpos2.getZ(), pType, pLevel, pRandomState);
+                int distToGround = blockpos2.getY() - groundLevel;
+
+                boolean stairsFlag = false;
+                CompoundTag tag = usingStructureBlockInf.nbt() != null ? usingStructureBlockInf.nbt().copy() : new CompoundTag();
+                if (distToGround < 3 && distToGround > -5 && tag.contains("name") && tag.getString("name").equals("minecraft:street")) {
+                    tag.putString("pool", "hexerei:coven/dark_coven/stairs");
+                    tag.putString("target", "minecraft:stairs_up");
+                    stairsFlag = true;
+                } else if (distToGround > 8 && distToGround <= 15 && tag.contains("name") && tag.getString("name").equals("minecraft:street")) {
+                    tag.putString("pool", "hexerei:coven/dark_coven/stairs");
+                    tag.putString("target", "minecraft:stairs_down");
+                    stairsFlag = true;
+                } else if (distToGround > 15 && tag.contains("name") && tag.getString("name").equals("minecraft:street")) {
+
+                    int groundLevelRight = chunkGenerator.getFirstFreeHeight(right.getX() , right.getZ(), pType, pLevel, pRandomState);
+                    int distToGroundRight = right.getY() - groundLevelRight;
+                    int groundLevelLeft = chunkGenerator.getFirstFreeHeight(left.getX() , left.getZ(), pType, pLevel, pRandomState);
+                    int distToGroundLeft = left.getY() - groundLevelLeft;
+                    int groundLevelForwards = chunkGenerator.getFirstFreeHeight(forwards.getX() , forwards.getZ(), pType, pLevel, pRandomState);
+                    int distToGroundForwards = forwards.getY() - groundLevelForwards;
+
+                    if (random.nextFloat() > 0.4f){
+                        if (distToGroundForwards < 8){
+                            tag.putString("pool", "hexerei:coven/dark_coven/streets");
+                            tag.putString("target", "minecraft:street");
+                            tag.putString("name", "minecraft:street");
+                        }
+                        else if (distToGroundLeft >= distToGroundRight){
+                            tag.putString("pool", "hexerei:coven/dark_coven/stairs");
+                            tag.putString("target", "minecraft:stairs_down_turn_right");
+                        } else {
+                            tag.putString("pool", "hexerei:coven/dark_coven/stairs");
+                            tag.putString("target", "minecraft:stairs_down_turn_left");
+                        }
+                        stairsFlag = true;
+                    }
+                } else if (tag.contains("name") && tag.getString("name").equals("minecraft:street") && tag.contains("target") && tag.getString("target").equals("minecraft:stairs_up")) {
+                    tag.putString("pool", "hexerei:coven/dark_coven/streets");
+                    tag.putString("target", "minecraft:street");
+                    tag.putString("name", "minecraft:street");
+                } else if (tag.contains("name") && tag.getString("name").equals("minecraft:street") && tag.contains("target") && tag.getString("target").equals("minecraft:stairs_down")) {
+                    tag.putString("pool", "hexerei:coven/dark_coven/streets");
+                    tag.putString("target", "minecraft:street");
+                    tag.putString("name", "minecraft:street");
+                } else if (tag.contains("name") && tag.getString("name").equals("minecraft:street") && tag.contains("target") && tag.getString("target").equals("minecraft:stairs_down_turn")) {
+                    tag.putString("pool", "hexerei:coven/dark_coven/streets");
+                    tag.putString("target", "minecraft:street");
+                    tag.putString("name", "minecraft:street");
+                }
+                usingStructureBlockInf = new StructureTemplate.StructureBlockInfo(structuretemplate$structureblockinfo.pos(), structuretemplate$structureblockinfo.state(), tag);
+
+
+
+
+                ResourceKey<StructureTemplatePool> resourcekey = readPoolName(usingStructureBlockInf);
+                Optional<? extends Holder<StructureTemplatePool>> optional = this.pools.getHolder(resourcekey);
+                if (optional.isEmpty()) {
+                    LOGGER.warn("Empty or non-existent pool: {}", (Object)resourcekey.location());
+                } else {
+                    Holder<StructureTemplatePool> holder = optional.get();
+                    if (holder.value().size() == 0 && !holder.is(Pools.EMPTY)) {
+                        LOGGER.warn("Empty or non-existent pool: {}", (Object)resourcekey.location());
+                    } else {
+                        Holder<StructureTemplatePool> holder1 = holder.value().getFallback();
+                        if (holder1.value().size() == 0 && !holder1.is(Pools.EMPTY)) {
+                            LOGGER.warn("Empty or non-existent fallback pool: {}", holder1.unwrapKey().map((p_255599_) -> {
+                                return p_255599_.location().toString();
+                            }).orElse("<unregistered>"));
+                        } else {
+                            boolean flag1 = boundingbox.isInside(blockpos2);
+                            MutableObject<VoxelShape> mutableobject1;
+                            if (flag1) {
+                                mutableobject1 = mutableobject;
+                                if (mutableobject.getValue() == null) {
+                                    mutableobject.setValue(Shapes.create(AABB.of(boundingbox)));
+                                }
+                            } else {
+                                mutableobject1 = pFree;
+                            }
+
+                            List<StructurePoolElement> list = Lists.newArrayList();
+                            if (pDepth != this.maxDepth) {
+                                list.addAll(holder.value().getShuffledTemplates(this.random));
+                            }
+
+                            list.addAll(holder1.value().getShuffledTemplates(this.random));
+
+                            for(StructurePoolElement structurepoolelement1 : list) {
+                                if (structurepoolelement1 == EmptyPoolElement.INSTANCE) {
+                                    break;
+                                }
+
+                                for(Rotation rotation1 : Rotation.getShuffled(this.random)) {
+                                    List<StructureTemplate.StructureBlockInfo> list1 = structurepoolelement1.getShuffledJigsawBlocks(this.structureTemplateManager, BlockPos.ZERO, rotation1, this.random);
+                                    BoundingBox boundingbox1 = structurepoolelement1.getBoundingBox(this.structureTemplateManager, BlockPos.ZERO, rotation1);
+                                    int l;
+                                    if (pUseExpansionHack && boundingbox1.getYSpan() <= 16) {
+                                        l = list1.stream().mapToInt((p_255598_) -> {
+                                            if (!boundingbox1.isInside(p_255598_.pos().relative(JigsawBlock.getFrontFacing(p_255598_.state())))) {
+                                                return 0;
+                                            } else {
+                                                ResourceKey<StructureTemplatePool> resourcekey1 = readPoolName(p_255598_);
+                                                Optional<? extends Holder<StructureTemplatePool>> optional1 = this.pools.getHolder(resourcekey1);
+                                                Optional<Holder<StructureTemplatePool>> optional2 = optional1.map((p_255600_) -> {
+                                                    return p_255600_.value().getFallback();
+                                                });
+                                                int j3 = optional1.map((p_255596_) -> {
+                                                    return p_255596_.value().getMaxSize(this.structureTemplateManager);
+                                                }).orElse(0);
+                                                int k3 = optional2.map((p_255601_) -> {
+                                                    return p_255601_.value().getMaxSize(this.structureTemplateManager);
+                                                }).orElse(0);
+                                                return Math.max(j3, k3);
+                                            }
+                                        }).max().orElse(0);
+                                    } else {
+                                        l = 0;
+                                    }
+
+                                    // reconnect the stairs to the street target and name
+                                    List<StructureTemplate.StructureBlockInfo> list2 = new ArrayList<>();
+                                    for(StructureTemplate.StructureBlockInfo usingStructureBlockInf1 : list1) {
+                                        CompoundTag tag2 = usingStructureBlockInf1.nbt();
+                                        if (stairsFlag && tag2 != null && tag2.contains("name") && tag2.getString("name").equals("minecraft:stairs_street")) {
+                                            tag2.putString("pool", "hexerei:coven/dark_coven/streets");
+                                            tag2.putString("target", "minecraft:street");
+                                            tag2.putString("name", "minecraft:street");
+                                        }
+                                        list2.add(new StructureTemplate.StructureBlockInfo(usingStructureBlockInf1.pos(), usingStructureBlockInf1.state(), tag2));
+                                    }
+
+                                    for(StructureTemplate.StructureBlockInfo usingStructureBlockInf1 : list2) {
+
+                                        if (JigsawBlock.canAttach(usingStructureBlockInf, usingStructureBlockInf1)) {
+                                            BlockPos blockpos3 = usingStructureBlockInf1.pos();
+                                            BlockPos blockpos4 = blockpos2.subtract(blockpos3);
+                                            BoundingBox boundingbox2 = structurepoolelement1.getBoundingBox(this.structureTemplateManager, blockpos4, rotation1);
+                                            int i1 = boundingbox2.minY();
+                                            StructureTemplatePool.Projection structuretemplatepool$projection1 = structurepoolelement1.getProjection();
+                                            boolean flag2 = structuretemplatepool$projection1 == StructureTemplatePool.Projection.RIGID;
+                                            int j1 = blockpos3.getY();
+                                            int k1 = j - j1 + JigsawBlock.getFrontFacing(usingStructureBlockInf.state()).getStepY();
+                                            int l1;
+                                            if (flag && flag2) {
+                                                l1 = i + k1;
+                                            } else {
+                                                if (k == -1) {
+                                                    k = this.chunkGenerator.getFirstFreeHeight(blockpos1.getX(), blockpos1.getZ(), Heightmap.Types.WORLD_SURFACE_WG, pLevel, pRandomState);
+                                                }
+
+                                                l1 = k - j1;
+                                            }
+
+                                            int i2 = l1 - i1;
+                                            BoundingBox boundingbox3 = boundingbox2.moved(0, i2, 0);
+                                            BlockPos blockpos5 = blockpos4.offset(0, i2, 0);
+                                            if (l > 0) {
+                                                int j2 = Math.max(l + 1, boundingbox3.maxY() - boundingbox3.minY());
+                                                boundingbox3.encapsulate(new BlockPos(boundingbox3.minX(), boundingbox3.minY() + j2, boundingbox3.minZ()));
+                                            }
+
+                                            if (!Shapes.joinIsNotEmpty(mutableobject1.getValue(), Shapes.create(AABB.of(boundingbox3).deflate(0.25D)), BooleanOp.ONLY_SECOND)) {
+                                                mutableobject1.setValue(Shapes.joinUnoptimized(mutableobject1.getValue(), Shapes.create(AABB.of(boundingbox3)), BooleanOp.ONLY_FIRST));
+                                                int i3 = pPiece.getGroundLevelDelta();
+                                                int k2;
+                                                if (flag2) {
+                                                    k2 = i3 - k1;
+                                                } else {
+                                                    k2 = structurepoolelement1.getGroundLevelDelta();
+                                                }
+
+                                                PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(this.structureTemplateManager, structurepoolelement1, blockpos5, k2, rotation1, boundingbox3);
+                                                int l2;
+                                                if (flag) {
+                                                    l2 = i + j;
+                                                } else if (flag2) {
+                                                    l2 = l1 + j1;
+                                                } else {
+                                                    if (k == -1) {
+                                                        k = this.chunkGenerator.getFirstFreeHeight(blockpos1.getX(), blockpos1.getZ(), Heightmap.Types.WORLD_SURFACE_WG, pLevel, pRandomState);
+                                                    }
+
+                                                    l2 = k + k1 / 2;
+                                                }
+
+                                                pPiece.addJunction(new JigsawJunction(blockpos2.getX(), l2 - j + i3, blockpos2.getZ(), k1, structuretemplatepool$projection1));
+                                                poolelementstructurepiece.addJunction(new JigsawJunction(blockpos1.getX(), l2 - j1 + k2, blockpos1.getZ(), -k1, structuretemplatepool$projection));
+                                                this.pieces.add(poolelementstructurepiece);
+                                                if (pDepth + 1 <= this.maxDepth) {
+                                                    this.placing.addLast(new PieceState(poolelementstructurepiece, mutableobject1, pDepth + 1));
+                                                }
+                                                continue label129;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private static ResourceKey<StructureTemplatePool> readPoolName(StructureTemplate.StructureBlockInfo pStructureBlockInfo) {
+            return ResourceKey.create(Registries.TEMPLATE_POOL, new ResourceLocation(pStructureBlockInfo.nbt().getString("pool")));
+        }
+    }
+    static final class PieceState {
+        final PoolElementStructurePiece piece;
+        final MutableObject<VoxelShape> free;
+        final int depth;
+
+        PieceState(PoolElementStructurePiece pPiece, MutableObject<VoxelShape> pFree, int pDepth) {
+            this.piece = pPiece;
+            this.free = pFree;
+            this.depth = pDepth;
+        }
+    }
+    private static Optional<BlockPos> getRandomNamedJigsaw(StructurePoolElement pElement, ResourceLocation pStartJigsawName, BlockPos pPos, Rotation pRotation, StructureTemplateManager pStructureTemplateManager, WorldgenRandom pRandom) {
+        List<StructureTemplate.StructureBlockInfo> list = pElement.getShuffledJigsawBlocks(pStructureTemplateManager, pPos, pRotation, pRandom);
+        Optional<BlockPos> optional = Optional.empty();
+
+        for(StructureTemplate.StructureBlockInfo usingStructureBlockInf : list) {
+            ResourceLocation resourcelocation = ResourceLocation.tryParse(usingStructureBlockInf.nbt().getString("name"));
+            if (pStartJigsawName.equals(resourcelocation)) {
+                optional = Optional.of(usingStructureBlockInf.pos());
+                break;
+            }
+        }
+
+        return optional;
     }
 
     /*
@@ -116,7 +565,7 @@ public class DarkCovenStructure extends Structure {
         BlockPos blockPos = new BlockPos(chunkPos.getMinBlockX(), startY, chunkPos.getMinBlockZ());
 
         Optional<Structure.GenerationStub> structurePiecesGenerator =
-                JigsawPlacement.addPieces(
+                addPieces(
                         context, // Used for JigsawPlacement to get all the proper behaviors done.
                         this.startPool, // The starting pool to use to create the structure layout from
                         this.startJigsawName, // Can be used to only spawn from one Jigsaw block. But we don't need to worry about this.

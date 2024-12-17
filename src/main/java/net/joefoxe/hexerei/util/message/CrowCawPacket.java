@@ -40,10 +40,10 @@ public class CrowCawPacket {
             }
 
             if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof CrowEntity) {
-                    ((CrowEntity) world.getEntity(packet.sourceId)).caw = true;
-                    ((CrowEntity) world.getEntity(packet.sourceId)).cawTimer = 15;
-                    ((CrowEntity) world.getEntity(packet.sourceId)).cawTiltAngle = 80;
+                if((world.getEntity(packet.sourceId)) instanceof CrowEntity crow) {
+                    crow.caw = true;
+                    crow.cawTimer = 15;
+                    crow.cawTiltAngle = 80;
                 }
             }
         });

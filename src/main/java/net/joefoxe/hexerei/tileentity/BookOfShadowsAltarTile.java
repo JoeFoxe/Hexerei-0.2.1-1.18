@@ -1,10 +1,8 @@
 package net.joefoxe.hexerei.tileentity;
 
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.data.books.BookEntries;
-import net.joefoxe.hexerei.data.books.BookManager;
-import net.joefoxe.hexerei.data.books.HexereiBookItem;
-import net.joefoxe.hexerei.data.books.PageDrawing;
+import net.joefoxe.hexerei.data.books.*;
+import net.joefoxe.hexerei.data.candle.CandleData;
 import net.joefoxe.hexerei.sounds.ModSounds;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.*;
@@ -16,8 +14,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
@@ -50,10 +50,6 @@ import static net.joefoxe.hexerei.util.HexereiUtil.moveToAngle;
 
 public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity implements Clearable, MenuProvider {
 
-//    public final ItemStackHandler itemHandler = createHandler();
-//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
-//    protected NonNullList<ItemStack> items = NonNullList.withSize(8, ItemStack.EMPTY);
-
     public final ItemStackHandler itemHandler = createHandler();
     private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
 
@@ -71,6 +67,9 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
     public float degreesFloppedTo;
     public float degreesFloppedRender;
     public float degreesFloppedSpeed;
+    public boolean drawTooltip;
+    public float tooltipScale;
+    public float tooltipScaleOld;
     public int turnPage;
     public int turnToPage;
     public int turnToChapter;
@@ -81,6 +80,8 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
     public float bookmarkSelectorScale;
     public float pageOneRotation;
     public float pageTwoRotation;
+    public float pageOneRotationLast;
+    public float pageTwoRotationLast;
     public float pageOneRotationTo;
     public float pageTwoRotationTo;
     public float pageOneRotationRender;
@@ -112,36 +113,41 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
     public BookOfShadowsAltarTile(BlockEntityType<?> tileEntityTypeIn, BlockPos blockPos, BlockState blockState) {
         super(tileEntityTypeIn, blockPos, blockState);
 
-        turnPage = 0;
-        buttonScale = 1;
-        buttonScaleTo = 1;
-        buttonScaleRender = 1;
-        buttonScaleSpeed = 0;
-        bookmarkSelectorScale = 0;
-        pageOneRotation = 0;
-        pageOneRotationRender = 0;
-        pageOneRotationTo = 0;
-        pageOneRotationSpeed = 0;
-        pageTwoRotation = 0;
-        pageTwoRotationRender = 0;
-        pageTwoRotationTo = 0;
-        pageTwoRotationSpeed = 0;
-        degreesFlopped = 90;
-        degreesFloppedTo = 90;
-        degreesFloppedSpeed = 0;
-        degreesFloppedRender = 90;
-        degreesOpened = 90; // reversed because the model is made so the book is opened from the start so offsetting 90 degrees from the start will close the book
-        degreesOpenedTo = 90;
-        degreesOpenedSpeed = 0;
-        degreesOpenedRender = 90;
-        degreesSpun = 0;
-        degreesSpunTo = 0;
-        degreesSpunSpeed = 0;
-        degreesSpunRender = 0;
-        candlePos1Slot = 0;
-        candlePos2Slot = 0;
-        candlePos3Slot = 0;
-        drawing = new PageDrawing();
+        this.drawTooltip = false;
+        this.tooltipScale = 0;
+        this.tooltipScaleOld = 0;
+        this.turnPage = 0;
+        this.buttonScale = 1;
+        this.buttonScaleTo = 1;
+        this.buttonScaleRender = 1;
+        this.buttonScaleSpeed = 0;
+        this.bookmarkSelectorScale = 0;
+        this.pageOneRotation = 0;
+        this.pageOneRotationLast = 0;
+        this.pageOneRotationRender = 0;
+        this.pageOneRotationTo = 0;
+        this.pageOneRotationSpeed = 0;
+        this.pageTwoRotation = 0;
+        this.pageTwoRotationLast = 0;
+        this.pageTwoRotationRender = 0;
+        this.pageTwoRotationTo = 0;
+        this.pageTwoRotationSpeed = 0;
+        this.degreesFlopped = 90;
+        this.degreesFloppedTo = 90;
+        this.degreesFloppedSpeed = 0;
+        this.degreesFloppedRender = 90;
+        this.degreesOpened = 90; // reversed because the model is made so the book is opened from the start so offsetting 90 degrees from the start will close the book
+        this.degreesOpenedTo = 90;
+        this.degreesOpenedSpeed = 0;
+        this.degreesOpenedRender = 90;
+        this.degreesSpun = 0;
+        this.degreesSpunTo = 0;
+        this.degreesSpunSpeed = 0;
+        this.degreesSpunRender = 0;
+        this.candlePos1Slot = 0;
+        this.candlePos2Slot = 0;
+        this.candlePos3Slot = 0;
+        this.drawing = new PageDrawing();
     }
 
 
@@ -530,13 +536,20 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
 //                this.level.addParticle(ModParticleTypes.BLOOD_BIT.get(), vec.x, vec.y, vec.z, 0, 0, 0);
 //            }
 
+            this.tooltipScaleOld = this.tooltipScale;
+            if (this.drawTooltip) {
+                this.tooltipScale = moveTo(this.tooltipScale, 1f, 0.075f);
+            } else {
+                this.tooltipScale = moveTo(this.tooltipScale, 0f, 0.15f);
+            }
+
             CompoundTag tag = this.itemHandler.getStackInSlot(0).getOrCreateTag();
 
             if (this.turnPage != 0 || (tag.contains("opened") && !tag.getBoolean("opened"))) {
                 this.buttonScaleSpeed = 0.1f * (this.buttonScale + 0.25f);
                 this.buttonScaleTo = 0;
             } else {
-                this.buttonScaleSpeed = 0.15f * (this.buttonScale + 0.25f);
+                this.buttonScaleSpeed = 0.25f * (this.buttonScale + 0.25f);
                 this.buttonScaleTo = 1;
             }
 
@@ -544,32 +557,111 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
             tickCount++;
 
             closestPlayerPos = null;
-            numberOfCandles = 0;
 
-            candlePos1 = new BlockPos(0, 0, 0);
-            candlePos2 = new BlockPos(0, 0, 0);
-            candlePos3 = new BlockPos(0, 0, 0);
 
-            for (int k = -1; k <= 1; ++k) {
-                for (int l = -1; l <= 1; ++l) {
-                    if ((k != 0 || l != 0)) {
-                        if ((level.getBlockEntity(worldPosition.offset(l * 2, 0, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
-                            for (int i = 0; i < candleTile.numberOfCandles; i++) {
+        }
+        numberOfCandles = 0;
 
-                                if ((i == 0 && candleTile.candles.get(0).lit)
+        candlePos1 = new BlockPos(0, 0, 0);
+        candlePos2 = new BlockPos(0, 0, 0);
+        candlePos3 = new BlockPos(0, 0, 0);
+
+        for (int k = -1; k <= 1; ++k) {
+            for (int l = -1; l <= 1; ++l) {
+                if ((k != 0 || l != 0)) {
+                    if ((level.getBlockEntity(worldPosition.offset(l * 2, 0, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
+                        for (int i = 0; i < candleTile.getNumberOfCandles(); i++) {
+
+                            if ((i == 0 && candleTile.candles.get(0).lit)
                                     || (i == 1 && candleTile.candles.get(1).lit)
                                     || (i == 2 && candleTile.candles.get(2).lit)
                                     || (i == 3 && candleTile.candles.get(3).lit)) {
+                                if (numberOfCandles == 0) {
+                                    candlePos1 = worldPosition.offset(l * 2, 0, k * 2);
+                                    candlePos1Slot = i;
+                                }
+                                if (numberOfCandles == 1) {
+                                    candlePos2 = worldPosition.offset(l * 2, 0, k * 2);
+                                    candlePos2Slot = i;
+                                }
+                                if (numberOfCandles == 2) {
+                                    candlePos3 = worldPosition.offset(l * 2, 0, k * 2);
+                                    candlePos3Slot = i;
+                                }
+                                numberOfCandles++;
+                            }
+                        }
+
+                    }
+                    if ((level.getBlockEntity(worldPosition.offset(l * 2, 1, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
+
+                        for (int i = 0; i < candleTile.getNumberOfCandles(); i++) {
+
+                            if ((i == 0 && candleTile.candles.get(0).lit)
+                                    || (i == 1 && candleTile.candles.get(1).lit)
+                                    || (i == 2 && candleTile.candles.get(2).lit)
+                                    || (i == 3 && candleTile.candles.get(3).lit)) {
+                                if (numberOfCandles == 0) {
+                                    candlePos1 = worldPosition.offset(l * 2, 1, k * 2);
+                                    candlePos1Slot = i;
+                                }
+                                if (numberOfCandles == 1) {
+                                    candlePos2 = worldPosition.offset(l * 2, 1, k * 2);
+                                    candlePos2Slot = i;
+                                }
+                                if (numberOfCandles == 2) {
+                                    candlePos3 = worldPosition.offset(l * 2, 1, k * 2);
+                                    candlePos3Slot = i;
+                                }
+                                numberOfCandles++;
+                            }
+                        }
+                    }
+
+                    if (l != 0 && k != 0) {
+
+                        if ((level.getBlockEntity(worldPosition.offset(l * 2, 0, k))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
+
+                            for (int i = 0; i < candleTile.getNumberOfCandles(); i++) {
+
+                                if ((i == 0 && candleTile.candles.get(0).lit)
+                                        || (i == 1 && candleTile.candles.get(1).lit)
+                                        || (i == 2 && candleTile.candles.get(2).lit)
+                                        || (i == 3 && candleTile.candles.get(3).lit)) {
                                     if (numberOfCandles == 0) {
-                                        candlePos1 = worldPosition.offset(l * 2, 0, k * 2);
+                                        candlePos1 = worldPosition.offset(l * 2, 0, k);
                                         candlePos1Slot = i;
                                     }
                                     if (numberOfCandles == 1) {
-                                        candlePos2 = worldPosition.offset(l * 2, 0, k * 2);
+                                        candlePos2 = worldPosition.offset(l * 2, 0, k);
                                         candlePos2Slot = i;
                                     }
                                     if (numberOfCandles == 2) {
-                                        candlePos3 = worldPosition.offset(l * 2, 0, k * 2);
+                                        candlePos3 = worldPosition.offset(l * 2, 0, k);
+                                        candlePos3Slot = i;
+                                    }
+                                    numberOfCandles++;
+                                }
+                            }
+                        }
+                        if ((level.getBlockEntity(worldPosition.offset(l * 2, 1, k))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
+
+                            for (int i = 0; i < candleTile.getNumberOfCandles(); i++) {
+
+                                if ((i == 0 && candleTile.candles.get(0).lit)
+                                        || (i == 1 && candleTile.candles.get(1).lit)
+                                        || (i == 2 && candleTile.candles.get(2).lit)
+                                        || (i == 3 && candleTile.candles.get(3).lit)) {
+                                    if (numberOfCandles == 0) {
+                                        candlePos1 = worldPosition.offset(l * 2, 1, k);
+                                        candlePos1Slot = i;
+                                    }
+                                    if (numberOfCandles == 1) {
+                                        candlePos2 = worldPosition.offset(l * 2, 1, k);
+                                        candlePos2Slot = i;
+                                    }
+                                    if (numberOfCandles == 2) {
+                                        candlePos3 = worldPosition.offset(l * 2, 1, k);
                                         candlePos3Slot = i;
                                     }
                                     numberOfCandles++;
@@ -577,24 +669,48 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                             }
 
                         }
-                        if ((level.getBlockEntity(worldPosition.offset(l * 2, 1, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
+                        if ((level.getBlockEntity(worldPosition.offset(l, 0, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
 
-                            for (int i = 0; i < candleTile.numberOfCandles; i++) {
+                            for (int i = 0; i < candleTile.getNumberOfCandles(); i++) {
 
                                 if ((i == 0 && candleTile.candles.get(0).lit)
-                                    || (i == 1 && candleTile.candles.get(1).lit)
-                                    || (i == 2 && candleTile.candles.get(2).lit)
-                                    || (i == 3 && candleTile.candles.get(3).lit)) {
+                                        || (i == 1 && candleTile.candles.get(1).lit)
+                                        || (i == 2 && candleTile.candles.get(2).lit)
+                                        || (i == 3 && candleTile.candles.get(3).lit)) {
                                     if (numberOfCandles == 0) {
-                                        candlePos1 = worldPosition.offset(l * 2, 1, k * 2);
+                                        candlePos1 = worldPosition.offset(l, 0, k * 2);
                                         candlePos1Slot = i;
                                     }
                                     if (numberOfCandles == 1) {
-                                        candlePos2 = worldPosition.offset(l * 2, 1, k * 2);
+                                        candlePos2 = worldPosition.offset(l, 0, k * 2);
                                         candlePos2Slot = i;
                                     }
                                     if (numberOfCandles == 2) {
-                                        candlePos3 = worldPosition.offset(l * 2, 1, k * 2);
+                                        candlePos3 = worldPosition.offset(l, 0, k * 2);
+                                        candlePos3Slot = i;
+                                    }
+                                    numberOfCandles++;
+                                }
+                            }
+                        }
+                        if ((level.getBlockEntity(worldPosition.offset(l, 1, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
+
+                            for (int i = 0; i < candleTile.getNumberOfCandles(); i++) {
+
+                                if ((i == 0 && candleTile.candles.get(0).lit)
+                                        || (i == 1 && candleTile.candles.get(1).lit)
+                                        || (i == 2 && candleTile.candles.get(2).lit)
+                                        || (i == 3 && candleTile.candles.get(3).lit)) {
+                                    if (numberOfCandles == 0) {
+                                        candlePos1 = worldPosition.offset(l, 1, k * 2);
+                                        candlePos1Slot = i;
+                                    }
+                                    if (numberOfCandles == 1) {
+                                        candlePos2 = worldPosition.offset(l, 1, k * 2);
+                                        candlePos2Slot = i;
+                                    }
+                                    if (numberOfCandles == 2) {
+                                        candlePos3 = worldPosition.offset(l, 1, k * 2);
                                         candlePos3Slot = i;
                                     }
                                     numberOfCandles++;
@@ -602,203 +718,41 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                             }
                         }
 
-                        if (l != 0 && k != 0) {
-
-                            if ((level.getBlockEntity(worldPosition.offset(l * 2, 0, k))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
-
-                                for (int i = 0; i < candleTile.numberOfCandles; i++) {
-
-                                    if ((i == 0 && candleTile.candles.get(0).lit)
-                                        || (i == 1 && candleTile.candles.get(1).lit)
-                                        || (i == 2 && candleTile.candles.get(2).lit)
-                                        || (i == 3 && candleTile.candles.get(3).lit)) {
-                                        if (numberOfCandles == 0) {
-                                            candlePos1 = worldPosition.offset(l * 2, 0, k);
-                                            candlePos1Slot = i;
-                                        }
-                                        if (numberOfCandles == 1) {
-                                            candlePos2 = worldPosition.offset(l * 2, 0, k);
-                                            candlePos2Slot = i;
-                                        }
-                                        if (numberOfCandles == 2) {
-                                            candlePos3 = worldPosition.offset(l * 2, 0, k);
-                                            candlePos3Slot = i;
-                                        }
-                                        numberOfCandles++;
-                                    }
-                                }
-                            }
-                            if ((level.getBlockEntity(worldPosition.offset(l * 2, 1, k))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
-
-                                for (int i = 0; i < candleTile.numberOfCandles; i++) {
-
-                                    if ((i == 0 && candleTile.candles.get(0).lit)
-                                        || (i == 1 && candleTile.candles.get(1).lit)
-                                        || (i == 2 && candleTile.candles.get(2).lit)
-                                        || (i == 3 && candleTile.candles.get(3).lit)) {
-                                        if (numberOfCandles == 0) {
-                                            candlePos1 = worldPosition.offset(l * 2, 1, k);
-                                            candlePos1Slot = i;
-                                        }
-                                        if (numberOfCandles == 1) {
-                                            candlePos2 = worldPosition.offset(l * 2, 1, k);
-                                            candlePos2Slot = i;
-                                        }
-                                        if (numberOfCandles == 2) {
-                                            candlePos3 = worldPosition.offset(l * 2, 1, k);
-                                            candlePos3Slot = i;
-                                        }
-                                        numberOfCandles++;
-                                    }
-                                }
-
-                            }
-                            if ((level.getBlockEntity(worldPosition.offset(l, 0, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
-
-                                for (int i = 0; i < candleTile.numberOfCandles; i++) {
-
-                                    if ((i == 0 && candleTile.candles.get(0).lit)
-                                        || (i == 1 && candleTile.candles.get(1).lit)
-                                        || (i == 2 && candleTile.candles.get(2).lit)
-                                        || (i == 3 && candleTile.candles.get(3).lit)) {
-                                        if (numberOfCandles == 0) {
-                                            candlePos1 = worldPosition.offset(l, 0, k * 2);
-                                            candlePos1Slot = i;
-                                        }
-                                        if (numberOfCandles == 1) {
-                                            candlePos2 = worldPosition.offset(l, 0, k * 2);
-                                            candlePos2Slot = i;
-                                        }
-                                        if (numberOfCandles == 2) {
-                                            candlePos3 = worldPosition.offset(l, 0, k * 2);
-                                            candlePos3Slot = i;
-                                        }
-                                        numberOfCandles++;
-                                    }
-                                }
-                            }
-                            if ((level.getBlockEntity(worldPosition.offset(l, 1, k * 2))) instanceof CandleTile candleTile && numberOfCandles < maxCandles) {
-
-                                for (int i = 0; i < candleTile.numberOfCandles; i++) {
-
-                                    if ((i == 0 && candleTile.candles.get(0).lit)
-                                        || (i == 1 && candleTile.candles.get(1).lit)
-                                        || (i == 2 && candleTile.candles.get(2).lit)
-                                        || (i == 3 && candleTile.candles.get(3).lit)) {
-                                        if (numberOfCandles == 0) {
-                                            candlePos1 = worldPosition.offset(l, 1, k * 2);
-                                            candlePos1Slot = i;
-                                        }
-                                        if (numberOfCandles == 1) {
-                                            candlePos2 = worldPosition.offset(l, 1, k * 2);
-                                            candlePos2Slot = i;
-                                        }
-                                        if (numberOfCandles == 2) {
-                                            candlePos3 = worldPosition.offset(l, 1, k * 2);
-                                            candlePos3Slot = i;
-                                        }
-                                        numberOfCandles++;
-                                    }
-                                }
-                            }
-
-                        }
                     }
                 }
             }
+        }
 
-            if (numberOfCandles >= 1) {
-                degreesSpunCandles = moveToAngle(degreesSpunCandles, degreesSpunCandles + 1, 0.025f);
+        degreesSpunCandles = moveToAngle(degreesSpunCandles, degreesSpunCandles + 1, 0.025f);
 
-                if (level.getBlockEntity(candlePos1) instanceof CandleTile candle_1) {
+        if (numberOfCandles >= 1 && level.getBlockEntity(candlePos1) instanceof CandleTile candle) {
 
-                    if (candlePos1Slot == 0) {
+            CandleData candleData = candle.candles.get(candlePos1Slot);
+            candleData.setNotReturn((int)this.tickCount);
+            candleData.xTarget = (worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f);
+            candleData.yTarget = (worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(this.tickCount / 20f) / 10);
+            candleData.zTarget = (worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f);
+        }
+        if (numberOfCandles >= 2 && level.getBlockEntity(candlePos2) instanceof CandleTile candle) {
 
-                        candle_1.candles.get(0).returnToBlock = false;
-                        candle_1.candles.get(0).x = moveTo(candle_1.candles.get(0).x, (worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f) - candle_1.candles.get(0).x) / 3f));
-                        candle_1.candles.get(0).y = moveTo(candle_1.candles.get(0).y, (worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10) - candle_1.candles.get(0).y) / 3f));
-                        candle_1.candles.get(0).z = moveTo(candle_1.candles.get(0).z, (worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f) - candle_1.candles.get(0).z) / 3f));
-                    }
-                    if (candlePos1Slot == 1) {
-                        candle_1.candles.get(1).returnToBlock = false;
-                        candle_1.candles.get(1).x = moveTo(candle_1.candles.get(1).x, (worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f) - candle_1.candles.get(1).x) / 3f));
-                        candle_1.candles.get(1).y = moveTo(candle_1.candles.get(1).y, (worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10) - candle_1.candles.get(1).y) / 3f));
-                        candle_1.candles.get(1).z = moveTo(candle_1.candles.get(1).z, (worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f) - candle_1.candles.get(1).z) / 3f));
-                    }
-                    if (candlePos1Slot == 2) {
-                        candle_1.candles.get(2).returnToBlock = false;
-                        candle_1.candles.get(2).x = moveTo(candle_1.candles.get(2).x, (worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f) - candle_1.candles.get(2).x) / 3f));
-                        candle_1.candles.get(2).y = moveTo(candle_1.candles.get(2).y, (worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10) - candle_1.candles.get(2).y) / 3f));
-                        candle_1.candles.get(2).z = moveTo(candle_1.candles.get(2).z, (worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f) - candle_1.candles.get(2).z) / 3f));
-                    }
-                    if (candlePos1Slot == 3) {
-                        candle_1.candles.get(3).returnToBlock = false;
-                        candle_1.candles.get(3).x = moveTo(candle_1.candles.get(3).x, (worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos1.getX() + (float) Math.sin(degreesSpunCandles) * 1.25f) - candle_1.candles.get(3).x) / 3f));
-                        candle_1.candles.get(3).y = moveTo(candle_1.candles.get(3).y, (worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos1.getY() + 1f + (float) Math.sin(Hexerei.getClientTicks() / 20f) / 10) - candle_1.candles.get(3).y) / 3f));
-                        candle_1.candles.get(3).z = moveTo(candle_1.candles.get(3).z, (worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos1.getZ() + (float) Math.cos(degreesSpunCandles) * 1.25f) - candle_1.candles.get(3).z) / 3f));
-                    }
-                }
-            }
-            if (numberOfCandles >= 2 && level.getBlockEntity(candlePos2) instanceof CandleTile candle_2) {
-                if (candlePos2Slot == 0) {
-                    candle_2.candles.get(0).returnToBlock = false;
-                    candle_2.candles.get(0).x = moveTo(candle_2.candles.get(0).x, (worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(0).x) / 3f));
-                    candle_2.candles.get(0).y = moveTo(candle_2.candles.get(0).y, (worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10) - candle_2.candles.get(0).y) / 3f));
-                    candle_2.candles.get(0).z = moveTo(candle_2.candles.get(0).z, (worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(0).z) / 3f));
-                }
-                if (candlePos2Slot == 1) {
-                    candle_2.candles.get(1).returnToBlock = false;
-                    candle_2.candles.get(1).x = moveTo(candle_2.candles.get(1).x, (worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(1).x) / 3f));
-                    candle_2.candles.get(1).y = moveTo(candle_2.candles.get(1).y, (worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10) - candle_2.candles.get(1).y) / 3f));
-                    candle_2.candles.get(1).z = moveTo(candle_2.candles.get(1).z, (worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(1).z) / 3f));
-                }
-                if (candlePos2Slot == 2) {
-                    candle_2.candles.get(2).returnToBlock = false;
-                    candle_2.candles.get(2).x = moveTo(candle_2.candles.get(2).x, (worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(2).x) / 3f));
-                    candle_2.candles.get(2).y = moveTo(candle_2.candles.get(2).y, (worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10) - candle_2.candles.get(2).y) / 3f));
-                    candle_2.candles.get(2).z = moveTo(candle_2.candles.get(2).z, (worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(2).z) / 3f));
-                }
-                if (candlePos2Slot == 3) {
-                    candle_2.candles.get(3).returnToBlock = false;
-                    candle_2.candles.get(3).x = moveTo(candle_2.candles.get(3).x, (worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(3).x) / 3f));
-                    candle_2.candles.get(3).y = moveTo(candle_2.candles.get(3).y, (worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 10) / 20f) / 10) - candle_2.candles.get(3).y) / 3f));
-                    candle_2.candles.get(3).z = moveTo(candle_2.candles.get(3).z, (worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f) - candle_2.candles.get(3).z) / 3f));
-                }
-            }
-            if (numberOfCandles >= 3 && level.getBlockEntity(candlePos3) instanceof CandleTile candle_3) {
-                if (candlePos3Slot == 0) {
-                    candle_3.candles.get(0).returnToBlock = false;
-                    candle_3.candles.get(0).x = moveTo(candle_3.candles.get(0).x, (worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(0).x) / 3f));
-                    candle_3.candles.get(0).y = moveTo(candle_3.candles.get(0).y, (worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10) - candle_3.candles.get(0).y) / 3f));
-                    candle_3.candles.get(0).z = moveTo(candle_3.candles.get(0).z, (worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(0).z) / 3f));
-                }
-                if (candlePos3Slot == 1) {
-                    candle_3.candles.get(1).returnToBlock = false;
-                    candle_3.candles.get(1).x = moveTo(candle_3.candles.get(1).x, (worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(1).x) / 3f));
-                    candle_3.candles.get(1).y = moveTo(candle_3.candles.get(1).y, (worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10) - candle_3.candles.get(1).y) / 3f));
-                    candle_3.candles.get(1).z = moveTo(candle_3.candles.get(1).z, (worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(1).z) / 3f));
-                }
-                if (candlePos3Slot == 2) {
-                    candle_3.candles.get(2).returnToBlock = false;
-                    candle_3.candles.get(2).x = moveTo(candle_3.candles.get(2).x, (worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(2).x) / 3f));
-                    candle_3.candles.get(2).y = moveTo(candle_3.candles.get(2).y, (worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10) - candle_3.candles.get(2).y) / 3f));
-                    candle_3.candles.get(2).z = moveTo(candle_3.candles.get(2).z, (worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(2).z) / 3f));
-                }
-                if (candlePos3Slot == 3) {
-                    candle_3.candles.get(3).returnToBlock = false;
-                    candle_3.candles.get(3).x = moveTo(candle_3.candles.get(3).x, (worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(3).x) / 3f));
-                    candle_3.candles.get(3).y = moveTo(candle_3.candles.get(3).y, (worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10), 0.02f + 0.08f * (Math.abs((worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((Hexerei.getClientTicks() + 20) / 20f) / 10) - candle_3.candles.get(3).y) / 3f));
-                    candle_3.candles.get(3).z = moveTo(candle_3.candles.get(3).z, (worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f), 0.02f + 0.20f * (Math.abs((worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + (Math.PI * 2f / 3f * 2f) * 1.25f) * 1.25f) - candle_3.candles.get(3).z) / 3f));
-                }
-            }
+            CandleData candleData = candle.candles.get(candlePos2Slot);
+            candleData.setNotReturn((int)this.tickCount);
+            candleData.xTarget = (worldPosition.getX() - candlePos2.getX() + (float) Math.sin(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f);
+            candleData.yTarget = (worldPosition.getY() - candlePos2.getY() + 1f + (float) Math.sin((this.tickCount + 10) / 20f) / 10);
+            candleData.zTarget = (worldPosition.getZ() - candlePos2.getZ() + (float) Math.cos(degreesSpunCandles + (numberOfCandles == 2 ? Math.PI : Math.PI * 2f / 3f)) * 1.25f);
+        }
+        if (numberOfCandles >= 3 && level.getBlockEntity(candlePos3) instanceof CandleTile candle) {
 
-
+            CandleData candleData = candle.candles.get(candlePos3Slot);
+            candleData.setNotReturn((int)this.tickCount);
+            candleData.xTarget = (worldPosition.getX() - candlePos3.getX() + (float) Math.sin(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f);
+            candleData.yTarget = (worldPosition.getY() - candlePos3.getY() + 1f + (float) Math.sin((this.tickCount + 20) / 20f) / 10);
+            candleData.zTarget = (worldPosition.getZ() - candlePos3.getZ() + (float) Math.cos(degreesSpunCandles + Math.PI * 2f / 3f * 2f) * 1.25f);
         }
 
 
         closestDist = maxDist;
         Item item = this.itemHandler.getStackInSlot(0).getItem();
-//        System.out.println(level.isClientSide ? "Client - " + item : "Server - " + item);
         if (item instanceof HexereiBookItem) {
             Player playerEntity = this.level.getNearestPlayer(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(), maxDist, false);
             if (playerEntity != null) {
@@ -824,7 +778,8 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                 this.slotClickedTick++;
 
             CompoundTag tag = this.itemHandler.getStackInSlot(0).getOrCreateTag();
-
+            this.pageOneRotationLast = this.pageOneRotation;
+            this.pageTwoRotationLast = this.pageTwoRotation;
             if (tag.getBoolean("opened")) {
 
 
@@ -853,8 +808,9 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                     }
                 }
 
+
                 if (this.degreesFlopped == 0) {
-                    this.degreesOpenedTo = (float) (this.closestDist * (360 / maxDist)) / 4;
+                    this.degreesOpenedTo = Mth.clamp((float) (Math.max(0, this.closestDist - 1) * (360 / (maxDist - 1))) / 4, 4.0f, 90f);
                     this.degreesOpenedSpeed = 2f + 5 * (45 - Math.abs(45 - degreesOpened)) / 90;
                 } else {
                     this.degreesOpenedTo = 90;
@@ -871,12 +827,14 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                         this.pageOneRotationTo = 0;
 //                        this.pageOneRotationSpeed = 0;
                         this.turnPage = 0;
+                        this.pageOneRotationLast = this.pageOneRotation;
 //                        setChanged();
                     } else {
                         if (this.pageOneRotation == 0 && !level.isClientSide)
                             level.playSound(null, this.worldPosition.above(), ModSounds.BOOK_TURN_PAGE_SLOW.get(), SoundSource.BLOCKS, (level.random.nextFloat() * 0.25f + 0.5f), (level.random.nextFloat() * 0.25f + 0.75f));
 
-                        this.pageOneRotationSpeed = ((float) Math.sin(this.pageOneRotation / 180 * Math.PI) * (float) Math.sin(this.pageOneRotation / 180 * Math.PI) * 15) + 6.25f;
+                        float f = (float) Math.sin(this.pageOneRotation / 180 * Math.PI);
+                        this.pageOneRotationSpeed = (f * f * 35) + 10f;
                         this.pageOneRotationTo = (float) 180;
                         this.pageOneRotation = moveTo(this.pageOneRotation, this.pageOneRotationTo, this.pageOneRotationSpeed);
                     }
@@ -889,6 +847,7 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                         this.pageTwoRotationRender = 0;
                         this.pageTwoRotation = 0;
                         this.pageTwoRotationTo = 0;
+                        this.pageTwoRotationLast = this.pageTwoRotation;
 //                        this.pageTwoRotationSpeed = 0;
                         this.turnPage = 0;
 //                        setChanged();
@@ -897,7 +856,8 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                         if (this.pageTwoRotation == 0 && !level.isClientSide)
                             level.playSound(null, this.worldPosition.above(), ModSounds.BOOK_TURN_PAGE_SLOW.get(), SoundSource.BLOCKS, (level.random.nextFloat() * 0.25f + 0.5f), (level.random.nextFloat() * 0.25f + 0.75f));
 
-                        this.pageTwoRotationSpeed = ((float) Math.sin(this.pageTwoRotation / 180 * Math.PI) * (float) Math.sin(this.pageTwoRotation / 180 * Math.PI) * 15) + 6.25f;
+                        float f = (float) Math.sin(this.pageTwoRotation / 180 * Math.PI);
+                        this.pageTwoRotationSpeed = (f * f * 35) + 10f;
                         this.pageTwoRotationTo = (float) 180;
                         this.pageTwoRotation = moveTo(this.pageTwoRotation, this.pageTwoRotationTo, this.pageTwoRotationSpeed);
                     }
@@ -912,6 +872,10 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                         int chapter = tag2.getInt("chapter");
                         int page = tag2.getInt("page");
                         int pageOnNum = bookEntries.chapterList.get(chapter).startPage + page;
+                        if (this.turnToChapter >= bookEntries.chapterList.size())
+                            this.turnToChapter = bookEntries.chapterList.size() - 1;
+                        if (this.turnToPage >= bookEntries.chapterList.get(this.turnToChapter).pages.size())
+                            this.turnToPage = bookEntries.chapterList.get(this.turnToChapter).pages.size() - 1;
                         int destPageNum = bookEntries.chapterList.get(this.turnToChapter).startPage + this.turnToPage;
                         int numPagesToDest = Math.abs(destPageNum - pageOnNum);
                         if (page % 2 == 1)
@@ -925,6 +889,7 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                                 clickedBack(this, pagesToTurn);
                                 this.pageTwoRotation = 0;
                                 this.pageTwoRotationRender = 0;
+                                this.pageTwoRotationLast = this.pageTwoRotation;
                                 this.pageTwoRotationTo = 0;
                                 this.pageTwoRotationSpeed = 0.01f;
                             } else {
@@ -932,7 +897,9 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                                     level.playSound(null, this.worldPosition.above(), ModSounds.BOOK_TURN_PAGE_FAST.get(), SoundSource.BLOCKS, (level.random.nextFloat() * 0.25f + 0.5f), (level.random.nextFloat() * 0.3f + 0.7f));
                                 }
 
-                                this.pageTwoRotationSpeed = (((float) Math.sin(this.pageTwoRotation / 180 * Math.PI) * 50 + 15)) * (1 + Math.min(numPagesToDest, 50) / 90f) * (1 + Math.min(numPagesToDest, 50) / 90f) + 2;
+
+                                float f = (1 + Math.min(numPagesToDest, 50) / 200f);
+                                this.pageTwoRotationSpeed = 65 * f * f + 15;
                                 this.pageTwoRotationTo = (float) 180;
                                 this.pageTwoRotation = moveTo(this.pageTwoRotation, this.pageTwoRotationTo, this.pageTwoRotationSpeed);
                             }
@@ -947,13 +914,14 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                                 this.pageOneRotation = 0;
                                 this.pageOneRotationRender = 0;
                                 this.pageOneRotationTo = 0;
+                                this.pageOneRotationLast = this.pageOneRotation;
                                 this.pageOneRotationSpeed = 0.01f;
                             } else {
                                 if (this.pageOneRotation == 0 && !level.isClientSide && numPagesToDest > 0) {
                                     level.playSound(null, this.worldPosition.above(), ModSounds.BOOK_TURN_PAGE_FAST.get(), SoundSource.BLOCKS, (level.random.nextFloat() * 0.25f + 0.5f), (level.random.nextFloat() * 0.3f + 0.7f));
                                 }
-
-                                this.pageOneRotationSpeed = (((float) Math.sin(this.pageOneRotation / 180 * Math.PI) * 50 + 15)) * (1 + Math.min(numPagesToDest, 50) / 90f) * (1 + Math.min(numPagesToDest, 50) / 90f) + 2;
+                                float f = (1 + Math.min(numPagesToDest, 50) / 200f);
+                                this.pageOneRotationSpeed = 65 * f * f + 15;
                                 this.pageOneRotationTo = (float) 180;
                                 this.pageOneRotation = moveTo(this.pageOneRotation, this.pageOneRotationTo, this.pageOneRotationSpeed);
                             }
@@ -970,7 +938,8 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                             this.pageOneRotationTo = 0;
                             this.pageOneRotationRender = 0;
                             this.pageOneRotationSpeed = 0.01f;
-//                            setChanged();
+                            this.pageTwoRotationLast = this.pageTwoRotation;
+                            this.pageOneRotationLast = this.pageOneRotation;
                         }
 
                     }
@@ -1001,9 +970,6 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
             this.pageTwoRotation = 0;
             this.pageTwoRotationTo = 0;
             this.pageTwoRotationRender = 0;
-//            this.turnPage = 0;
-//            this.turnToPage = 0;
-//            this.turnToChapter = 0;
         }
 
 
@@ -1114,13 +1080,14 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                     if (bookmarks.contains("slot_" + i)) {
                         CompoundTag slot = bookmarks.getCompound("slot_" + i);
                         int bookmark_color = slot.getInt("color");
-                        int bookmark_chapter = slot.getInt("chapter");
-                        int bookmark_page = slot.getInt("page");
+                        if (slot.contains("id")) {
+                            String bookmark_id = slot.getString("id");
 
-                        if (chapter == bookmark_chapter && (page == bookmark_page || page - 1 == bookmark_page) && !flag) {
-                            slot.putInt("color", bookmark_color + 1 > 15 ? 0 : bookmark_color + 1);
-                            //change color of bookmark
-                            flag = true;
+                            if (!flag && BookManager.getBookEntries().chapterList.get(chapter).pages.get(page).location.equals(bookmark_id)) {
+                                slot.putInt("color", bookmark_color + 1 > 15 ? 0 : bookmark_color + 1);
+                                //change color of bookmark
+                                flag = true;
+                            }
                         }
                     } else if (firstEmpty > i)
                         firstEmpty = i;
@@ -1128,8 +1095,9 @@ public class BookOfShadowsAltarTile extends RandomizableContainerBlockEntity imp
                 if (!flag) {
                     //add new bookmark
                     CompoundTag new_bookmark = new CompoundTag();
-                    new_bookmark.putInt("chapter", chapter);
-                    new_bookmark.putInt("page", page);
+                    new_bookmark.putString("id", BookManager.getBookEntries().chapterList.get(chapter).pages.get(page).location);
+//                    new_bookmark.putInt("chapter", chapter);
+//                    new_bookmark.putInt("page", page);
                     new_bookmark.putInt("color", new Random().nextInt(16));
                     //find first empty slot
                     bookmarks.put("slot_" + firstEmpty, new_bookmark);

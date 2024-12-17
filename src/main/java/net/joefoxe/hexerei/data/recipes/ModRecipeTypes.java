@@ -1,7 +1,9 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.Hexerei;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -9,7 +11,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class ModRecipeTypes {
     public static DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, Hexerei.MOD_ID);
-    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.Keys.RECIPE_TYPES, Hexerei.MOD_ID);
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, Hexerei.MOD_ID);
 
 
 //    public static final RegistryObject<MixingCauldronRecipe.Serializer> MIXING_SERIALIZER = RECIPE_SERIALIZERS.register("mixingcauldron", MixingCauldronRecipe.Serializer::new);
@@ -105,6 +107,11 @@ public class ModRecipeTypes {
     public static final RegistryObject<RecipeType<CauldronEmptyingRecipe>> CAULDRON_EMPTYING_TYPE = RECIPE_TYPES.register("cauldron_emptying", ModRecipeType::new);
     public static final RegistryObject<RecipeSerializer<CauldronEmptyingRecipe>> CAULDRON_EMPTYING_SERIALIZER = RECIPE_SERIALIZERS.register("cauldron_emptying", CauldronEmptyingRecipe.Serializer::new);
 
+
+
+    public static final RegistryObject<RecipeType<AddBaseToCandleRecipe>> ADD_BASE_TO_CANDLE_TYPE = RECIPE_TYPES.register("add_base_to_candle", () -> AddBaseToCandleRecipe.Type.INSTANCE);
+    public static final RegistryObject<RecipeSerializer<AddBaseToCandleRecipe>> ADD_BASE_TO_CANDLE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("add_base_to_candle", () -> AddBaseToCandleRecipe.Serializer.INSTANCE);
     private static class ModRecipeType<T extends Recipe<?>> implements RecipeType<T> {
         @Override
         public String toString() {

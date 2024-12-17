@@ -116,6 +116,110 @@ public class HexereiPacketHandler {
 
         instance.registerMessage(
                 ++ id,
+                OwlTeleportParticlePacket.class,
+                OwlTeleportParticlePacket::encode,
+                OwlTeleportParticlePacket::decode,
+                OwlTeleportParticlePacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                SendOwlCourierPacket.class,
+                SendOwlCourierPacket::encode,
+                SendOwlCourierPacket::decode,
+                SendOwlCourierPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                OpenOwlCourierDepotNameEditorPacket.class,
+                OpenOwlCourierDepotNameEditorPacket::encode,
+                OpenOwlCourierDepotNameEditorPacket::decode,
+                OpenOwlCourierDepotNameEditorPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                UpdateOwlCourierDepotNamePacket.class,
+                UpdateOwlCourierDepotNamePacket::encode,
+                UpdateOwlCourierDepotNamePacket::decode,
+                UpdateOwlCourierDepotNamePacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                ClientboundOwlCourierDepotDataPacket.class,
+                ClientboundOwlCourierDepotDataPacket::encode,
+                ClientboundOwlCourierDepotDataPacket::decode,
+                ClientboundOwlCourierDepotDataPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                ClientboundOwlCourierDepotDataInventoryPacket.class,
+                ClientboundOwlCourierDepotDataInventoryPacket::encode,
+                ClientboundOwlCourierDepotDataInventoryPacket::decode,
+                ClientboundOwlCourierDepotDataInventoryPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                ClientboundOpenOwlCourierSendScreenPacket.class,
+                ClientboundOpenOwlCourierSendScreenPacket::encode,
+                ClientboundOpenOwlCourierSendScreenPacket::decode,
+                ClientboundOpenOwlCourierSendScreenPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                ClientboundOpenCourierLetterScreenPacket.class,
+                ClientboundOpenCourierLetterScreenPacket::encode,
+                ClientboundOpenCourierLetterScreenPacket::decode,
+                ClientboundOpenCourierLetterScreenPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                CourierLetterUpdatePacket.class,
+                CourierLetterUpdatePacket::encode,
+                CourierLetterUpdatePacket::decode,
+                CourierLetterUpdatePacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                EmotionPacket.class,
+                EmotionPacket::encode,
+                EmotionPacket::decode,
+                EmotionPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                BrowAnimPacket.class,
+                BrowAnimPacket::encode,
+                BrowAnimPacket::decode,
+                BrowAnimPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                BrowPositioningPacket.class,
+                BrowPositioningPacket::encode,
+                BrowPositioningPacket::decode,
+                BrowPositioningPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                OwlHootPacket.class,
+                OwlHootPacket::encode,
+                OwlHootPacket::decode,
+                OwlHootPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
                 CrowCawPacket.class,
                 CrowCawPacket::encode,
                 CrowCawPacket::decode,
@@ -124,18 +228,34 @@ public class HexereiPacketHandler {
 
         instance.registerMessage(
                 ++ id,
-                CrowTailWagPacket.class,
-                CrowTailWagPacket::encode,
-                CrowTailWagPacket::decode,
-                CrowTailWagPacket::consume
+                HeadTiltPacket.class,
+                HeadTiltPacket::encode,
+                HeadTiltPacket::decode,
+                HeadTiltPacket::consume
         );
 
         instance.registerMessage(
                 ++ id,
-                CrowTailFanPacket.class,
-                CrowTailFanPacket::encode,
-                CrowTailFanPacket::decode,
-                CrowTailFanPacket::consume
+                HeadShakePacket.class,
+                HeadShakePacket::encode,
+                HeadShakePacket::decode,
+                HeadShakePacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                TailWagPacket.class,
+                TailWagPacket::encode,
+                TailWagPacket::decode,
+                TailWagPacket::consume
+        );
+
+        instance.registerMessage(
+                ++ id,
+                TailFanPacket.class,
+                TailFanPacket::encode,
+                TailFanPacket::decode,
+                TailFanPacket::consume
         );
 
         instance.registerMessage(
@@ -180,10 +300,10 @@ public class HexereiPacketHandler {
 
         instance.registerMessage(
                 ++ id,
-                CrowPeckPacket.class,
-                CrowPeckPacket::encode,
-                CrowPeckPacket::decode,
-                CrowPeckPacket::consume
+                PeckPacket.class,
+                PeckPacket::encode,
+                PeckPacket::decode,
+                PeckPacket::consume
         );
 
 
@@ -207,28 +327,37 @@ public class HexereiPacketHandler {
 
         instance.registerMessage(
                 ++ id,
-                CrowSyncPacket.class,
-                CrowSyncPacket::encode,
-                CrowSyncPacket::decode,
-                CrowSyncPacket::consume
+                EntitySyncPacket.class,
+                EntitySyncPacket::encode,
+                EntitySyncPacket::decode,
+                EntitySyncPacket::consume
         );
 
 
         instance.registerMessage(
                 ++ id,
-                CrowSyncAdditonalDataPacket.class,
-                CrowSyncAdditonalDataPacket::encode,
-                CrowSyncAdditonalDataPacket::decode,
-                CrowSyncAdditonalDataPacket::consume
+                OwlSyncInvPacket.class,
+                OwlSyncInvPacket::encode,
+                OwlSyncInvPacket::decode,
+                OwlSyncInvPacket::consume
         );
 
 
         instance.registerMessage(
                 ++ id,
-                CrowAskForSyncPacket.class,
-                CrowAskForSyncPacket::encode,
-                CrowAskForSyncPacket::decode,
-                CrowAskForSyncPacket::consume
+                EntitySyncAdditionalDataPacket.class,
+                EntitySyncAdditionalDataPacket::encode,
+                EntitySyncAdditionalDataPacket::decode,
+                EntitySyncAdditionalDataPacket::consume
+        );
+
+
+        instance.registerMessage(
+                ++ id,
+                AskForSyncPacket.class,
+                AskForSyncPacket::encode,
+                AskForSyncPacket::decode,
+                AskForSyncPacket::consume
         );
 
         instance.registerMessage(
@@ -275,10 +404,10 @@ public class HexereiPacketHandler {
 
         instance.registerMessage(
                 ++ id,
-                CrowEatParticlesPacket.class,
-                CrowEatParticlesPacket::encode,
-                CrowEatParticlesPacket::decode,
-                CrowEatParticlesPacket::consume
+                EatParticlesPacket.class,
+                EatParticlesPacket::encode,
+                EatParticlesPacket::decode,
+                EatParticlesPacket::consume
         );
 
 

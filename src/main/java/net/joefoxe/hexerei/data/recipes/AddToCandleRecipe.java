@@ -1,6 +1,7 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import com.google.gson.JsonObject;
+import net.joefoxe.hexerei.data.candle.CandleData;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -24,12 +25,8 @@ public class AddToCandleRecipe extends CustomRecipe {
 
     public AddToCandleRecipe(ResourceLocation pId, NonNullList<Ingredient> inputs, ItemStack output) {
         super(pId, CraftingBookCategory.MISC);
-        NonNullList<Ingredient> newInputs = NonNullList.withSize(inputs.size() + 1, Ingredient.of(new ItemStack(ModItems.CANDLE.get())));
-        for(int i = 0; i < inputs.size(); i++){
-            newInputs.set(i + 1,inputs.get(i));
-        }
 
-        this.inputs = newInputs;
+        this.inputs = inputs;
         this.output = output;
     }
     @Override
@@ -116,7 +113,11 @@ public class AddToCandleRecipe extends CustomRecipe {
             ItemStack itemstack2 = candle.copy();
             itemstack2.setCount(1);
 
-            itemstack2.getOrCreateTag().merge(output.getOrCreateTag());
+            CandleData data = new CandleData();
+            data.load(itemstack2.getOrCreateTag());
+            data.load(output.getOrCreateTag());
+            data.save(itemstack2.getOrCreateTag(), true);
+
             return itemstack2;
         } else {
             return ItemStack.EMPTY;
@@ -159,7 +160,7 @@ public class AddToCandleRecipe extends CustomRecipe {
      * Used to determine if this recipe can fit in a grid of the given width/height
      */
     public boolean canCraftInDimensions(int pWidth, int pHeight) {
-        return pWidth >= 3 && pHeight >= 3;
+        return pWidth * pHeight >= 2;
     }
 
 
@@ -169,11 +170,11 @@ public class AddToCandleRecipe extends CustomRecipe {
 
         @Override
         public AddToCandleRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            NonNullList<Ingredient> inputs = NonNullList.withSize(1, Ingredient.EMPTY);
+            NonNullList<Ingredient> inputs = NonNullList.withSize(2, Ingredient.EMPTY);
             ItemStack input = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "input"));
             ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-
-            inputs.set(0, Ingredient.of(input));
+            inputs.set(0, Ingredient.of(new ItemStack(ModItems.CANDLE.get())));
+            inputs.set(1, Ingredient.of(input));
 
             return new AddToCandleRecipe(recipeId, inputs,
                     output);

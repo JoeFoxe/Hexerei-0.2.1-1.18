@@ -69,18 +69,18 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 		}
 
 
-        JsonArray finalRecipesToAdd = recipesAddToCandle;
-        ForgeRegistries.BLOCKS.forEach((block) -> {
-            finalRecipesToAdd.forEach((recipeBlock) -> {
-                if (ForgeRegistries.BLOCKS.getKey(block).toString().equals(recipeBlock.getAsString())) {
-                    ItemStack stack = new ItemStack(ModItems.CANDLE.get());
-                    CandleItem.setBaseLayerFromBlock(stack, ForgeRegistries.BLOCKS.getKey(block).toString());
-                    new AddToCandleRecipeBuilder(block.asItem(), stack.getItem(), 1, stack.getOrCreateTag())
-                            .unlockedBy("has_candle", inventoryTrigger(ItemPredicate.Builder.item()
-                                    .of(ModItems.CANDLE.get()).build())).save(pFinishedRecipeConsumer, getAddCandleRecipeName(block));
-                }
-            });
-        });
+//        JsonArray finalRecipesToAdd = recipesAddToCandle;
+//        ForgeRegistries.BLOCKS.forEach((block) -> {
+//            finalRecipesToAdd.forEach((recipeBlock) -> {
+//                if (ForgeRegistries.BLOCKS.getKey(block).toString().equals(recipeBlock.getAsString())) {
+//                    ItemStack stack = new ItemStack(ModItems.CANDLE.get());
+//                    CandleItem.setLayerFromBlock(stack, ForgeRegistries.BLOCKS.getKey(block).toString(), "base");
+//                    new AddToCandleRecipeBuilder(block.asItem(), stack.getItem(), 1, stack.getOrCreateTag())
+//                            .unlockedBy("has_candle", inventoryTrigger(ItemPredicate.Builder.item()
+//                                    .of(ModItems.CANDLE.get()).build())).save(pFinishedRecipeConsumer, getAddCandleRecipeName(block));
+//                }
+//            });
+//        });
 
 		JsonArray finalrecipesWoodcutting = recipesWoodcutting;
 		ForgeRegistries.BLOCKS.forEach((block) -> {

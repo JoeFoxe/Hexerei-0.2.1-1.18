@@ -26,6 +26,7 @@ public class BookImage {
     public String imageLoc;
     public int hyperlink_chapter;
     public int hyperlink_page;
+    public String hyperlink_id;
     public String hyperlink_url;
     public ArrayList<BookImageEffect> effects;
     List<Component> extra_tooltips;
@@ -48,7 +49,7 @@ public class BookImage {
         this.hyperlink_page = -1;
         this.hyperlink_url = "";
     }
-    BookImage(float x, float y, float z, float u, float v, float width, float height, float imageWidth, float imageHeight, float scale, String imageLoc, ArrayList<BookImageEffect> effects, int hyperlink_chapter, int hyperlink_page, String hyperlink_url, List<Component> extra_tooltips, List<BookTooltipExtra> extra_tooltips_raw){
+    BookImage(float x, float y, float z, float u, float v, float width, float height, float imageWidth, float imageHeight, float scale, String imageLoc, ArrayList<BookImageEffect> effects, int hyperlink_chapter, int hyperlink_page, String hyperlink_url, String hyperlink_id, List<Component> extra_tooltips, List<BookTooltipExtra> extra_tooltips_raw){
         this.x = x;
         this.y = y;
         this.z = z;
@@ -64,6 +65,7 @@ public class BookImage {
         this.hyperlink_chapter = hyperlink_chapter;
         this.hyperlink_page = hyperlink_page;
         this.hyperlink_url = hyperlink_url;
+        this.hyperlink_id = hyperlink_id;
         this.extra_tooltips = extra_tooltips;
         this.extra_tooltips_raw = extra_tooltips_raw;
     }
@@ -123,6 +125,7 @@ public class BookImage {
         int hyperlink_chapter = image.getInt("image_hyperlink_chapter");
         int hyperlink_page = image.getInt("image_hyperlink_page");
         String hyperlink_url = image.getString("image_hyperlink_url");
+        String hyperlink_id = image.getString("image_hyperlink_id");
 
         List<Component> extra_tooltips = new ArrayList<>();
         int item_number_of_extra_tooltips = image.getInt("image_number_of_extra_tooltips");
@@ -167,7 +170,7 @@ public class BookImage {
             BookImageEffect bookImageEffect = new BookImageEffect(type, speed, amount, bookImage);
             effectList.add(bookImageEffect);
         }
-        return new BookImage(x, y, z, u, v, width, height, imageWidth, imageHeight, scale, texture, effectList, hyperlink_chapter, hyperlink_page, hyperlink_url, extra_tooltips, extra_tooltips_raw);
+        return new BookImage(x, y, z, u, v, width, height, imageWidth, imageHeight, scale, texture, effectList, hyperlink_chapter, hyperlink_page, hyperlink_url, hyperlink_id, extra_tooltips, extra_tooltips_raw);
     }
 
     public static BookImage deserialize(JsonObject object) throws CommandSyntaxException {
@@ -184,6 +187,7 @@ public class BookImage {
         JsonObject hyperlink = GsonHelper.getAsJsonObject(object, "hyperlink", new JsonObject());
         int chapter = GsonHelper.getAsInt(hyperlink, "chapter", -1);
         int page = GsonHelper.getAsInt(hyperlink, "page", -1);
+        String id = GsonHelper.getAsString(hyperlink, "id", "");
         String url = GsonHelper.getAsString(hyperlink, "url", "");
 
         JsonArray yourJson = GsonHelper.getAsJsonArray(object,"effects", new JsonArray());
@@ -224,6 +228,6 @@ public class BookImage {
             bookTooltipExtraList.add(new BookTooltipExtra(color, hex_color, string, type));
         }
 
-        return new BookImage(x, y, z, u, v, width, height, imageWidth, imageHeight, scale, itemLoc, effectList, chapter, page, url, textComponentsList, bookTooltipExtraList);
+        return new BookImage(x, y, z, u, v, width, height, imageWidth, imageHeight, scale, itemLoc, effectList, chapter, page, url, id, textComponentsList, bookTooltipExtraList);
     }
 }

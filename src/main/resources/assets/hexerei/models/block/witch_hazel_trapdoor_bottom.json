@@ -1,7 +1,40 @@
 {
-  "parent": "minecraft:block/template_trapdoor_bottom",
+  "parent": "minecraft:block/block",
   "textures": {
-    "texture": "hexerei:block/witch_hazel_trapdoor"
+    "particle": "hexerei:block/witch_hazel_trapdoor"
   },
-  "render_type": "translucent"
+  "children": {
+    "cutout": {
+      "parent": "minecraft:block/template_trapdoor_bottom",
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "texture": "hexerei:block/witch_hazel_trapdoor_cutout"
+      }
+    },
+    "translucent": {
+      "parent": "minecraft:block/template_trapdoor_bottom",
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "texture": "hexerei:block/witch_hazel_trapdoor_glass"
+      }
+    }
+  },
+  "loader": "forge:composite",
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [ 75, 45, 0 ],
+      "translation": [ 0, 2.5, 2],
+      "scale": [ 0.375, 0.375, 0.375 ]
+    },
+    "firstperson_righthand": {
+      "rotation": [ 0, 45, 0 ],
+      "translation": [ 0, 4.2, 0 ],
+      "scale": [ 0.40, 0.40, 0.40 ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [ 0, 225, 0 ],
+      "translation": [ 0, 4.2, 0 ],
+      "scale": [ 0.40, 0.40, 0.40 ]
+    }
+  }
 }

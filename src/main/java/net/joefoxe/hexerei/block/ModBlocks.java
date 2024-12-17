@@ -11,13 +11,18 @@ import net.joefoxe.hexerei.block.custom.trees.MahoganyTree;
 import net.joefoxe.hexerei.block.custom.trees.WillowTree;
 import net.joefoxe.hexerei.block.custom.trees.WitchHazelTree;
 import net.joefoxe.hexerei.item.ModItems;
+import net.joefoxe.hexerei.particle.ModParticleTypes;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.joefoxe.hexerei.util.ClientProxy;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.util.ParticleUtils;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
@@ -25,6 +30,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -189,24 +195,24 @@ public class ModBlocks {
 
 	public static final BlockEntry<WaxedGlassPaneBlock> STONE_WINDOW_PANE = REGISTRATE.block("stone_window_pane", (properties) -> new WaxedGlassPaneBlock(BlockBehaviour.Properties.copy(Blocks.GLASS_PANE)))
 			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.GLASS_PANE).mapColor(MapColor.STONE))
-			.onRegister(connectedTextures(() -> new GlassPaneCTBehaviour(AllSpriteShifts.STONE_WINDOW_PANE_CONNECTED)))
+			.onRegister(connectedTextures(() -> new GlassPaneTransparentCTBehaviour(AllSpriteShifts.STONE_WINDOW_PANE_CONNECTED, AllSpriteShifts.STONE_WINDOW_PANE_CONNECTED_GLASS)))
 			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.STONE_WINDOW_PANE_CONNECTED)))
 			.register();
 	public static final BlockEntry<WaxedGlassPaneBlock> WAXED_STONE_WINDOW_PANE = REGISTRATE.block("waxed_stone_window_pane", (properties) -> new WaxedGlassPaneBlock(BlockBehaviour.Properties.copy(Blocks.GLASS_PANE)))
 			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.GLASS_PANE).mapColor(MapColor.STONE))
-			.onRegister(connectedTextures(() -> new GlassPaneCTBehaviour(AllSpriteShifts.WAXED_STONE_WINDOW_PANE_CONNECTED)))
+			.onRegister(connectedTextures(() -> new GlassPaneTransparentCTBehaviour(AllSpriteShifts.WAXED_STONE_WINDOW_PANE_CONNECTED, AllSpriteShifts.WAXED_STONE_WINDOW_PANE_CONNECTED_GLASS)))
 			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.WAXED_STONE_WINDOW_PANE_CONNECTED)))
 			.register();
 
 	public static final BlockEntry<GlassBlock> STONE_WINDOW = REGISTRATE.block("stone_window", (properties) -> new GlassBlock(BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE)))
 			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE).mapColor(MapColor.TERRACOTTA_RED))
-			.onRegister(connectedTextures(() -> new FullBlockTopBottomShiftCTBehaviour(AllSpriteShifts.STONE_WINDOW_CONNECTED, AllSpriteShifts.STONE_WINDOW_CONNECTED_TOP)))
+			.onRegister(connectedTextures(() -> new FullBlockTopBottomShiftCTBehaviour(AllSpriteShifts.STONE_WINDOW_CONNECTED, AllSpriteShifts.STONE_WINDOW_CONNECTED_GLASS, AllSpriteShifts.STONE_WINDOW_CONNECTED_TOP, AllSpriteShifts.STONE_WINDOW_CONNECTED_TOP_GLASS)))
 			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.STONE_WINDOW_CONNECTED)))
 			.register();
 
 	public static final BlockEntry<GlassBlock> WAXED_STONE_WINDOW = REGISTRATE.block("waxed_stone_window", (properties) -> new GlassBlock(BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE)))
 			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE).mapColor(MapColor.TERRACOTTA_RED))
-			.onRegister(connectedTextures(() -> new FullBlockTopBottomShiftCTBehaviour(AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED_TOP)))
+			.onRegister(connectedTextures(() -> new FullBlockTopBottomShiftCTBehaviour(AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED_GLASS, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED_TOP, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED_TOP_GLASS)))
 			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.WAXED_STONE_WINDOW_CONNECTED)))
 			.register();
 
@@ -418,9 +424,6 @@ public class ModBlocks {
 	}
 
 
-//    public static final RegistryObject<Block> SCRAP_BLOCK = registerBlock("scrap_block",
-//            () -> new Block(BlockBehavior.Properties.of().mapColor(MapColor.STONE).strength(2).setRequiresTool().explosionResistance(5f)));
-
 	public static final RegistryObject<MixingCauldron> MIXING_CAULDRON = registerBlockNoItem("mixing_cauldron",
 					() -> new MixingCauldron(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).randomTicks().explosionResistance(4f).requiresCorrectToolForDrops().strength(3).lightLevel(state -> 12)));
 
@@ -433,6 +436,30 @@ public class ModBlocks {
 	//TODO get back to this crystal eventually
 	public static final RegistryObject<CuttingCrystal> CUTTING_CRYSTAL = registerBlockNoItem("cutting_crystal",
 			() -> new CuttingCrystal(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).requiresCorrectToolForDrops().explosionResistance(8f)));
+
+	public static final RegistryObject<OwlCourierDepotWall> WILLOW_COURIER_DEPOT_WALL = registerBlockNoItem("willow_courier_depot_wall",
+			() -> new OwlCourierDepotWall(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<OwlCourierDepot> WILLOW_COURIER_DEPOT = registerBlockNoItem("willow_courier_depot",
+			() -> new OwlCourierDepot(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<OwlCourierDepotWall> MAHOGANY_COURIER_DEPOT_WALL = registerBlockNoItem("mahogany_courier_depot_wall",
+			() -> new OwlCourierDepotWall(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<OwlCourierDepot> MAHOGANY_COURIER_DEPOT = registerBlockNoItem("mahogany_courier_depot",
+			() -> new OwlCourierDepot(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<OwlCourierDepotWall> WITCH_HAZEL_COURIER_DEPOT_WALL = registerBlockNoItem("witch_hazel_courier_depot_wall",
+			() -> new OwlCourierDepotWall(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<OwlCourierDepot> WITCH_HAZEL_COURIER_DEPOT = registerBlockNoItem("witch_hazel_courier_depot",
+			() -> new OwlCourierDepot(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<CourierLetter> COURIER_LETTER = registerBlockNoItem("courier_letter",
+			() -> new CourierLetter(BlockBehaviour.Properties.copy(Blocks.MOSS_CARPET).noCollission().strength(0.1f).noOcclusion().explosionResistance(2f)));
+
+	public static final RegistryObject<CourierPackage> COURIER_PACKAGE = registerBlockNoItem("courier_package",
+			() -> new CourierPackage(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(0.4f).noOcclusion().explosionResistance(2f)));
 
 	public static final RegistryObject<BroomStandWall> MAHOGANY_BROOM_STAND_WALL = registerBlockNoItem("mahogany_broom_stand_wall",
 			() -> new BroomStandWall(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).strength(2).noOcclusion().explosionResistance(2f)));
@@ -611,7 +638,18 @@ public class ModBlocks {
 					() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.MAHOGANY));
 
 	public static final RegistryObject<LeavesBlock> MAHOGANY_LEAVES = registerBlock("mahogany_leaves",
-					() -> new LeavesBlock(BlockBehaviour.Properties.copy(Blocks.OAK_LEAVES).randomTicks().sound(SoundType.AZALEA_LEAVES).noOcclusion().isSuffocating(Properties::never).isViewBlocking(Properties::never)));
+					() -> new LeavesBlock(BlockBehaviour.Properties.copy(Blocks.OAK_LEAVES).randomTicks().sound(SoundType.AZALEA_LEAVES).noOcclusion().isSuffocating(Properties::never).isViewBlocking(Properties::never)){
+						public void animateTick(BlockState p_272714_, Level p_272837_, BlockPos p_273218_, RandomSource p_273360_) {
+							super.animateTick(p_272714_, p_272837_, p_273218_, p_273360_);
+							if (p_273360_.nextInt(10) == 0) {
+								BlockPos blockpos = p_273218_.below();
+								BlockState blockstate = p_272837_.getBlockState(blockpos);
+								if (!isFaceFull(blockstate.getCollisionShape(p_272837_, blockpos), Direction.UP)) {
+									ParticleUtils.spawnParticleBelow(p_272837_, p_273218_, p_273360_, ModParticleTypes.MAHOGANY_LEAVES.get());
+								}
+							}
+						}
+					});
 
 	public static final RegistryObject<SaplingBlock> MAHOGANY_SAPLING = registerBlock("mahogany_sapling",
 					() -> new SaplingBlock(new MahoganyTree(), BlockBehaviour.Properties.copy(Blocks.OAK_SAPLING)));
@@ -633,16 +671,19 @@ public class ModBlocks {
 			() -> new SlabBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS)));
 
 	public static final RegistryObject<ButtonBlock> POLISHED_MAHOGANY_BUTTON = registerBlock("polished_mahogany_button",
-			() -> new ButtonBlock(BlockBehaviour.Properties.of().noCollission().strength(0.5F).pushReaction(PushReaction.DESTROY), ModBlockSetType.MAHOGANY, 30, false));
+			() -> new ButtonBlock(BlockBehaviour.Properties.of().noCollission().strength(0.5F).pushReaction(PushReaction.DESTROY), ModBlockSetType.POLISHED_MAHOGANY, 30, false));
 
 	public static final RegistryObject<PressurePlateBlock> POLISHED_MAHOGANY_PRESSURE_PLATE = registerBlock("polished_mahogany_pressure_plate",
-			() -> new PressurePlateBlock(PressurePlateBlock.Sensitivity.EVERYTHING, BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noCollission(), ModBlockSetType.MAHOGANY));
+			() -> new PressurePlateBlock(PressurePlateBlock.Sensitivity.EVERYTHING, BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noCollission(), ModBlockSetType.POLISHED_MAHOGANY));
 
 	public static final RegistryObject<DoorBlock> POLISHED_MAHOGANY_DOOR = registerBlock("polished_mahogany_door",
-			() -> new DoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.MAHOGANY));
+			() -> new DoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_MAHOGANY));
 
-	public static final RegistryObject<TrapDoorBlock> POLISHED_MAHOGANY_TRAPDOOR = registerBlock("polished_mahogany_trapdoor",
-			() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.MAHOGANY));
+	public static final BlockEntry<TrapDoorBlock> POLISHED_MAHOGANY_TRAPDOOR = REGISTRATE.block("polished_mahogany_trapdoor", (properties) -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_MAHOGANY))
+			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).mapColor(MapColor.TERRACOTTA_RED))
+			.onRegister(connectedTextures(() -> new TrapdoorCTBehaviour(AllSpriteShifts.POLISHED_MAHOGANY_TRAPDOOR)))
+			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.POLISHED_MAHOGANY_TRAPDOOR)))
+			.register();
 
 
 //	WILLOW
@@ -725,8 +766,13 @@ public class ModBlocks {
 	public static final RegistryObject<DoorBlock> POLISHED_WILLOW_DOOR = registerBlock("polished_willow_door",
 			() -> new DoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WILLOW));
 
-	public static final RegistryObject<TrapDoorBlock> POLISHED_WILLOW_TRAPDOOR = registerBlock("polished_willow_trapdoor",
-			() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WILLOW));
+//	public static final RegistryObject<TrapDoorBlock> POLISHED_WILLOW_TRAPDOOR = registerBlock("polished_willow_trapdoor",
+//			() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WILLOW));
+	public static final BlockEntry<TrapDoorBlock> POLISHED_WILLOW_TRAPDOOR = REGISTRATE.block("polished_willow_trapdoor", (properties) -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WILLOW))
+			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).mapColor(MapColor.TERRACOTTA_RED))
+			.onRegister(connectedTextures(() -> new TrapdoorCTBehaviour(AllSpriteShifts.POLISHED_WILLOW_TRAPDOOR)))
+			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.POLISHED_WILLOW_TRAPDOOR)))
+			.register();
 
 // WITCH HAZEL
 
@@ -778,7 +824,18 @@ public class ModBlocks {
 			() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.WITCH_HAZEL));
 
 	public static final RegistryObject<LeavesBlock> WITCH_HAZEL_LEAVES = registerBlock("witch_hazel_leaves",
-			() -> new LeavesBlock(BlockBehaviour.Properties.of().ignitedByLava().pushReaction(PushReaction.DESTROY).strength(0.2F).randomTicks().sound(SoundType.AZALEA_LEAVES).noOcclusion().isSuffocating(Properties::never).isViewBlocking(Properties::never)));
+			() -> new LeavesBlock(BlockBehaviour.Properties.of().ignitedByLava().pushReaction(PushReaction.DESTROY).strength(0.2F).randomTicks().sound(SoundType.AZALEA_LEAVES).noOcclusion().isSuffocating(Properties::never).isViewBlocking(Properties::never)){
+				public void animateTick(BlockState p_272714_, Level p_272837_, BlockPos p_273218_, RandomSource p_273360_) {
+					super.animateTick(p_272714_, p_272837_, p_273218_, p_273360_);
+					if (p_273360_.nextInt(10) == 0) {
+						BlockPos blockpos = p_273218_.below();
+						BlockState blockstate = p_272837_.getBlockState(blockpos);
+						if (!isFaceFull(blockstate.getCollisionShape(p_272837_, blockpos), Direction.UP)) {
+							ParticleUtils.spawnParticleBelow(p_272837_, p_273218_, p_273360_, ModParticleTypes.WITCH_HAZEL_LEAVES.get());
+						}
+					}
+				}
+			});
 
 	public static final RegistryObject<SaplingBlock> WITCH_HAZEL_SAPLING = registerBlock("witch_hazel_sapling",
 			() -> new SaplingBlock(new WitchHazelTree(), BlockBehaviour.Properties.copy(Blocks.OAK_SAPLING)));
@@ -809,8 +866,13 @@ public class ModBlocks {
 	public static final RegistryObject<DoorBlock> POLISHED_WITCH_HAZEL_DOOR = registerBlock("polished_witch_hazel_door",
 			() -> new DoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WITCH_HAZEL));
 
-	public static final RegistryObject<TrapDoorBlock> POLISHED_WITCH_HAZEL_TRAPDOOR = registerBlock("polished_witch_hazel_trapdoor",
-			() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WITCH_HAZEL));
+//	public static final RegistryObject<TrapDoorBlock> POLISHED_WITCH_HAZEL_TRAPDOOR = registerBlock("polished_witch_hazel_trapdoor",
+//			() -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WITCH_HAZEL));
+	public static final BlockEntry<TrapDoorBlock> POLISHED_WITCH_HAZEL_TRAPDOOR = REGISTRATE.block("polished_witch_hazel_trapdoor", (properties) -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.OAK_PLANKS).noOcclusion(), ModBlockSetType.POLISHED_WITCH_HAZEL))
+			.properties((p) -> BlockBehaviour.Properties.copy(Blocks.BLACK_STAINED_GLASS_PANE).mapColor(MapColor.TERRACOTTA_RED))
+			.onRegister(connectedTextures(() -> new TrapdoorCTBehaviour(AllSpriteShifts.POLISHED_WITCH_HAZEL_TRAPDOOR)))
+			.onRegister(blockConnectivity((block, cc) -> cc.makeBlock(block, AllSpriteShifts.POLISHED_WITCH_HAZEL_TRAPDOOR)))
+			.register();
 
 	public static final RegistryObject<FloweringLilyPadBlock> LILY_PAD_BLOCK = registerBlockNoItem("flowering_lily_pad",
 					() -> new FloweringLilyPadBlock(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).pushReaction(PushReaction.DESTROY).instabreak().sound(SoundType.LILY_PAD).noOcclusion()));
@@ -879,10 +941,18 @@ public class ModBlocks {
 
 
 	public static final RegistryObject<AmethystBlock> SELENITE_BLOCK = registerBlock("selenite_block",
-					() -> new AmethystBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).strength(0.5F).sound(SoundType.AMETHYST).noOcclusion()));
+					() -> new AmethystBlock(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).strength(0.5F).sound(SoundType.AMETHYST).noOcclusion()) {
+						public boolean skipRendering(BlockState pState, BlockState pAdjacentBlockState, Direction pSide) {
+							return ((pSide == Direction.UP || pSide == Direction.DOWN) && pAdjacentBlockState.is(this)) || super.skipRendering(pState, pAdjacentBlockState, pSide);
+						}
+					});
 
 	public static final RegistryObject<AmethystBlock> BUDDING_SELENITE = registerBlock("budding_selenite",
-					() -> new BuddingSelenite(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).randomTicks().strength(1.0F).sound(SoundType.AMETHYST).noOcclusion()));
+					() -> new BuddingSelenite(BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).randomTicks().strength(1.0F).sound(SoundType.AMETHYST).noOcclusion()) {
+						public boolean skipRendering(BlockState pState, BlockState pAdjacentBlockState, Direction pSide) {
+							return ((pSide == Direction.UP || pSide == Direction.DOWN) && pAdjacentBlockState.is(this)) || super.skipRendering(pState, pAdjacentBlockState, pSide);
+						}
+					});
 
 	public static final RegistryObject<AmethystBlock> SELENITE_CLUSTER = registerBlock("selenite_cluster",
 			() -> new AmethystClusterBlock(7, 3, BlockBehaviour.Properties.of().mapColor(MapColor.TERRACOTTA_WHITE).noOcclusion().strength(0.5F).randomTicks().sound(SoundType.AMETHYST_CLUSTER).noOcclusion().lightLevel((p_152632_) -> 5)));

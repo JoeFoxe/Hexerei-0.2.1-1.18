@@ -19,7 +19,8 @@
           "x": 1,
           "y": 3,
           "height": 4,
-          "width": 50
+          "width": 50,
+          "align": "middle"
         }
       ],
       "passage_text": "book.hexerei.index_page_1.passage_2"
@@ -30,18 +31,8 @@
           "x": 1,
           "y": 5,
           "height": 4,
-          "width": 50
-        }
-      ],
-      "passage_text": "book.hexerei.index_page_1.passage_3"
-    },
-    {
-      "paragraph_box": [
-        {
-          "x": 1,
-          "y": 7,
-          "height": 4,
-          "width": 50
+          "width": 50,
+          "align": "middle"
         }
       ],
       "passage_text": "book.hexerei.index_page_1.passage_4"
@@ -50,9 +41,10 @@
       "paragraph_box": [
         {
           "x": 1,
-          "y": 9,
+          "y": 7,
           "height": 4,
-          "width": 50
+          "width": 50,
+          "align": "middle"
         }
       ],
       "passage_text": "book.hexerei.index_page_1.passage_5"
@@ -61,12 +53,25 @@
       "paragraph_box": [
         {
           "x": 1,
-          "y": 11,
+          "y": 9,
           "height": 4,
-          "width": 50
+          "width": 50,
+          "align": "middle"
         }
       ],
       "passage_text": "book.hexerei.index_page_1.passage_6"
+    },
+    {
+      "paragraph_box": [
+        {
+          "x": 1,
+          "y": 11,
+          "height": 4,
+          "width": 50,
+          "align": "middle"
+        }
+      ],
+      "passage_text": "book.hexerei.index_page_1.passage_3"
     }
   ],
   "non_item_tooltips": [
@@ -77,8 +82,7 @@
       "height": 0.03,
       "hyperlink":
       {
-        "chapter": 1,
-        "page": 0
+        "id": "hexerei:book_pages/intro/intro_page_1"
       },
       "text_components":[
         {
@@ -99,30 +103,7 @@
       "height": 0.03,
       "hyperlink":
       {
-        "chapter": 2,
-        "page": 0
-      },
-      "text_components":[
-        {
-          "color_hex": "808080",
-          "text": "book.hexerei.index_page_1.tooltip_support_1"
-        },
-        {
-          "color": 16777215,
-          "text": "book.hexerei.index_page_1.tooltip_right_click",
-          "type": "append"
-        }
-      ]
-
-    },{
-      "x": 1,
-      "y": 2.5,
-      "width": 0.08,
-      "height": 0.03,
-      "hyperlink":
-      {
-        "chapter": 3,
-        "page": 0
+        "id": "hexerei:book_pages/items/items_index_page_1"
       },
       "text_components":[
         {
@@ -138,13 +119,12 @@
 
     },{
       "x": 1,
-      "y": 3.5,
+      "y": 2.5,
       "width": 0.08,
       "height": 0.03,
       "hyperlink":
       {
-        "chapter": 4,
-        "page": 0
+        "id": "hexerei:book_pages/entities/entities_index_page_1"
       },
       "text_components":[
         {
@@ -160,18 +140,38 @@
 
     },{
       "x": 1,
-      "y": 4.5,
+      "y": 3.5,
       "width": 0.08,
       "height": 0.03,
       "hyperlink":
       {
-        "chapter": 5,
-        "page": 0
+        "id": "hexerei:book_pages/structures/structures_index_page_1"
       },
       "text_components":[
         {
           "color_hex": "808080",
           "text": "book.hexerei.index_page_1.tooltip_structures_1"
+        },
+        {
+          "color": 16777215,
+          "text": "book.hexerei.index_page_1.tooltip_right_click",
+          "type": "append"
+        }
+      ]
+
+    },{
+      "x": 1,
+      "y": 4.5,
+      "width": 0.08,
+      "height": 0.03,
+      "hyperlink":
+      {
+        "id": "hexerei:book_pages/support/support_page_1"
+      },
+      "text_components":[
+        {
+          "color_hex": "808080",
+          "text": "book.hexerei.index_page_1.tooltip_support_1"
         },
         {
           "color": 16777215,

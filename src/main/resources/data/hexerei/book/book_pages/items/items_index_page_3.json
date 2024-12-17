@@ -18,7 +18,7 @@
       "type": "item",
       "x": 0,
       "y": 1,
-      "name": "hexerei:animal_fat"
+      "name": "hexerei:mindful_trance_blend"
     },
     {
       "type": "item",
@@ -80,13 +80,13 @@
       "type": "item",
       "x": 4,
       "y": 2,
-      "name": "hexerei:willow_sapling"
+      "name": "hexerei:willow_log"
     },
     {
       "type": "item",
       "x": 5,
       "y": 2,
-      "name": "hexerei:mahogany_sapling"
+      "name": "hexerei:willow_planks"
     },
 
 
@@ -118,13 +118,13 @@
       "type": "item",
       "x": 4,
       "y": 3,
-      "name": "hexerei:willow_log"
+      "name": "hexerei:mahogany_log"
     },
     {
       "type": "item",
       "x": 5,
       "y": 3,
-      "name": "hexerei:mahogany_log"
+      "name": "hexerei:mahogany_planks"
     },
 
 
@@ -156,13 +156,13 @@
       "type": "item",
       "x": 4,
       "y": 4,
-      "name": "hexerei:willow_planks"
+      "name": "hexerei:witch_hazel_log"
     },
     {
       "type": "item",
       "x": 5,
       "y": 4,
-      "name": "hexerei:mahogany_planks"
+      "name": "hexerei:witch_hazel_planks"
     },
 
 
@@ -188,19 +188,19 @@
       "type": "item",
       "x": 3,
       "y": 5,
-      "name": "hexerei:dried_yellow_dock_flowers"
+      "name": "hexerei:willow_sapling"
     },
     {
       "type": "item",
       "x": 4,
       "y": 5,
-      "name": "hexerei:dried_mugwort_leaves"
+      "name": "hexerei:mahogany_sapling"
     },
     {
       "type": "item",
       "x": 5,
       "y": 5,
-      "name": "hexerei:dried_yellow_dock_leaves"
+      "name": "hexerei:witch_hazel_sapling"
     },
 
 
@@ -208,23 +208,35 @@
       "type": "item",
       "x": 0,
       "y": 6,
-      "name": "hexerei:mindful_trance_blend"
+      "name": "hexerei:dried_yellow_dock_flowers"
     },
     {
       "type": "item",
       "x": 1,
       "y": 6,
-      "name": "hexerei:reading_glasses"
+      "name": "hexerei:dried_mugwort_leaves"
     },
     {
       "type": "item",
       "x": 2,
       "y": 6,
-      "name": "hexerei:moon_dust_brush"
+      "name": "hexerei:dried_yellow_dock_leaves"
     },
     {
       "type": "item",
       "x": 3,
+      "y": 6,
+      "name": "hexerei:moon_dust"
+    },
+    {
+      "type": "item",
+      "x": 4,
+      "y": 6,
+      "name": "hexerei:moon_dust_brush"
+    },
+    {
+      "type": "item",
+      "x": 5,
       "y": 6,
       "name": "hexerei:wet_moon_dust_brush"
     }

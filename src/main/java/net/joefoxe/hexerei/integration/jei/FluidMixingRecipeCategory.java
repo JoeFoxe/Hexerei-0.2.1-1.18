@@ -144,10 +144,12 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
     public static Block getTagStack(TagKey<Block> key){
 
-        Optional<Holder<Block>> holder = ForgeRegistries.BLOCKS.getHolder(key.location());
-        return holder.map(Holder::get).orElse(Blocks.AIR);
+        if (ForgeRegistries.BLOCKS.tags() != null){
+            Optional<Block> optional = ForgeRegistries.BLOCKS.tags().getTag(key).getRandomElement(RandomSource.create());
+            return optional.orElse(Blocks.AIR);
+        }
+        return Blocks.AIR;
 
-        //        return Registry.ITEM.getTag(TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(loc))).flatMap(tag -> tag.getRandomElement(new Random())).map(Holder::value);
     }
 
     @Override
@@ -344,8 +346,11 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
             if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (flag && recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
                 output2.draw(guiGraphics, 138, 16);
+
+                guiGraphics.pose().pushPose();
                 guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
                 minecraft.font.drawInBatch(Component.translatable("gui.jei.category.mixing_cauldron.convert_fluid"), 139 * 1.666f, 38 * 1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
+                guiGraphics.pose().popPose();
             } else
                 output1.draw(guiGraphics, 138, 16);
 
@@ -470,24 +475,6 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
                 else
                     MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, output, 1, fillPercentage, OverlayTexture.NO_OVERLAY);
 
-                // output item
-//                ItemStack item2 = recipe.getResultItem();
-//                if (!item2.isEmpty()) {
-//
-//                    guiGraphics.pose().pushPose();
-//                    guiGraphics.pose().translate(0.5D, 1 + 1f / 256f, 0.5D);
-//
-//                    guiGraphics.pose().translate(0D,(Math.sin(Math.PI * (Hexerei.getClientTicks()) / 60 + 20) / 10) * 0.2D,0D);
-//                    guiGraphics.pose().mulPose(Vector3f.YP.rotationDegrees((float)((45) -1f + (2 * Math.sin((Hexerei.getClientTicks() + 20) / 40)))));
-//                    guiGraphics.pose().mulPose(Vector3f.XP.rotationDegrees((float)(82.5f + (5 * Math.cos((Hexerei.getClientTicks() + 22) / 40)))));
-//                    guiGraphics.pose().mulPose(Vector3f.ZP.rotationDegrees((float)(-2.5f + (5 * Math.cos((Hexerei.getClientTicks() + 24) / 40)))));
-//
-//                    guiGraphics.pose().scale(0.4f, 0.4f, 0.4f);
-//                    renderItem(item2, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);
-//                    guiGraphics.pose().popPose();
-//
-//
-//                }
             }
 
 
@@ -505,10 +492,10 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
                 output2.draw(guiGraphics, 138, 16);
 
-
+                guiGraphics.pose().pushPose();
                 guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);
                 minecraft.font.drawInBatch(Component.translatable("gui.jei.category.mixing_cauldron.convert_fluid"), 139 * 1.666f, 38 * 1.666f, 0xFF404040, false, guiGraphics.pose().last().pose(), guiGraphics.bufferSource(), Font.DisplayMode.NORMAL, 0, 15728880);
-
+                guiGraphics.pose().popPose();
             } else {
 
                 output1.draw(guiGraphics, 138, 16);

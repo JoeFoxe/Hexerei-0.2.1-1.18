@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"parent": "block/thin_block",
+	"render_type": "cutout_mipped",
 	"textures": {
 		"0": "hexerei:block/infused_fabric_dyed",
 		"1": "hexerei:block/infused_fabric_outter",
@@ -11,13 +12,13 @@
 			"from": [0, 0.9, 16],
 			"to": [16, 0.9, 17],
 			"faces": {
-				"up": {"uv": [16, 16, 0, 15], "texture": "#1"},
-				"down": {"uv": [16, 1, 0, 0], "texture": "#1"}
+				"up": {"uv": [16, 16, 0, 15], "texture": "#1", "tintindex": 0},
+				"down": {"uv": [16, 1, 0, 0], "texture": "#1", "tintindex": 0}
 			}
 		},
 		{
 			"from": [0, 1, 13],
-			"to": [16, 2, 16],
+			"to": [16, 1.5, 16],
 			"faces": {
 				"north": {"uv": [0, 13, 16, 14], "texture": "#0", "tintindex": 0},
 				"east": {"uv": [3, 0, 6, 1], "texture": "#0", "tintindex": 0},
@@ -28,17 +29,12 @@
 			}
 		},
 		{
-			"from": [2, 1.45, 12],
-			"to": [14, 1.45, 13],
+			"from": [2, 1.25, 12],
+			"to": [14, 1.25, 13],
 			"faces": {
-				"north": {"uv": [0, 0, 12, 0], "texture": "#1"},
-				"east": {"uv": [0, 0, 1, 0], "texture": "#1"},
-				"south": {"uv": [0, 0, 12, 0], "texture": "#1"},
-				"west": {"uv": [0, 0, 1, 0], "texture": "#1"},
-				"up": {"uv": [14, 2, 2, 1], "texture": "#1"},
-				"down": {"uv": [14, 2, 2, 1], "texture": "#1"}
+				"up": {"uv": [14, 2, 2, 1], "texture": "#1", "tintindex": 0},
+				"down": {"uv": [14, 2, 2, 1], "texture": "#1", "tintindex": 0}
 			}
 		}
-	],
-	"render_type": "cutout_mipped"
+	]
 }

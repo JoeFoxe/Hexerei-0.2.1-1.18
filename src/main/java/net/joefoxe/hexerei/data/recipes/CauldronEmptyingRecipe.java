@@ -115,9 +115,9 @@ public class CauldronEmptyingRecipe implements Recipe<CauldronEmptyingRecipe.Wra
         @Override
         public @Nullable CauldronEmptyingRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf buf) {
             Ingredient input = Ingredient.fromNetwork(buf);
-            FluidStack fluid = FluidStack.readFromPacket(buf);
+            FluidIngredient fluid = FluidIngredient.read(buf);
             ItemStack output = buf.readItem();
-            return new CauldronEmptyingRecipe(pRecipeId, input, FluidIngredient.fromFluidStack(fluid), output);
+            return new CauldronEmptyingRecipe(pRecipeId, input, fluid, output);
         }
 
         @Override

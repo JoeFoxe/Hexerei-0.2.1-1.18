@@ -35,7 +35,23 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
 
     @Override
     public boolean matches(SimpleContainer pContainer, Level pLevel) {
-        return input.test(pContainer.getItem(0));
+        return test(input, pContainer.getItem(0));
+    }
+
+    public boolean test(Ingredient ingredient, @javax.annotation.Nullable ItemStack pStack) {
+        if (pStack == null) {
+            return false;
+        } else if (ingredient.isEmpty()) {
+            return pStack.isEmpty();
+        } else {
+            for(ItemStack itemstack : ingredient.getItems()) {
+                if (itemstack.is(pStack.getItem())) {
+                    return !itemstack.hasTag() || !pStack.hasTag() || !itemstack.getTag().contains("Potion") || !pStack.getTag().contains("Potion") || itemstack.getTag().getString("Potion").equals(pStack.getTag().getString("Potion"));
+                }
+            }
+
+            return false;
+        }
     }
 
     @Override

@@ -110,7 +110,7 @@ public class BroomStand extends Block implements ITileEntity<BroomStandTile>, En
 
         BlockEntity tileEntity = worldIn.getBlockEntity(pos);
 
-        if(tileEntity instanceof BroomStandTile broomStand && !(Block.byItem(player.getItemInHand(handIn).getItem()) instanceof ConnectingTable)) {
+        if(tileEntity instanceof BroomStandTile broomStand) {
 
             if (player.getItemInHand(handIn).is(ModItems.CROW_FLUTE.get()) && player.getItemInHand(handIn).getOrCreateTag().getInt("commandMode") == 2) {
                 player.getItemInHand(handIn).useOn(new UseOnContext(player, handIn, hit));

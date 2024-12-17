@@ -91,9 +91,9 @@ public class ClientHerbJarToolTip implements HexereiBookTooltip {
     @Override
     public void renderText(Font p_169953_, int mouseX, int mouseY, Matrix4f lastpose, MultiBufferSource.BufferSource buffer, int overlay, int light) {
         if(Screen.hasShiftDown())
-            Minecraft.getInstance().font.drawInBatch(shift_down.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, true, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
+            Minecraft.getInstance().font.drawInBatch(shift_down.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, false, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
         else
-            Minecraft.getInstance().font.drawInBatch(shift_up.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, true, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
+            Minecraft.getInstance().font.drawInBatch(shift_up.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, false, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
 
 
     }

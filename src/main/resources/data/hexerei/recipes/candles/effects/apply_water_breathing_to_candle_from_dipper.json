@@ -24,11 +24,11 @@
       },
       "glow": {
         "layer": "hexerei:textures/block/potion_layer.png",
-        "meltingSpeedMultiplier": 1,
-        "radiusMultiplier": 1,
-        "effectAmplifierMultiplier": 1,
-        "effectCooldownMultiplier": 1,
-        "effectDurationMultiplier": 1
+        "meltingSpeedMultiplier": 1.0,
+        "radiusMultiplier": 1.0,
+        "effectAmplifierMultiplier": 1.0,
+        "effectCooldownMultiplier": 1.0,
+        "effectDurationMultiplier": 1.0
       }
     }
   },

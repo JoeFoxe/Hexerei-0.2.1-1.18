@@ -1,8 +1,25 @@
 {
   "parent": "minecraft:block/door_bottom_left_open",
   "textures": {
-    "bottom": "hexerei:block/mahogany_door_bottom",
-    "top": "hexerei:block/mahogany_door_top"
+    "particle": "hexerei:block/mahogany_door_bottom"
   },
-  "render_type": "translucent"
+  "children": {
+    "cutout": {
+      "parent": "minecraft:block/door_bottom_left_open",
+      "render_type": "minecraft:cutout",
+      "textures": {
+        "bottom": "hexerei:block/mahogany_door_bottom_cutout",
+        "top": "hexerei:block/mahogany_door_top_cutout"
+      }
+    },
+    "translucent": {
+      "parent": "minecraft:block/door_bottom_left_open",
+      "render_type": "minecraft:translucent",
+      "textures": {
+        "bottom": "hexerei:block/mahogany_door_bottom_glass",
+        "top": "hexerei:block/mahogany_door_top_glass"
+      }
+    }
+  },
+  "loader": "forge:composite"
 }

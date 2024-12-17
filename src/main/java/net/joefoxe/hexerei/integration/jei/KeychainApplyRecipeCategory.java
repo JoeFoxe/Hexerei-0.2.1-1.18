@@ -64,7 +64,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
 
     public ItemStack itemShown;
 
-    private boolean findNewHeatSource;
+    private boolean findNewItem;
 
     @Override
     public List<Component> getTooltipStrings(KeychainRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
@@ -130,11 +130,9 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
     @Override
     public void draw(KeychainRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
-        float newHeatSource = (Hexerei.getClientTicks()) % 200 / 200f;
-        float craftPercent = (Hexerei.getClientTicks()) % 100 / 100f;
-        boolean showOutput = (Hexerei.getClientTicks()) % 200 > 100;
-        if ((newHeatSource <= 0.05f && this.findNewHeatSource) || this.itemShown == null) {
-            this.findNewHeatSource = false;
+        float newItem = (Hexerei.getClientTicks()) % 200 / 200f;
+        if ((newItem <= 0.05f && this.findNewItem) || this.itemShown == null) {
+            this.findNewItem = false;
             if (Minecraft.getInstance().level != null) {
                 Collection<Item> col = ForgeRegistries.ITEMS.getValues();
                 Random rand = new Random();
@@ -142,8 +140,8 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
                     this.itemShown = new ItemStack(item);
             }
         }
-        if (newHeatSource > 0.05f)
-            this.findNewHeatSource = true;
+        if (newItem > 0.05f)
+            this.findNewItem = true;
 
         Minecraft minecraft = Minecraft.getInstance();
         ItemRenderer renderer = minecraft.getItemRenderer();
@@ -225,7 +223,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
 
     private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
                             int combinedLightIn) {
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, combinedLightIn,
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GUI, combinedLightIn,
                 OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 

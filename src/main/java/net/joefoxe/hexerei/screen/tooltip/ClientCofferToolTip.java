@@ -180,10 +180,11 @@ public class ClientCofferToolTip implements HexereiBookTooltip {
     @OnlyIn(Dist.CLIENT)
     @Override
     public void renderText(Font p_169953_, int mouseX, int mouseY, Matrix4f lastpose, MultiBufferSource.BufferSource buffer, int overlay, int light) {
+
         if(Screen.hasShiftDown())
-            Minecraft.getInstance().font.drawInBatch(shift_down.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, true, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
+            Minecraft.getInstance().font.drawInBatch(shift_down.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, false, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
         else
-            Minecraft.getInstance().font.drawInBatch(shift_up.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, true, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
+            Minecraft.getInstance().font.drawInBatch(shift_up.getVisualOrderText(), (float) (mouseX), (float) (mouseY), 16777215, false, lastpose, buffer, Font.DisplayMode.NORMAL, 0, 15728880);
 
     }
 
@@ -247,57 +248,57 @@ public class ClientCofferToolTip implements HexereiBookTooltip {
     }
 
     private void drawBorder(int xIn, int yIn, int p_194022_, int p_194023_, GuiGraphics guiGraphics, int z) {
-        this.blit(guiGraphics, xIn + 5, yIn + 5, z - 2, Texture.BORDER_CORNER_TOP);
-        this.blit(guiGraphics, xIn + p_194022_ * 18 + 5, yIn + 5, z - 2, Texture.BORDER_CORNER_TOP);
+        this.blit(guiGraphics, xIn + 5, yIn + 5, z, Texture.BORDER_CORNER_TOP);
+        this.blit(guiGraphics, xIn + p_194022_ * 18 + 5, yIn + 5, z, Texture.BORDER_CORNER_TOP);
 
 
-        this.blit(guiGraphics, xIn, yIn + 3, z - 1, Texture.THICK_BORDER_VERTICAL);
-        this.blit(guiGraphics, xIn + p_194022_ * 18 + 6, yIn + 3, z - 1, Texture.THICK_BORDER_VERTICAL);
+        this.blit(guiGraphics, xIn, yIn + 3, z, Texture.THICK_BORDER_VERTICAL);
+        this.blit(guiGraphics, xIn + p_194022_ * 18 + 6, yIn + 3, z, Texture.THICK_BORDER_VERTICAL);
 
         for(int j = 0; j < p_194023_; ++j) {
             this.blit(guiGraphics, xIn + 5, yIn + 5 + j * 18, z, Texture.BORDER_VERTICAL);
             this.blit(guiGraphics, xIn + p_194022_ * 18 + 5, yIn + 5 + j * 18, z, Texture.BORDER_VERTICAL);
 
-            this.blit(guiGraphics, xIn, yIn + 6 + j * 18, z - 1, Texture.THICK_BORDER_VERTICAL);
-            this.blit(guiGraphics, xIn + p_194022_ * 18 + 6, yIn + 6 + j * 18, z - 1, Texture.THICK_BORDER_VERTICAL);
+            this.blit(guiGraphics, xIn, yIn + 6 + j * 18, z, Texture.THICK_BORDER_VERTICAL);
+            this.blit(guiGraphics, xIn + p_194022_ * 18 + 6, yIn + 6 + j * 18, z, Texture.THICK_BORDER_VERTICAL);
 
 
             if(j > 0 && j < 4){
                 this.blit(guiGraphics, xIn + p_194022_ * 18 - (18 * 3) + 5, yIn + 5 + j * 18, z, Texture.BORDER_VERTICAL);
 
-                this.blit(guiGraphics, xIn + p_194022_ * 18 - (18 * 3) - 5 + 5, yIn + 5 + j * 17 + 3, z - 1, Texture.THICK_BORDER_VERTICAL);
-                this.blit(guiGraphics, xIn + p_194022_ * 18 - (18 * 6) + 1 + 5, yIn + 5 + j * 17 + 3, z - 1, Texture.THICK_BORDER_VERTICAL);
+                this.blit(guiGraphics, xIn + p_194022_ * 18 - (18 * 3) - 5 + 5, yIn + 5 + j * 17 + 3, z, Texture.THICK_BORDER_VERTICAL);
+                this.blit(guiGraphics, xIn + p_194022_ * 18 - (18 * 6) + 1 + 5, yIn + 5 + j * 17 + 3, z, Texture.THICK_BORDER_VERTICAL);
             }
         }
 
-        this.blit(guiGraphics, xIn + 1 + 4, yIn, z - 1, Texture.THICK_BORDER_HORIZONTAL);
-        this.blit(guiGraphics, xIn + 1 + 4, yIn + 6 + p_194023_ * 18, z - 1, Texture.THICK_BORDER_HORIZONTAL);
+        this.blit(guiGraphics, xIn + 1 + 4, yIn, z, Texture.THICK_BORDER_HORIZONTAL);
+        this.blit(guiGraphics, xIn + 1 + 4, yIn + 6 + p_194023_ * 18, z, Texture.THICK_BORDER_HORIZONTAL);
 
         for(int i = 0; i < p_194022_; ++i) {
-            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 5, z - 1, Texture.BORDER_HORIZONTAL_TOP);
-            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 5 + p_194023_ * 18, z - 1, Texture.BORDER_HORIZONTAL_BOTTOM);
+            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 5, z, Texture.BORDER_HORIZONTAL_TOP);
+            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 5 + p_194023_ * 18, z, Texture.BORDER_HORIZONTAL_BOTTOM);
 
 
-            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn, z - 1, Texture.THICK_BORDER_HORIZONTAL);
-            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 6 + p_194023_ * 18, z - 1, Texture.THICK_BORDER_HORIZONTAL);
+            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn, z, Texture.THICK_BORDER_HORIZONTAL);
+            this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 6 + p_194023_ * 18, z, Texture.THICK_BORDER_HORIZONTAL);
 
             if(i > 2 && i < 6){
                 this.blit(guiGraphics, xIn + 1 + i * 18 + 5, yIn + 5 + (18 * 4), z, Texture.BORDER_HORIZONTAL_TOP);
-                this.blit(guiGraphics, xIn + 1 + i * 17 + 9, yIn + 5 + (18 * 4) - 5, z - 1, Texture.THICK_BORDER_HORIZONTAL);
-                this.blit(guiGraphics, xIn + 1 + i * 17 + 9, yIn + 5 + (18) + 1, z - 1, Texture.THICK_BORDER_HORIZONTAL);
+                this.blit(guiGraphics, xIn + 1 + i * 17 + 9, yIn + 5 + (18 * 4) - 5, z, Texture.THICK_BORDER_HORIZONTAL);
+                this.blit(guiGraphics, xIn + 1 + i * 17 + 9, yIn + 5 + (18) + 1, z, Texture.THICK_BORDER_HORIZONTAL);
             }
 
         }
 
-        this.blit(guiGraphics, xIn + (18 * 3) + 1 + 5, yIn + 5 + p_194023_ * 18 - (4 * 18) + 1, z - 5, Texture.THICK_BORDER_CORNER_TOP_LEFT);
-        this.blit(guiGraphics, xIn + (18 * 3) + 1 + 5, yIn + 5 + p_194023_ * 18 - (18) - 5, z - 5, Texture.THICK_BORDER_CORNER_BOTTOM_LEFT);
-        this.blit(guiGraphics, xIn + (18 * 6) - 5 + 5, yIn + 5 + p_194023_ * 18 - (4 * 18) + 1, z - 5, Texture.THICK_BORDER_CORNER_TOP_RIGHT);
-        this.blit(guiGraphics, xIn + (18 * 6) - 5 + 5, yIn + 5 + p_194023_ * 18 - (18) - 5, z - 5, Texture.THICK_BORDER_CORNER_BOTTOM_RIGHT);
+        this.blit(guiGraphics, xIn + (18 * 3) + 1 + 5, yIn + 5 + p_194023_ * 18 - (4 * 18) + 1, z, Texture.THICK_BORDER_CORNER_TOP_LEFT);
+        this.blit(guiGraphics, xIn + (18 * 3) + 1 + 5, yIn + 5 + p_194023_ * 18 - (18) - 5, z, Texture.THICK_BORDER_CORNER_BOTTOM_LEFT);
+        this.blit(guiGraphics, xIn + (18 * 6) - 5 + 5, yIn + 5 + p_194023_ * 18 - (4 * 18) + 1, z, Texture.THICK_BORDER_CORNER_TOP_RIGHT);
+        this.blit(guiGraphics, xIn + (18 * 6) - 5 + 5, yIn + 5 + p_194023_ * 18 - (18) - 5, z, Texture.THICK_BORDER_CORNER_BOTTOM_RIGHT);
 
-        this.blit(guiGraphics, xIn, yIn, z - 5, Texture.THICK_BORDER_CORNER_TOP_LEFT);
-        this.blit(guiGraphics, xIn + (18 * 9) + 6, yIn + (18 * 5) + 6, z - 5, Texture.THICK_BORDER_CORNER_BOTTOM_RIGHT);
-        this.blit(guiGraphics, xIn, yIn + (18 * 5) + 6, z - 5, Texture.THICK_BORDER_CORNER_BOTTOM_LEFT);
-        this.blit(guiGraphics, xIn + (18 * 9) + 6, yIn, z - 5, Texture.THICK_BORDER_CORNER_TOP_RIGHT);
+        this.blit(guiGraphics, xIn, yIn, z, Texture.THICK_BORDER_CORNER_TOP_LEFT);
+        this.blit(guiGraphics, xIn + (18 * 9) + 6, yIn + (18 * 5) + 6, z, Texture.THICK_BORDER_CORNER_BOTTOM_RIGHT);
+        this.blit(guiGraphics, xIn, yIn + (18 * 5) + 6, z, Texture.THICK_BORDER_CORNER_BOTTOM_LEFT);
+        this.blit(guiGraphics, xIn + (18 * 9) + 6, yIn, z, Texture.THICK_BORDER_CORNER_TOP_RIGHT);
     }
 
     private void drawBorder(VertexConsumer buffer, int xIn, int yIn, int p_194022_, int p_194023_, PoseStack guiGraphics, int z, int overlay, int light) {

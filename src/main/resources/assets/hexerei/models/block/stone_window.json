@@ -1,8 +1,26 @@
+
 {
   "parent": "minecraft:block/cube_column",
   "textures": {
-    "end": "hexerei:block/stone_window_top",
-    "side": "hexerei:block/stone_window"
+    "particle": "hexerei:block/stone_window"
   },
-  "render_type": "translucent"
+  "children": {
+    "cutout": {
+      "parent": "minecraft:block/cube_column",
+      "textures": {
+        "end": "hexerei:block/stone_window_top_cutout",
+        "side": "hexerei:block/stone_window_cutout"
+      },
+      "render_type": "cutout"
+    },
+    "translucent": {
+      "parent": "minecraft:block/cube_column",
+      "textures": {
+        "end": "hexerei:block/stone_window_top_glass",
+        "side": "hexerei:block/stone_window_glass"
+      },
+      "render_type": "translucent"
+    }
+  },
+  "loader": "forge:composite"
 }

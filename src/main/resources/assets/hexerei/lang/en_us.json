@@ -418,10 +418,10 @@
 
   "book.hexerei.index_page_2.passage_1": "- Right click to interact -\n next page button on bottom right",
 
-  "book.hexerei.intro_page_1.passage_1": "  Welcome to the wonderful witchcraft filled world of Hexerei! Where many of your desires, known and unknown, will be met to it's fullest! \n\nThis mod is my life and soul right now, I put in nearly all of my time and energy into it. \n\nmade by: JoeFoxe",
+  "book.hexerei.intro_page_1.passage_1": "  Welcome to the enchanting world of Hexerei, a rich and immersive experience filled with mystical covens and enchanting creatures.\n\n  Dive into the lore of the dark, nature, and soon to come spirit coven, each with their unique design and secrets. \n\nCreated by: JoeFoxe",
   "book.hexerei.intro_page_1.curseforge_link_tooltip": "Hexerei curseforge link - right click",
 
-  "book.hexerei.intro_page_2.passage_1": "I have been working on this book for over a month, designing it completely from scratch. I hope it is everything and more for what people were wanting. \n\nTons more content is yet to come, but this content will be from coven witches to casting spells to more familiars and much more! Stay tuned!",
+  "book.hexerei.intro_page_2.passage_1": "  This book will guide your way through the magical world of Hexerei, helping you uncover the secrets and powers of witchcraft. \n\n  With more content on the horizon, including new coven witches, spells, and familiars, the world of Hexerei continues to grow and evolve. Stay tuned for even more magical adventures!",
 
   "book.hexerei.intro_page_3.passage_1": "  If you have not figured it out already, at the bottom corners of the opened pages should be arrows directing you to the next page or previous page.\n  As well as an X which will close the book and lay it down and a Home button which will direct you to the index.",
 
@@ -455,7 +455,7 @@
   "book.hexerei.support_page_2.ko-fi_link_tooltip_3": "    really this does help feed me <3",
   "book.hexerei.support_page_2.ko-fi_link_tooltip_4": "                right click",
 
-  "book.hexerei.support_page_5.passage_1": "help this community has given me, and I am so appreciative towards all of them! Again, thank you all so much for either being a part of my community or helping me be able to sustain life while working on this mod! \n\n  With all that being said lets get into it.",
+  "book.hexerei.support_page_5.passage_1": "help this community has given me, and I am so appreciative towards all of them! Again, thank you all so much for either being a part of my community or helping me be able to sustain life while working on this mod! \n\n  With all that being said, I hope you enjoy the the enchanting world of Hexerei!",
 
 
 
@@ -515,12 +515,12 @@
   "book.hexerei.items_dipper_1.passage_1": "Dipper",
   "book.hexerei.items_dipper_1.passage_2": "  The Dipper is an attachment for the Mixing Cauldron, mainly used for making candles by dipping string into the tallow below. To attach, sneak and right click the top of the cauldron with the dipper.",
   "book.hexerei.items_dipper_3.passage_1": "  The Dipper has 3 slots, each of which can hold a single item. If the fluid below matches a recipe for one of the items on the dipper, it will begin dipping it in the fluid. The Dipper is not just for candlemaking, it is able to make any item in any fluid, so long as the recipe exists.",
-  "book.hexerei.items_dipper_4.passage_1": "  For example, you can color candles with blood by putting them on a dipper with enough blood below.",
+  "book.hexerei.items_dipper_4.passage_1": "",
 
   "book.hexerei.items_candle_1.passage_1": "Candles",
   "book.hexerei.items_candle_1.passage_2": "  Candles are a dyeable, decorative block which can be used for lighting, or for magic. Up to 4 different candles can be placed in the same block. A candle can be lit with flint and steel, and will typically stay lit for 35 minutes.",
   "book.hexerei.items_candle_3.passage_1": "  Candles are lit individually, in the order they were placed in. When placed near an altar and lit, the candles will float around it.\n  You can craft several items with a candle to add a decorative base to it, including planks, selenite shards, and more.",
-  "book.hexerei.items_candle_4.passage_1": "  Candles can be infused with a potion effect with a Dipper. When lit, they will apply their effects to anyone nearby. Only certain potions work for this.\n  Special herb blends can also be made and applied to candles, such as the Mindful Trance blend.",
+  "book.hexerei.items_candle_4.passage_1": "  Candles can be infused with a potion effect with a Dipper. When lit, they will apply their effects to anyone nearby. Only certain potions work for this.",
 
   "book.hexerei.items_candelabra_1.passage_1": "Candelabra",
   "book.hexerei.items_candelabra_1.passage_2": "  Candelabras, unlike the candles used to make them, won't go out on their own. They can be placed on the top of a block, or under a block, including blocks like chains.",
@@ -643,13 +643,13 @@
   "book.hexerei.items_yellow_dock_bush_1.passage_2": "  The last bush flower of Hexerei, the Yellow Dock, has been used to break binding ties that prevent those from moving on. This will be used in sorts of magic for the spirit coven, which will be coming in future updates. Can be harvested when fully grown by right clicking.",
 
   "book.hexerei.items_willow_sapling_1.passage_1": "Willow Sapling",
-  "book.hexerei.items_willow_sapling_1.passage_2": "  Sapling used to grow Willow trees. Can be obtained by breaking Willow Leaves.",
+  "book.hexerei.items_willow_sapling_1.passage_2": "  Sapling used to grow Willow trees. Can be obtained by breaking Willow Leaves. \n\n  Willow trees can be found in swamps.",
 
   "book.hexerei.items_mahogany_sapling_1.passage_1": "Mahogany Sapling",
-  "book.hexerei.items_mahogany_sapling_1.passage_2": "  Sapling used to grow Mahogany trees. Can be obtained by breaking Mahogany Leaves.",
+  "book.hexerei.items_mahogany_sapling_1.passage_2": "  Sapling used to grow Mahogany trees. Can be obtained by breaking Mahogany Leaves. \n\n  Mahogany trees can be found in jungles.",
 
   "book.hexerei.items_witch_hazel_sapling_1.passage_1": "Witch Hazel Sapling",
-  "book.hexerei.items_witch_hazel_sapling_1.passage_2": "  Sapling used to grow With Hazel trees. Can be obtained by breaking Witch Hazel Leaves.",
+  "book.hexerei.items_witch_hazel_sapling_1.passage_2": "  Sapling used to grow With Hazel trees. Can be obtained by breaking Witch Hazel Leaves. \n\n  Witch Hazel trees can be found in birch forests.",
 
   "book.hexerei.items_mandrake_flowers_1.passage_1": "Mandrake Flowers",
   "book.hexerei.items_mandrake_flowers_1.passage_2": "  Mandrake flowers are used in the recipe to make the herb enhanced broom brush, they can also be dried and later on will be used in different infuses and rituals.\n  Obtained by right clicking a fully grown Mandrake Plant.",
@@ -725,7 +725,7 @@
   "book.hexerei.entities_crow_page_4.passage_1": "  Each crow contains 3 slots, the first being what the crow is holding, the second being the hat the crow is wearing, and the third is a misc slot still to be determined but can act as a storage slot. The crows can be equip with weapons to help fight with you.",
   "book.hexerei.entities_crow_page_5.passage_1": "  Below the item slots of the crow GUI is the commands for the crow. This is where you can set the commands and set the specific help command. The first command on the left is the Follow command, this will make the crow follow closely behind the player or hop onto the players shoulder.",
   "book.hexerei.entities_crow_page_6.passage_1": "  The second command is the Sit command, this will make the crow land and try to sit. If the crow has a perch position it will instead fly over to that perch and sit.\n\n  The third command is the Wander command, this will make the crow wander and fly around the area.",
-  "book.hexerei.entities_crow_page_7.passage_1": "  If the crow has a perch location the crow will not wonder too far away from the perch.\n\n  The last command is the Help command, this command is unique and has three separate modes to it. When the ",
+  "book.hexerei.entities_crow_page_7.passage_1": "  If the crow has a perch location the crow will not wander too far away from the perch.\n\n  The last command is the Help command, this command is unique and has three separate modes to it. When the ",
   "book.hexerei.entities_crow_page_8.passage_1": "Help command is selected the modes on the right will gain color showing that these are in use and using the selected mode. The first of the help modes is Gathering and this will allow your crows to interact with the Coffer or Herb Jar blocks. The crows will interact with nearby",
   "book.hexerei.entities_crow_page_9.passage_1": "coffers or Herb Jars that have the Crow Gather button toggled on. The crows will seek out any items in the area matching items already inside the container, unless the crow has a perch at the container, then it will pickup ANY item in the area and deposit it back in that container.",
   "book.hexerei.entities_crow_page_10.passage_1": "  The second help mode is Harvesting and this will allow your crows to harvest any crop and some bush plants nearby the position of the crow, or nearby the position of the crow's perch. The crow will leave the items on the ground, so having another crow",
@@ -769,7 +769,7 @@
   "book.hexerei.structures_dark_coven_page_2.passage_1": "  You can find various crafting tools, armor, and herbs within the covens.",
 
   "book.hexerei.structures_nature_coven_page_1.passage_1": "Nature Coven",
-  "book.hexerei.structures_nature_coven_page_1.passage_2": "  In forests, Nature Covens may be found, though aside from some animals in some huts they are largely unpopulated, for now.",
+  "book.hexerei.structures_nature_coven_page_1.passage_2": "  The Nature Coven is dedicated to the power of the natural world. Found in forests, members excel in earth-based magic, nurturing plants, and communicating with animals. Perfect for that naturey witch.",
   "book.hexerei.structures_nature_coven_page_2.passage_1": "  These places are a good source for witch tools, crows, bees, and herbs.",
   
   "book.hexerei.tooltip_go_to_page": "Go to Page",
@@ -1109,6 +1109,183 @@
   "gui.jei.category.plant_picking": "Harvest Plant",
   "gui.jei.category.plant_picking_tooltip": "Right-Click to pick like a berry bush",
 
+
+  "entity.hexerei.owl": "Owl",
+  "hexerei.owl_message.destination": "Select your destination",
+  "hexerei.letter.empty": "Must be sealed before the letter can be delivered.",
+  "hexerei.package.empty": "Must be sealed before the package can be delivered.",
+  "hexerei.owl_courier_depot_name.edit": "Set the depot's name",
+  "hexerei.package_letter.seal": "Seal",
+  "hexerei.package_letter.letter_seal_tooltip": "Click and Hold to seal",
+  "hexerei.package_letter.letter_seal_tooltip2": "Cannot be edited once sealed",
+  "screen.hexerei.package": "Courier Package",
+  "screen.hexerei.letter": "Courier Letter",
+  "block.hexerei.courier_package": "Courier Package",
+  "block.hexerei.courier_letter": "Courier Letter",
+  "block.hexerei.mahogany_courier_depot": "Mahogany Courier Depot",
+  "block.hexerei.willow_courier_depot": "Willow Courier Depot",
+  "block.hexerei.witch_hazel_courier_depot": "Witch Hazel Courier Depot",
+  "item.hexerei.packing_peanut": "Packing Peanut",
+  "item.hexerei.owl_spawn_egg": "Owl Spawn Egg",
+  "tooltip.hexerei.courier_depot": "Acts as a mailbox for the owl courier system",
+  "message.hexerei.owl_already_doing_task": "%s is already doing a task.",
+  "message.hexerei.owl_could_not_deliver": "%s could not deliver %s",
+  "screen.hexerei.owl_send_screen.depot_too_full": "Depot too full",
+  "screen.hexerei.owl_send_screen.to_player": "To Player - %s",
+  "screen.hexerei.owl_send_screen.to_depot": "To Depot - %s",
+  "screen.hexerei.owl_send_screen.send_to": "Send to - %s",
+  "screen.hexerei.owl_send_screen.no_destinations": "No destinations to send to, set up an Owl Courier Depot.",
+  "tooltip.hexerei.courier_package_use": "Can be used to send items to players or depots using tamed owls.",
+  "tooltip.hexerei.courier_package_menu": "Right click with the package in hand to open the package menu.",
+  "tooltip.hexerei.courier_package_send": "Use a sealed package on your tamed owl to open the send menu.",
+  "tooltip.hexerei.courier_package_open": "To open a sealed package first place it then right click to open.",
+  "tooltip.hexerei.courier_package_must_be_sealed": "Packages must be sealed before they can be delivered.",
+  "tooltip.hexerei.courier_letter_use": "Can be used to send messages to players or depots using tamed owls.",
+  "tooltip.hexerei.courier_letter_menu": "Right click with the letter in hand to open and begin typing.",
+  "tooltip.hexerei.courier_letter_send": "Use a sealed letter on your tamed owl to open the send menu.",
+  "tooltip.hexerei.courier_letter_open": "Right click with the letter in hand to open and read.",
+  "tooltip.hexerei.courier_letter_must_be_sealed": "Letters must be sealed before they can be delivered.",
+  "tooltip.hexerei.owl_favorite_block": "Favorite Block",
+  "tooltip.hexerei.owl_favorite_block2": "Increases owl happiness when sitting on this block",
+  "tooltip.hexerei.owl_open_quirks_tab": "Open quirks tab",
+  "tooltip.hexerei.owl_close_quirks_tab": "Close quirks tab",
+
+  "book.hexerei.entities_owl_page_1.passage_1": "Owl",
+  "book.hexerei.entities_owl_page_1.passage_2": "  The Owl is another familiar that can assist you in your witchy needs. \n  They can be tamed with raw Cod or Salmon, in two different ways like the crow. You can either throw the fish on the ground and they will eat it and have a",
+  "book.hexerei.entities_owl_page_2.passage_1": "better chance at taming, or you can right click them with the fish.",
+  "book.hexerei.entities_owl_page_2.passage_2": "Taming food: ",
+  "book.hexerei.entities_owl_page_2.passage_3": "Breeding item: ",
+  "book.hexerei.entities_owl_page_2.passage_4": "  Owls play only the role of a messenger, for now. They can be tasked with delivering",
+  "book.hexerei.entities_owl_page_3.passage_1": "messages to players or Owl Courier Depots. They can carry two types of deliveries: Courier Letters or Courier Packages. Courier Letters are used solely for sending messages, while Courier Packages can hold up to 5 items, making them perfect for sending small goods and treasures.",
+  "book.hexerei.entities_owl_page_4.passage_1": "Whether it’s a simple note or a bundle of valuable items, the owls ensure that your messages and packages reach their destination swiftly and safely.\n\n  To send a delivery use one of the items below and right click your tamed owl.",
+  "book.hexerei.entities_owl_page_4.passage_2": "Deliverables: ",
+
+  "book.hexerei.structures_owl_post_office_page_1.passage_1": "Owl Post Office",
+  "book.hexerei.structures_owl_post_office_page_1.passage_2": "  The Owl Post Office, nestled in the heart of the forest, is where diligent owls manage all your magical deliveries. Efficient and reliable, these feathered couriers ensure your messages and parcels reach their destinations swiftly and securely.",
+  "book.hexerei.structures_owl_post_office_page_2.passage_1": "  Tame owls to assist with deliveries and open packages for enchanting rewards.",
+  "book.hexerei.structures_owl_post_office_page_3.passage_1": "  Or use it as a great starter base with a perfect second floor for brooms.",
+
+  "book.hexerei.crafting_type.woodcutter": "  To craft, you need a Woodcutter and the items shown below.",
+
+  "book.hexerei.items_replacer_satchel_1.passage_1": "Replacer Satchel",
+  "book.hexerei.items_replacer_satchel_1.passage_2": "  The Replacer Satchel is another satchel that is the size of a Medium Satchel, though this one has some upgrades. \n  This satchel allows broom brushes that are stored in it to replace the active brush when it breaks.",
+
+  "book.hexerei.items_ender_satchel_1.passage_1": "Ender Satchel",
+  "book.hexerei.items_ender_satchel_1.passage_2": "  The Ender Satchel is a unique type of satchel. When this inventory is opened it links with the riders ender chest.",
+
+  "book.hexerei.items_broom_seat_1.passage_1": "Broom Seat",
+  "book.hexerei.items_broom_seat_1.passage_2": "  The Broom Seat is a mix between a satchel and a cosmetic seat making the rider face forwards.",
+
+  "book.hexerei.items_wax_blend_1.passage_1": "Wax Blend",
+  "book.hexerei.items_wax_blend_1.passage_2": "  Wax blend is to wax unwaxed connectable blocks. Waxed connectable blocks can only connect to other waxed connectable blocks, from this mod.",
+
+  "book.hexerei.items_cloth_1.passage_1": "Cloth",
+  "book.hexerei.items_cloth_1.passage_2": "  The Cloth is what clears the waxed blocks and unwaxes them. This has unlimited uses unlike the Wax Blend. Waxed connectable blocks can only connect to other waxed connectable blocks, from this mod.",
+
+  "book.hexerei.items_waxing_kit_1.passage_1": "Waxing Kit",
+  "book.hexerei.items_waxing_kit_1.passage_2": "  The Waxing Kit is both a Cloth and a bunch of Wax Blend. This must be loaded with Wax Blends before it can apply wax, but it can always take away wax. Waxed connectable blocks can only connect to other waxed connectable blocks, from this mod.",
+
+  "book.hexerei.items_willow_connected_1.passage_1": "Willow Connected",
+  "book.hexerei.items_willow_connected_1.passage_2": "  These planks have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_willow_connected_1.passage_1": "Polished Willow Connected",
+  "book.hexerei.items_polished_willow_connected_1.passage_2": "  These planks have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_willow_pillar_1.passage_1": "Polished Willow Pillar",
+  "book.hexerei.items_polished_willow_pillar_1.passage_2": "  These planks have pillar connections, and will connect to similar faced pillars. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_willow_layered_1.passage_1": "Polished Willow Layered",
+  "book.hexerei.items_polished_willow_layered_1.passage_2": "  These planks have layered connections, and will connect other connections on the same level it is on. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_willow_window_1.passage_1": "Willow Window",
+  "book.hexerei.items_willow_window_1.passage_2": "  These windows have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_willow_window_pane_1.passage_1": "Willow Window Pane",
+  "book.hexerei.items_willow_window_pane_1.passage_2": "  These windows have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_mahogany_connected_1.passage_1": "Mahogany Connected",
+  "book.hexerei.items_mahogany_connected_1.passage_2": "  These planks have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_mahogany_connected_1.passage_1": "Polished Mahogany Connected",
+  "book.hexerei.items_polished_mahogany_connected_1.passage_2": "  These planks have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_mahogany_pillar_1.passage_1": "Polished Mahogany Pillar",
+  "book.hexerei.items_polished_mahogany_pillar_1.passage_2": "  These planks have pillar connections, and will connect to similar faced pillars. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_mahogany_layered_1.passage_1": "Polished Mahogany Layered",
+  "book.hexerei.items_polished_mahogany_layered_1.passage_2": "  These planks have layered connections, and will connect other connections on the same level it is on. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_mahogany_window_1.passage_1": "Mahogany Window",
+  "book.hexerei.items_mahogany_window_1.passage_2": "  These windows have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_mahogany_window_pane_1.passage_1": "Mahogany Window Pane",
+  "book.hexerei.items_mahogany_window_pane_1.passage_2": "  These windows have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_witch_hazel_connected_1.passage_1": "Witch Hazel Connected",
+  "book.hexerei.items_witch_hazel_connected_1.passage_2": "  These planks have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_witch_hazel_connected_1.passage_1": "Polished Witch Hazel Connected",
+  "book.hexerei.items_polished_witch_hazel_connected_1.passage_2": "  These planks have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_witch_hazel_pillar_1.passage_1": "Polished Witch Hazel Pillar",
+  "book.hexerei.items_polished_witch_hazel_pillar_1.passage_2": "  These planks have pillar connections, and will connect to similar faced pillars. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_polished_witch_hazel_layered_1.passage_1": "Polished Witch Hazel Layered",
+  "book.hexerei.items_polished_witch_hazel_layered_1.passage_2": "  These planks have layered connections, and will connect other connections on the same level it is on. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_witch_hazel_window_1.passage_1": "Witch Hazel Window",
+  "book.hexerei.items_witch_hazel_window_1.passage_2": "  These windows have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_witch_hazel_window_pane_1.passage_1": "Witch Hazel Window Pane",
+  "book.hexerei.items_witch_hazel_window_pane_1.passage_2": "  These windows have a full sided connected texture. Can be waxed with wax blend to connect with other similar waxed blocks.",
+
+  "book.hexerei.items_witch_hazel_planks_1.passage_1": "Witch Hazel Planks",
+  "book.hexerei.items_witch_hazel_planks_1.passage_2": "  Witch hazel planks and their variants are perfect with their warm, earthy tones creating a cozy and mystical atmosphere.",
+
+  "book.hexerei.items_witch_hazel_log_1.passage_1": "Witch Hazel Log",
+  "book.hexerei.items_witch_hazel_log_1.passage_2": "  Witch Hazel logs are used in making a willow broom within the mixing cauldron. They are also a lovely decoration block for a more gloomy or nature-like builds.",
+
+  "book.hexerei.items_infused_fabric_block_1.passage_1": "Infused Fabric Block",
+  "book.hexerei.items_infused_fabric_block_1.passage_2": "  Infused Fabric Blocks are versatile and enchanting, perfect for adding a magical touch to any build. They can be dyed in a variety of colors and connect with a full sided connection, allowing for endless customization and creativity.",
+  "book.hexerei.items_infused_fabric_block_3.passage_1": "  Can be dyed when the block is placed, then by using any dye against the block.",
+  "book.hexerei.items_infused_fabric_block_3.passage_2": "  Can be waxed to connect to other waxed blocks.",
+
+  "book.hexerei.items_infused_fabric_carpet_1.passage_1": "Infused Fabric Carpet",
+  "book.hexerei.items_infused_fabric_carpet_1.passage_2": "  Enhance your builds with infused fabric carpets, which are both captivating and practical. They can be dyed in a variety of colors and connect seamlessly on the same layer, allowing for endless customization and creativity.",
+  "book.hexerei.items_infused_fabric_carpet_3.passage_1": "  Can be dyed when the carpet is placed, then by using any dye against the carpet.",
+  "book.hexerei.items_infused_fabric_carpet_3.passage_2": "  Can be placed on carpets and stairs to form fit most of them.",
+
+  "book.hexerei.items_courier_depot_1.passage_1": "Courier Depot",
+  "book.hexerei.items_courier_depot_1.passage_2": "  Courier Depots serve as a crucial center for managing all your deliveries. With its efficient design and charming aesthetics, it ensures that every parcel and message is handled with utmost care and precision.",
+  "book.hexerei.items_courier_depot_2.passage_1": "  Staffed by owls who not only deliver with pinpoint accuracy but also have a knack for gossiping about the latest magical news, it’s the perfect solution for any witch looking to keep their messages flying smoothly and with a touch of whimsy.\n\n Comes in each wood variant.",
+
+  "book.hexerei.items_courier_letter_1.passage_1": "Courier Letter",
+  "book.hexerei.items_courier_letter_1.passage_2": "  Courier Letters are great for sending secret messages to other players or depots. Whether you’re sharing important information or just keeping in touch, this enchanted letter ensures your message arrives swiftly and securely. ",
+  "book.hexerei.items_courier_letter_2.passage_1": "  Delivered by our trusty owls, your words will always find their way to the intended recipient, no matter the distance.",
+
+  "book.hexerei.items_courier_package_1.passage_1": "Courier Package",
+  "book.hexerei.items_courier_package_1.passage_2": "  Courier Packages are perfect for sending items to other players or depots. Whether it’s a gift, supplies, or a special delivery, these enchanted packages ensure your items arrive safely and promptly.",
+  "book.hexerei.items_courier_package_2.passage_1": "  Delivered by our dedicated owls, your parcels will always reach their destination, no matter the distance or obstacles. \n  Packages can be opened by right clicking the placed package, if that package is sealed.",
+
+  "book.hexerei.items_packing_peanut_1.passage_1": "Packing Peanut",
+  "book.hexerei.items_packing_peanut_1.passage_2": "  Packing Peanuts are not only perfect for cushioning your Courier Packages but also make for a delightful light snack. A favorite among our hardworking owls, they add a touch of fun to every parcel.",
+
+  "book.hexerei.items_broom_stand_1.passage_1": "Broom Stand",
+  "book.hexerei.items_broom_stand_1.passage_2": "  The Broom Stand is the perfect solution for storing your broom when it’s not in use. Designed to be placed against the wall or on the ground, it keeps your broom secure and ready for your next flight.",
+  "book.hexerei.items_broom_stand_2.passage_1": "  With its sturdy construction and elegant design, the Broom Stand ensures your broom is always within reach and neatly stored.",
+
+  "book.hexerei.items_broom_whistle_1.passage_1": "Broom Whistle",
+  "book.hexerei.items_broom_whistle_1.passage_2": "  The Broom Whistle is a handy tool for any witch. Bind it to your broom, and with a simple blow, your broom will come flying to you if it’s within range. Perfect for those moments when you need your broom in a hurry, it ensures you’re never far from your trusty ride.",
+
+  "book.hexerei.items_woodcutter_1.passage_1": "Woodcutter",
+  "book.hexerei.items_woodcutter_1.passage_2": "  The Woodcutter is essential for transforming wood and planks into special connecting texture blocks or getting a nice discount on other blocks. Perfect for any witch looking to add unique patterns and designs to their builds, it ensures precision and creativity in every cut.",
+  "book.hexerei.items_woodcutter_2.passage_1": "  With its magical efficiency, crafting intricate wooden structures has never been easier.",
+
+  "book.hexerei.entities_broom_page_3_1.passage_1": "  Third, The Witch Hazel Broom is a reliable choice for any witch seeking a balance of speed and control. Slightly faster than the Willow Broom but not as swift as the Mahogany Broom. Crafted from the enchanting wood of the witch hazel tree, this broom is ideal for everyday travel and magical adventures alike.",
+
+  "book.hexerei.support_page_5.passage_2": "Created by: JoeFoxe",
+
+  "book.hexerei.items_woodcutter_planks": "* Use a woodcutter to cut the planks into special connecting variants",
 
 
   "itemGroup.hexereiModTab": "Hexerei"
