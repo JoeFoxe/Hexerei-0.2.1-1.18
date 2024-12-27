@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  */
 public interface ITimedEvent {
 
-    default void tickEvent(ClientTickEvent event){
+    default void tickEvent(ClientTickEvent.Post event){
         tick(false);
     }
 

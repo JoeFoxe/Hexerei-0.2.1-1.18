@@ -16,7 +16,7 @@ import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-@EventBusSubscriber(value = Dist.CLIENT)
+//@EventBusSubscriber(value = Dist.CLIENT)
 public class GlassesZoomKeyPressEvent {
 
     public boolean zoomToggled = false;

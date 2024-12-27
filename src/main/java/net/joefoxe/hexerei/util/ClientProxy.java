@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 
 import static net.joefoxe.hexerei.block.connected.StitchedSprite.ALL;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = Hexerei.MOD_ID)
+@EventBusSubscriber(value = Dist.CLIENT, modid = Hexerei.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class ClientProxy implements SidedProxy {
     public static KeyMapping[] keys = null;
 

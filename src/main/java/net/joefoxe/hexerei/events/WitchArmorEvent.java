@@ -10,7 +10,7 @@ import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
-@EventBusSubscriber
+//@EventBusSubscriber
 public class WitchArmorEvent {
 
     @SubscribeEvent
@@ -23,7 +23,7 @@ public class WitchArmorEvent {
     }
 
     @SubscribeEvent
-    public void onLivingUpdate(EntityTickEvent event) {
+    public void onLivingUpdate(EntityTickEvent.Pre event) {
         if (event.getEntity() instanceof Witch witch) {
             if (isEquippedBy(witch.getLastHurtByMob(), 2))
                 witch.setLastHurtByMob(null);

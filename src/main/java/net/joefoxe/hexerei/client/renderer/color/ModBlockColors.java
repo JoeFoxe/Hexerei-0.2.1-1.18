@@ -10,10 +10,11 @@ import net.minecraft.world.level.GrassColor;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 
-@EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD)
 public class ModBlockColors {
 
     // water blocks
@@ -43,18 +44,18 @@ public class ModBlockColors {
         final BlockColors blockColors = event.getBlockColors();
 
         // blocks
-        blockColors.register((state, reader, pos, color) -> {
+        event.register((state, reader, pos, color) -> {
             return reader != null && pos != null ? BiomeColors.getAverageGrassColor(reader, pos) : GrassColor.get(0.5D, 0.5D);
         }, ModBlocks.LILY_PAD_BLOCK.get());
 
-        blockColors.register((state, reader, pos, color) -> {
+        event.register((state, reader, pos, color) -> {
                     return reader != null && pos != null ? Coffer.getColorValue(state, pos, reader) : 0x442013;
                 },
                 ModBlocks.COFFER.get()
         );
 
         //TODO dye colors for carpets when I figure out connecting texture stuff
-//        blockColors.register((state, reader, pos, color) -> ConnectingCarpetDyed.getColorValue(state),
+//        event.register((state, reader, pos, color) -> ConnectingCarpetDyed.getColorValue(state),
 //                ModBlocks.INFUSED_FABRIC_CARPET.get(),
 //                ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(),
 //                ModBlocks.INFUSED_FABRIC_BLOCK.get(),
@@ -65,7 +66,7 @@ public class ModBlockColors {
 //                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get()
 //        );
 
-        blockColors.register((state, reader, pos, color) -> {
+        event.register((state, reader, pos, color) -> {
                     return reader != null && pos != null ? Coffer.getColorValue(state, pos, reader) : 0x442013;
                 },
                 ModBlocks.BOOK_OF_SHADOWS_BACK.get(),ModBlocks.BOOK_OF_SHADOWS_COVER.get()

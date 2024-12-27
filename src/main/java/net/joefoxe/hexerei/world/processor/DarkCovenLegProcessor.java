@@ -59,7 +59,7 @@ public class DarkCovenLegProcessor extends StructureProcessor {
     }
 
     protected StructureProcessorType<?> getType() {
-        return Hexerei.DARK_COVEN_LEG_PROCESSOR;
+        return ModStructureProcessors.DARK_COVEN_LEG_PROCESSOR.get();
     }
     private static StructureTemplate.StructureBlockInfo getReturnBlock(BlockPos worldPos, BlockState originalReplacementState) {
         return originalReplacementState == null || originalReplacementState.is(Blocks.STRUCTURE_VOID) ?

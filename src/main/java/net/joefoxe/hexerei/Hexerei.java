@@ -21,7 +21,11 @@ import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.data.tags.ModBiomeTagsProvider;
 import net.joefoxe.hexerei.event.ClientEvents;
 import net.joefoxe.hexerei.event.ModLootModifiers;
-import net.joefoxe.hexerei.events.*;
+import net.joefoxe.hexerei.events.CrowFluteEvent;
+import net.joefoxe.hexerei.events.CrowWhitelistEvent;
+import net.joefoxe.hexerei.events.GlassesZoomKeyPressEvent;
+import net.joefoxe.hexerei.events.SageBurningPlateEvent;
+import net.joefoxe.hexerei.events.WitchArmorEvent;
 import net.joefoxe.hexerei.fluid.ModFluidTypes;
 import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.integration.HexereiModNameTooltipCompat;
@@ -32,16 +36,15 @@ import net.joefoxe.hexerei.item.ModItemGroup;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.light.LightManager;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
-import net.joefoxe.hexerei.screen.*;
 import net.joefoxe.hexerei.sounds.ModSounds;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
-import net.joefoxe.hexerei.util.*;
+import net.joefoxe.hexerei.util.ClientProxy;
+import net.joefoxe.hexerei.util.HexereiSupporterBenefits;
+import net.joefoxe.hexerei.util.ServerProxy;
+import net.joefoxe.hexerei.util.SidedProxy;
 import net.joefoxe.hexerei.world.biomemods.ModBiomeModifiers;
 import net.joefoxe.hexerei.world.gen.ModFeatures;
-import net.joefoxe.hexerei.world.processor.DarkCovenLegProcessor;
-import net.joefoxe.hexerei.world.processor.MangroveTreeLegProcessor;
-import net.joefoxe.hexerei.world.processor.NatureCovenLegProcessor;
-import net.joefoxe.hexerei.world.processor.WitchHutLegProcessor;
+import net.joefoxe.hexerei.world.processor.ModStructureProcessors;
 import net.joefoxe.hexerei.world.structure.ModStructures;
 import net.joefoxe.hexerei.world.terrablender.ModRegion;
 import net.minecraft.client.DeltaTracker;
@@ -52,25 +55,25 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -143,18 +146,10 @@ public class Hexerei {
 	// Directly reference a log4j logger.
 	public static final Logger LOGGER = LogManager.getLogger();
 
-	public static StructureProcessorType<WitchHutLegProcessor> WITCH_HUT_LEG_PROCESSOR = () -> WitchHutLegProcessor.CODEC;
-	public static StructureProcessorType<DarkCovenLegProcessor> DARK_COVEN_LEG_PROCESSOR = () -> DarkCovenLegProcessor.CODEC;
-	public static StructureProcessorType<NatureCovenLegProcessor> NATURE_COVEN_LEG_PROCESSOR = () -> NatureCovenLegProcessor.CODEC;
-	public static StructureProcessorType<MangroveTreeLegProcessor> MANGROVE_TREE_LEG_PROCESSOR = () -> MangroveTreeLegProcessor.CODEC;
 
 	public static LinkedList<BlockPos> sageBurningPlateTileList = new LinkedList<>();
 
-	public Hexerei(IEventBus modEventBus, ModContainer modContainer){
-
-
-		// Register the setup method for modloading
-		IEventBus eventBus = ModLoadingContext.get().getActiveContainer().getEventBus();
+	public Hexerei(IEventBus eventBus, ModContainer modContainer, Dist dist){
 
 //        eventBus.addListener(this::gatherData);
 
@@ -163,8 +158,11 @@ public class Hexerei {
 		modContainer.registerConfig(ModConfig.Type.CLIENT, HexConfig.CLIENT_CONFIG, "Hexerei-client.toml");
 		modContainer.registerConfig(ModConfig.Type.COMMON, HexConfig.COMMON_CONFIG, "Hexerei-common.toml");
 
-		if (FMLEnvironment.dist.isClient())
-			eventBus.register(ClientEvents.class);
+		if (dist.isClient()) {
+			NeoForge.EVENT_BUS.addListener(ClientEvents::renderWorldLastEvent);
+			eventBus.addListener(ClientEvents::registerMenu);
+			eventBus.addListener(ClientEvents::onRegisterClientExtensions);
+		}
 
 		ModDataComponents.COMPONENTS.register(eventBus);
 		ModArmorMaterial.MATERIALS.register(eventBus);
@@ -177,6 +175,7 @@ public class Hexerei {
 		ModRecipeTypes.register(eventBus);
 		ModParticleTypes.PARTICLES.register(eventBus);
 		ModFeatures.register(eventBus);
+		ModStructureProcessors.DEFERRED_REGISTRY_STRUCTURE_PROCESSOR.register(eventBus);
 		ModStructures.DEFERRED_REGISTRY_STRUCTURE.register(eventBus);
 		ModSounds.register(eventBus);
 		ModEntityTypes.register(eventBus);
@@ -206,7 +205,7 @@ public class Hexerei {
 		ModItemGroup.ITEM_GROUP.register(eventBus);
 
 
-		if (FMLEnvironment.dist.isClient())
+		if (dist.isClient())
 			MODEL_SWAPPER.registerListeners(eventBus);
 
 //        forgeEventBus.addListener(EventPriority.NORMAL, this::addDimensionalSpacing);
@@ -217,7 +216,7 @@ public class Hexerei {
 		NeoForge.EVENT_BUS.register(this);
 
 		NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, this::playerLogin);
-		modEventBus.addListener(EventPriority.LOWEST, this::gatherData);
+		eventBus.addListener(EventPriority.LOWEST, this::gatherData);
 
 		curiosLoaded = ModList.get().isLoaded("curios");
 	}
@@ -272,11 +271,6 @@ public class Hexerei {
 			BroomType.create("mahogany", ModItems.MAHOGANY_BROOM.get(), 0.8f);
 			BroomType.create("willow", ModItems.WILLOW_BROOM.get(), 0.4f);
 			BroomType.create("witch_hazel", ModItems.WITCH_HAZEL_BROOM.get(), 0.6f);
-
-			Registry.register(BuiltInRegistries.STRUCTURE_PROCESSOR, HexereiUtil.getResource("witch_hut_leg_processor"), WITCH_HUT_LEG_PROCESSOR);
-			Registry.register(BuiltInRegistries.STRUCTURE_PROCESSOR, HexereiUtil.getResource("dark_coven_leg_processor"), DARK_COVEN_LEG_PROCESSOR);
-			Registry.register(BuiltInRegistries.STRUCTURE_PROCESSOR, HexereiUtil.getResource("nature_coven_leg_processor"), NATURE_COVEN_LEG_PROCESSOR);
-			Registry.register(BuiltInRegistries.STRUCTURE_PROCESSOR, HexereiUtil.getResource("mangrove_tree_leg_processor"), MANGROVE_TREE_LEG_PROCESSOR);
 
 //			SpawnPlacements.register(ModEntityTypes.CROW.get(), SpawnPlacements.Type.ON_GROUND,
 //					Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
@@ -358,7 +352,7 @@ public class Hexerei {
 	}
 
 	@SubscribeEvent
-	public void clientTickEvent(ClientTickEvent event) {
+	public void clientTickEvent(ClientTickEvent.Pre event) {
 		clientTicks += 1;
 //		if (ClientProxy.fontList.isEmpty()) {
 //			List<? extends String> fonts = HexConfig.FONT_LIST.get();
@@ -401,8 +395,6 @@ public class Hexerei {
 	private void loadComplete(final FMLLoadCompleteEvent event) {
 		NeoForge.EVENT_BUS.register(new SageBurningPlateEvent());
 		NeoForge.EVENT_BUS.register(new WitchArmorEvent());
-		NeoForge.EVENT_BUS.register(new CrowFluteEvent());
-		NeoForge.EVENT_BUS.register(new CrowWhitelistEvent());
 
 		glassesZoomKeyPressEvent = new GlassesZoomKeyPressEvent();
 		NeoForge.EVENT_BUS.register(glassesZoomKeyPressEvent);

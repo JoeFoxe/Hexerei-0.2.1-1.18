@@ -20,7 +20,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import javax.annotation.Nullable;
 import java.util.List;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = "hexerei")
+//@EventBusSubscriber(value = Dist.CLIENT, modid = "hexerei")
 public class WitchArmorItem extends ArmorItem {
 
     public WitchArmorItem(Holder<ArmorMaterial> materialIn, ArmorItem.Type type, Properties builder) {

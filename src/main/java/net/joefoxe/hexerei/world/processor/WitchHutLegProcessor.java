@@ -136,7 +136,7 @@ public class WitchHutLegProcessor extends StructureProcessor {
     }
 
     protected StructureProcessorType<?> getType() {
-        return Hexerei.WITCH_HUT_LEG_PROCESSOR;
+        return ModStructureProcessors.WITCH_HUT_LEG_PROCESSOR.get();
     }
 
 

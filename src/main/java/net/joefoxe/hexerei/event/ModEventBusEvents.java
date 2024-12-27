@@ -8,6 +8,7 @@ import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.component.DataComponents;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
@@ -16,7 +17,7 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import java.util.List;
 
-@EventBusSubscriber(modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID, bus = Bus.MOD)
 public class ModEventBusEvents {
 
     @SubscribeEvent

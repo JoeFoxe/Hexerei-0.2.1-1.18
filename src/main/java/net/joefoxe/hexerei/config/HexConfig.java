@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-@EventBusSubscriber(modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID, bus = Bus.MOD)
 public class HexConfig {
 
     public static ModConfigSpec COMMON_CONFIG;

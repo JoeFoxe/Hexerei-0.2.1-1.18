@@ -109,7 +109,7 @@ public class ClientEvents {
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 return herbJarItemRenderer.getRenderer();
             }
-        }, ModItems.CANDLE.get());
+        }, ModItems.HERB_JAR.get());
 
         CrowBlankAmuletItemRenderer crowBlankAmuletItemRenderer = new CrowBlankAmuletItemRenderer();
         event.registerItem(new IClientItemExtensions() {

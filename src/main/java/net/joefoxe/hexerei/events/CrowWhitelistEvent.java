@@ -68,7 +68,7 @@ public class CrowWhitelistEvent {
 //    }
 
     @SubscribeEvent
-    public static void selectBlockPosition(InputEvent.MouseButton event) {
+    public static void selectBlockPosition(InputEvent.MouseButton.Pre event) {
         if(event.getButton() == 1 && event.getAction() == 0)
         {
             pressed = false;

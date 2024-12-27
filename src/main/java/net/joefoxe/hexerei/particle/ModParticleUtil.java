@@ -6,9 +6,10 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 
-@EventBusSubscriber(modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID, bus = Bus.MOD)
 public class ModParticleUtil {
 
     /*

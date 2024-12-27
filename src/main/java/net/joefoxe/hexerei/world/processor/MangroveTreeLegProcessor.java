@@ -66,7 +66,7 @@ public class MangroveTreeLegProcessor extends StructureProcessor {
     }
 
     protected StructureProcessorType<?> getType() {
-        return Hexerei.MANGROVE_TREE_LEG_PROCESSOR;
+        return ModStructureProcessors.MANGROVE_TREE_LEG_PROCESSOR.get();
     }
 
     private static StructureTemplate.StructureBlockInfo getReturnBlock(BlockPos worldPos, BlockState originalReplacementState) {
