@@ -5,6 +5,7 @@ import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -14,10 +15,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.CrossCollisionBlock;
@@ -46,9 +49,10 @@ public class WaxingKitItem extends Item {
     }
 
     public int getBarColor(ItemStack pStack) {
+        CustomData data = pStack.get(DataComponents.CUSTOM_DATA);
         if(this.isCreative)
             return 16733695; //ChatFormatting.LIGHT_PURPLE.getColor();
-        if(pStack.hasTag() && pStack.getOrCreateTag().contains("waxCount") && pStack.getOrCreateTag().getInt("waxCount") > 0) {
+        if(data != null && data.contains("waxCount") && data.copyTag().getInt("waxCount") > 0) {
             float f = Math.max(0.0F, getBarWidth(pStack) / 13f);
             return Mth.hsvToRgb(f / 3.0F, 1.0F, 1.0F);
         } else {
@@ -60,13 +64,10 @@ public class WaxingKitItem extends Item {
     public int getBarWidth(ItemStack pStack) {
         //256
 
-        if(pStack.hasTag() && pStack.getOrCreateTag().contains("waxCount") && pStack.getOrCreateTag().getInt("waxCount") > 0) {
-            CompoundTag tag = new CompoundTag();
-            if(pStack.hasTag())
-                tag = pStack.getOrCreateTag();
-
-            if(tag.contains("waxCount"))
-                return (int)((tag.getInt("waxCount") / 256f) * 13);
+        CustomData data = pStack.get(DataComponents.CUSTOM_DATA);
+        if(data != null && data.contains("waxCount") && data.copyTag().getInt("waxCount") > 0) {
+            if(data.contains("waxCount"))
+                return (int)((data.copyTag().getInt("waxCount") / 256f) * 13);
 
             return 0;
         } else {
@@ -93,7 +94,8 @@ public class WaxingKitItem extends Item {
         ItemStack itemstack = pContext.getItemInHand();
         InteractionResult result = InteractionResult.PASS;
 
-        if(this.isCreative || (itemstack.hasTag() && itemstack.getOrCreateTag().contains("waxCount") && itemstack.getOrCreateTag().getInt("waxCount") > 0)){
+        CustomData data = itemstack.get(DataComponents.CUSTOM_DATA);
+        if(this.isCreative || (data != null && data.contains("waxCount") && data.copyTag().getInt("waxCount") > 0)){
             result = getWaxed(blockstate).map((newBlockstate) -> {
                 if (blockstate.hasProperty(ConnectingCarpetDyed.COLOR))
                     newBlockstate.setValue(ConnectingCarpetDyed.COLOR, blockstate.getValue(ConnectingCarpetDyed.COLOR));
@@ -101,8 +103,11 @@ public class WaxingKitItem extends Item {
                     CriteriaTriggers.ITEM_USED_ON_BLOCK.trigger((ServerPlayer)player, blockpos, itemstack);
                 }
 
-                if(!this.isCreative)
-                    itemstack.getOrCreateTag().putInt("waxCount", itemstack.getOrCreateTag().getInt("waxCount") - 1);
+                if(!this.isCreative) {
+                    CompoundTag tag = data.copyTag();
+                    tag.putInt("waxCount", tag.getInt("waxCount") - 1);
+                    itemstack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+                }
                 if(blockstate.getBlock() instanceof CrossCollisionBlock) {
                     BlockState changeTo = newBlockstate.setValue(CrossCollisionBlock.NORTH, blockstate.getValue(CrossCollisionBlock.NORTH)).setValue(CrossCollisionBlock.SOUTH, blockstate.getValue(CrossCollisionBlock.SOUTH)).setValue(CrossCollisionBlock.EAST, blockstate.getValue(CrossCollisionBlock.EAST)).setValue(CrossCollisionBlock.WEST, blockstate.getValue(CrossCollisionBlock.WEST)).setValue(CrossCollisionBlock.WATERLOGGED, blockstate.getValue(CrossCollisionBlock.WATERLOGGED));
                     if (blockstate.hasProperty(ConnectingCarpetDyed.COLOR))
@@ -132,9 +137,7 @@ public class WaxingKitItem extends Item {
                 level.setBlock(blockpos, cleanedState, 11);
                 level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, cleanedState));
                 if (player != null) {
-                    itemstack.hurtAndBreak(1, player, (p_150686_) -> {
-                        p_150686_.broadcastBreakEvent(pContext.getHand());
-                    });
+                    itemstack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(pContext.getHand()));
                 }
 
                 return InteractionResult.sidedSuccess(level.isClientSide);
@@ -147,28 +150,27 @@ public class WaxingKitItem extends Item {
         return result;
     }
 
-
-
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 
             Component wax_blend = Component.translatable(ModItems.WAX_BLEND.get().getDescription().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x6B5B06)));
-            tooltip.add(Component.translatable("tooltip.hexerei.waxing_kit", wax_blend).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.waxing_kit", wax_blend).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 
-            tooltip.add(Component.translatable("tooltip.hexerei.waxing_kit_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.waxing_kit_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         } else {
-            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         }
         int count = 0;
-        if(stack.hasTag() && stack.getOrCreateTag().contains("waxCount"))
-            count = stack.getOrCreateTag().getInt("waxCount");
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+        if(data != null && data.contains("waxCount"))
+            count = data.copyTag().getInt("waxCount");
 
         if(!this.isCreative)
-            tooltip.add(Component.translatable("%s: " + count + " / 256", Component.translatable("tooltip.hexerei.wax").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x99AE99)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("%s: " + count + " / 256", Component.translatable("tooltip.hexerei.wax").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x99AE99)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         else
-            tooltip.add(Component.translatable("tooltip.hexerei.infinite_wax").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x99AE99))));
-        super.appendHoverText(stack, world, tooltip, flagIn);
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.infinite_wax").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x99AE99))));
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 }

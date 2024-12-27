@@ -17,21 +17,23 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import java.util.Collection;
@@ -72,7 +74,7 @@ public class ExtraKeychainIcon implements IDrawable {
         float timer = (Hexerei.getClientTicks()) % 100 / 100f;
         if((timer <= 0.1 && findNewItem) || attachedItem == null){
             findNewItem = false;
-            Collection<Item> col = ForgeRegistries.ITEMS.getValues();
+            Collection<Item> col = BuiltInRegistries.ITEM.stream().toList();
             Random rand = new Random();
             if (col.toArray()[(int)(col.size() * rand.nextFloat())] instanceof Item item)
                 attachedItem = new ItemStack(item);
@@ -86,7 +88,7 @@ public class ExtraKeychainIcon implements IDrawable {
         RenderSystem.enableDepthTest();
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(xOffset, yOffset, 0);
-        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+        guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
         Lighting.setupForFlatItems();
 
         guiGraphics.pose().pushPose();
@@ -118,22 +120,20 @@ public class ExtraKeychainIcon implements IDrawable {
         ItemStack other = attachedItem;
 
         if (keychain.getItem() instanceof KeychainItem && !other.isEmpty()) {
-            CompoundTag tag = new CompoundTag();
-            if(keychain.hasTag())
-                tag = keychain.getTag();
+            CompoundTag tag = keychain.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
             ListTag listtag = new ListTag();
 
             if (!other.isEmpty()) {
                 CompoundTag compoundtag = new CompoundTag();
                 compoundtag.putByte("Slot", (byte)0);
-                other.save(compoundtag);
+                other.save(Hexerei.proxy.getLevel().registryAccess(), compoundtag);
                 listtag.add(compoundtag);
             }
 
             tag.put("Items", listtag);
 
-            keychain.setTag(tag);
+            keychain.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
         guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));
         renderItemFixed(keychain, Minecraft.getInstance().level, guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT);

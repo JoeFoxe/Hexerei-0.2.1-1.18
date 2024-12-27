@@ -5,6 +5,7 @@ import net.joefoxe.hexerei.client.renderer.entity.BroomType;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.client.renderer.entity.model.BroomMediumSatchelModel;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -14,14 +15,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class BroomBrushItem extends BroomTickableAttachmentItem {
 
@@ -72,8 +71,8 @@ public class BroomBrushItem extends BroomTickableAttachmentItem {
     public void bakeModels() {
         EntityModelSet context = Minecraft.getInstance().getEntityModels();
         this.model = new BroomMediumSatchelModel(context.bakeLayer(BroomMediumSatchelModel.LAYER_LOCATION));
-        this.texture = new ResourceLocation(Hexerei.MOD_ID, "textures/entity/broom_satchel.png");
-        this.dye_texture = new ResourceLocation(Hexerei.MOD_ID, "textures/entity/broom_satchel_dye.png");
+        this.texture = HexereiUtil.getResource("textures/entity/broom_satchel.png");
+        this.dye_texture = HexereiUtil.getResource("textures/entity/broom_satchel_dye.png");
         this.list = new ArrayList<>();
         this.list.add(new Tuple<>(ModParticleTypes.BROOM.get(), 50));
         this.list.add(new Tuple<>(ModParticleTypes.BROOM_2.get(), 20));

@@ -4,6 +4,7 @@ import net.joefoxe.hexerei.block.custom.ModChest;
 import net.joefoxe.hexerei.sounds.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -88,9 +89,9 @@ public class ModChestBlockEntity extends ChestBlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag returnValue = new CompoundTag();
-        this.saveAdditional(returnValue);
+        this.saveAdditional(returnValue, registries);
         return returnValue;
     }
 }

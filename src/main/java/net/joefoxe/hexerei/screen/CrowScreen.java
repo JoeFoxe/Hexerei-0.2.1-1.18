@@ -6,7 +6,6 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.PickableDoublePlant;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.container.CrowContainer;
@@ -45,10 +44,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import static net.joefoxe.hexerei.container.CofferContainer.OFFSET;
@@ -63,9 +62,9 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
     private final static int FRONT_BLIT_LAYER = 2;
     private final static int BACK_OVERLAY_BLIT_LAYER = 1;
     private final static int BACK_BLIT_LAYER = 0;
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/crow_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
     public final CrowEntity crowEntity;
@@ -111,7 +110,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             leftPanelOffset = HexereiUtil.moveTo(leftPanelOffset, 0, Math.abs(2 * ((-1 - leftPanelOffset) / 31)));
         }
 
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
         this.renderButtonTooltip(guiGraphics, mouseX, mouseY);
@@ -458,7 +457,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
         RenderSystem.setShaderTexture(0, GUI);
         ItemRenderer itemRenderer = minecraft.getItemRenderer();
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 94, j - 10, 25, (float)(i + 51) - x, (float)(j + 75 - 50) - y, crowEntity);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 94 - 20, j - 10 - 20, this.leftPos + 94 + 20, j - 10 + 20, 25, 0.0625F, (float)(i + 51) - x, (float)(j + 75 - 50) - y, crowEntity);
 
         RenderSystem.disableDepthTest();
 //        if(crowEntity.getCrowType() == CrowEntity.Type.MAHOGANY)
@@ -547,7 +546,7 @@ public class CrowScreen extends AbstractContainerScreen<CrowContainer> {
             guiGraphics.pose().translate(this.leftPos + 186f - 28 + (int) whitelistOffset, j + 73, 100.0F);
             guiGraphics.pose().translate(8.0F, -8.0F, 0.0F);
             guiGraphics.pose().scale(11.0F, 11.0F, 11.0F);
-            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+            guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
             Vec3 rotationOffset = new Vec3(0.5f, 0, 0.5f);
             float zRot = 0;
             float xRot = 20;

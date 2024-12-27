@@ -1,48 +1,41 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class BroomEnderSatchelBrushParticlePacket extends AbstractPacket {
 
-public class BroomEnderSatchelBrushParticlePacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BroomEnderSatchelBrushParticlePacket> CODEC  = StreamCodec.ofMember(BroomEnderSatchelBrushParticlePacket::encode, BroomEnderSatchelBrushParticlePacket::new);
+    public static final CustomPacketPayload.Type<BroomEnderSatchelBrushParticlePacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("broom_ender_satchel_particles"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
-    float rotation;
 
-    public BroomEnderSatchelBrushParticlePacket(Entity entity) {
-        this.sourceId = entity.getId();
+    public BroomEnderSatchelBrushParticlePacket(int id) {
+        this.sourceId = id;
     }
-    public BroomEnderSatchelBrushParticlePacket(FriendlyByteBuf buf) {
+    public BroomEnderSatchelBrushParticlePacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
-
     }
 
-    public static void encode(BroomEnderSatchelBrushParticlePacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
     }
 
-    public static BroomEnderSatchelBrushParticlePacket decode(FriendlyByteBuf buffer) {
-        return new BroomEnderSatchelBrushParticlePacket(buffer);
-    }
-
-    public static void consume(BroomEnderSatchelBrushParticlePacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BroomEntity)world.getEntity(packet.sourceId)).transferBrushParticles();
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if(minecraft.level.getEntity(sourceId) instanceof BroomEntity broom) {
+            broom.transferBrushParticles();
+        }
     }
 }

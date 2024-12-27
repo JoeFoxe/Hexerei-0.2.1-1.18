@@ -1,28 +1,25 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import com.google.gson.JsonObject;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.SimpleContainer;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.fluids.FluidStack;
 
-import static net.joefoxe.hexerei.data.recipes.MixingCauldronRecipe.Serializer.deserializeFluidStack;
 
-public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
+public class CauldronFillingRecipe implements Recipe<SingleRecipeInput> {
 
-    private final ResourceLocation id;
     private final Ingredient input;
     private final ItemStack output;
     private final FluidStack fluid;
 
-    public CauldronFillingRecipe(ResourceLocation id, Ingredient input, ItemStack output, FluidStack fluid) {
-        this.id = id;
+    public CauldronFillingRecipe(Ingredient input, ItemStack output, FluidStack fluid) {
         this.input = input;
         this.output = output;
         this.fluid = fluid;
@@ -34,8 +31,8 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public boolean matches(SimpleContainer pContainer, Level pLevel) {
-        return test(input, pContainer.getItem(0));
+    public boolean matches(SingleRecipeInput recipeInput, Level pLevel) {
+        return test(input, recipeInput.getItem(0));
     }
 
     public boolean test(Ingredient ingredient, @javax.annotation.Nullable ItemStack pStack) {
@@ -44,9 +41,11 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
         } else if (ingredient.isEmpty()) {
             return pStack.isEmpty();
         } else {
-            for(ItemStack itemstack : ingredient.getItems()) {
-                if (itemstack.is(pStack.getItem())) {
-                    return !itemstack.hasTag() || !pStack.hasTag() || !itemstack.getTag().contains("Potion") || !pStack.getTag().contains("Potion") || itemstack.getTag().getString("Potion").equals(pStack.getTag().getString("Potion"));
+            for(ItemStack itemStack : ingredient.getItems()) {
+                if (itemStack.is(pStack.getItem())) {
+                    PotionContents itemStackPotion = itemStack.get(DataComponents.POTION_CONTENTS);
+                    PotionContents pStackPotion = pStack.get(DataComponents.POTION_CONTENTS);
+                    return itemStackPotion == null || pStackPotion == null || (pStackPotion.potion().isPresent() && itemStackPotion.is(pStackPotion.potion().get()));
                 }
             }
 
@@ -55,8 +54,8 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack assemble(SimpleContainer pContainer, RegistryAccess pRegistryAccess) {
-        return getResultItem(pRegistryAccess);
+    public ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider registries) {
+        return getResultItem(registries);
     }
 
     @Override
@@ -65,7 +64,7 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return output.copy();
     }
 
@@ -73,10 +72,6 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
         return fluid.copy();
     }
 
-    @Override
-    public ResourceLocation getId() {
-        return id;
-    }
 
     @Override
     public RecipeSerializer<?> getSerializer() {
@@ -90,28 +85,40 @@ public class CauldronFillingRecipe implements Recipe<SimpleContainer> {
 
     public static class Serializer implements RecipeSerializer<CauldronFillingRecipe> {
 
-        @Override
-        public CauldronFillingRecipe fromJson(ResourceLocation pRecipeId, JsonObject pSerializedRecipe) {
-            Ingredient input = Ingredient.fromJson(pSerializedRecipe.get("input"));
-            ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(pSerializedRecipe, "output"));
-            FluidStack fluid = deserializeFluidStack(GsonHelper.getAsJsonObject(pSerializedRecipe, "fluid"));
+        private static final MapCodec<CauldronFillingRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                Ingredient.CODEC.fieldOf("input").forGetter(recipe -> recipe.input),
+                                ItemStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.output),
+                                FluidStack.CODEC.fieldOf("fluid").forGetter(recipe -> recipe.fluid)
+                        )
+                        .apply(instance, CauldronFillingRecipe::new)
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, CauldronFillingRecipe> STREAM_CODEC = StreamCodec.of(
+                CauldronFillingRecipe.Serializer::toNetwork, CauldronFillingRecipe.Serializer::fromNetwork
+        );
 
-            return new CauldronFillingRecipe(pRecipeId, input, result, fluid);
+        @Override
+        public MapCodec<CauldronFillingRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public @Nullable CauldronFillingRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf buf) {
-            Ingredient input = Ingredient.fromNetwork(buf);
-            ItemStack result = buf.readItem();
-            FluidStack fluid = FluidStack.readFromPacket(buf);
-            return new CauldronFillingRecipe(pRecipeId, input, result, fluid);
+        public StreamCodec<RegistryFriendlyByteBuf, CauldronFillingRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, CauldronFillingRecipe recipe) {
-            recipe.input.toNetwork(buf);
-            buf.writeItem(recipe.output);
-            recipe.fluid.writeToPacket(buf);
+        private static CauldronFillingRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            Ingredient input = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
+            ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
+            FluidStack fluid = FluidStack.STREAM_CODEC.decode(buffer);
+            return new CauldronFillingRecipe(input, output, fluid);
         }
+
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, CauldronFillingRecipe recipe) {
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.input);
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.output);
+            FluidStack.STREAM_CODEC.encode(buffer, recipe.fluid);
+        }
+
     }
 }

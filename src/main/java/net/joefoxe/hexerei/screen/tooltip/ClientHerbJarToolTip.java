@@ -3,10 +3,10 @@ package net.joefoxe.hexerei.screen.tooltip;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.books.PageDrawing;
 import net.joefoxe.hexerei.item.custom.HerbJarItem;
 import net.joefoxe.hexerei.items.JarHandler;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,15 +19,14 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientHerbJarToolTip implements HexereiBookTooltip {
-    public static final ResourceLocation TEXTURE_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/gui/herb_jar_tooltip_inventory.png");
+    public static final ResourceLocation TEXTURE_LOCATION = HexereiUtil.getResource("textures/gui/herb_jar_tooltip_inventory.png");
     private final JarHandler items;
     public int width;
     public Font font = Minecraft.getInstance().font;
@@ -275,10 +274,10 @@ public class ClientHerbJarToolTip implements HexereiBookTooltip {
 
         poseStack.translate(0,0, p_93118_);
 
-        buffer.vertex(poseStack.last().pose(), (float)p_93114_, (float)p_93117_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93119_, p_93122_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
-        buffer.vertex(poseStack.last().pose(), (float)p_93115_, (float)p_93117_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93120_, p_93122_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
-        buffer.vertex(poseStack.last().pose(), (float)p_93115_, (float)p_93116_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93120_, p_93121_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
-        buffer.vertex(poseStack.last().pose(), (float)p_93114_, (float)p_93116_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93119_, p_93121_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
+        buffer.addVertex(poseStack.last().pose(), (float)p_93114_, (float)p_93117_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93119_, p_93122_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
+        buffer.addVertex(poseStack.last().pose(), (float)p_93115_, (float)p_93117_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93120_, p_93122_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
+        buffer.addVertex(poseStack.last().pose(), (float)p_93115_, (float)p_93116_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93120_, p_93121_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
+        buffer.addVertex(poseStack.last().pose(), (float)p_93114_, (float)p_93116_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93119_, p_93121_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
 //        $$10.end();
 
         poseStack.popPose();

@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -27,21 +28,20 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(value = Dist.CLIENT)
 public class CrowWhitelistEvent {
 
     public static CrowEntity whiteListingCrow = null;
@@ -50,8 +50,8 @@ public class CrowWhitelistEvent {
 
 
     @SubscribeEvent
-    public static void selectBlockPosition(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START && whiteListingCrow != null){
+    public static void selectBlockPosition(ClientTickEvent.Pre event) {
+        if (whiteListingCrow != null){
             if(whiteListingCrow.isDeadOrDying() || whiteListingCrow.getRemovalReason() == Entity.RemovalReason.DISCARDED || whiteListingCrow.getRemovalReason() == Entity.RemovalReason.KILLED) {
                 HexereiPacketHandler.sendToServer(new PlayerWhitelistingForCrowSyncToServer(false));
                 whiteListingCrow = null;
@@ -59,13 +59,13 @@ public class CrowWhitelistEvent {
         }
     }
 
-    @SubscribeEvent
-    public static void selectBlockPosition(InputEvent.Key event) {
-//        if(event.getAction() == 1 && event.getKey() == GLFW.GLFW_KEY_G && whiteListingCrow != null && (whiteListingCrow.getRemovalReason() == Entity.RemovalReason.DISCARDED || whiteListingCrow.getRemovalReason() == Entity.RemovalReason.KILLED)) {
-//            HexereiPacketHandler.sendToServer(new CrowReviveToServer(whiteListingCrow));
-////                whiteListingCrow = null;
-//        }
-    }
+//    @SubscribeEvent
+//    public static void selectBlockPosition(InputEvent.Key event) {
+////        if(event.getAction() == 1 && event.getKey() == GLFW.GLFW_KEY_G && whiteListingCrow != null && (whiteListingCrow.getRemovalReason() == Entity.RemovalReason.DISCARDED || whiteListingCrow.getRemovalReason() == Entity.RemovalReason.KILLED)) {
+////            HexereiPacketHandler.sendToServer(new CrowReviveToServer(whiteListingCrow));
+//////                whiteListingCrow = null;
+////        }
+//    }
 
     @SubscribeEvent
     public static void selectBlockPosition(InputEvent.MouseButton event) {
@@ -91,10 +91,10 @@ public class CrowWhitelistEvent {
             Block block = state.getBlock();
 
             if (block instanceof AttachedStemBlock stemBlock)
-                block = stemBlock.fruit;
+                block = BuiltInRegistries.BLOCK.getOptional(stemBlock.fruit).orElse(Blocks.AIR);
 
             if ((block.defaultBlockState().is(HexereiTags.Blocks.CROW_HARVESTABLE) || block.defaultBlockState().is(HexereiTags.Blocks.CROW_BLOCK_HARVESTABLE))) {
-                event.setUseBlock(Event.Result.DENY);
+                event.setUseBlock(TriState.FALSE);
 
                 event.getEntity().swing(InteractionHand.MAIN_HAND);
             }
@@ -107,7 +107,7 @@ public class CrowWhitelistEvent {
                         Block block = state.getBlock();
 
                         if (block instanceof AttachedStemBlock stemBlock)
-                            block = stemBlock.fruit;
+                            block = BuiltInRegistries.BLOCK.getOptional(stemBlock.fruit).orElse(Blocks.AIR);
 
                         if ((block.defaultBlockState().is(HexereiTags.Blocks.CROW_HARVESTABLE) || block.defaultBlockState().is(HexereiTags.Blocks.CROW_BLOCK_HARVESTABLE))) {
 
@@ -115,7 +115,7 @@ public class CrowWhitelistEvent {
                                 whiteListingCrow.harvestWhitelist.add(block);
                                 pressed = true;
 
-                                ResourceLocation loc = ForgeRegistries.BLOCKS.getKey(state.getBlock());
+                                ResourceLocation loc = BuiltInRegistries.BLOCK.getKey(state.getBlock());
                                 if (loc != null) {
                                     event.getEntity().swing(InteractionHand.MAIN_HAND);
                                     HexereiPacketHandler.sendToServer(new CrowWhitelistSyncToServer(whiteListingCrow, whiteListingCrow.harvestWhitelist));
@@ -130,15 +130,15 @@ public class CrowWhitelistEvent {
                                 spawnWhitelistParticles(event.getLevel(), event.getPos(), false);
                                 spawnWhitelistCrowParticle(event.getLevel(), whiteListingCrow, false);
                             }
-                            event.setUseBlock(Event.Result.DENY);
+                            event.setUseBlock(TriState.FALSE);
                         }
                     } else {
-                        event.setUseBlock(Event.Result.DENY);
+                        event.setUseBlock(TriState.FALSE);
 
                     }
                 }
             } else {
-                event.setUseBlock(Event.Result.DENY);
+                event.setUseBlock(TriState.FALSE);
             }
         }
     }

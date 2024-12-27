@@ -22,14 +22,15 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -45,15 +46,15 @@ public class ExtraBookOfShadowsIcon implements IDrawable {
 
     private Recipe<?> recipeShown;
     private List<CraftingRecipe> flute_recipe;
-    private int color1 = 0;
-    private int color2 = 1;
+    private int color1 = 0xC19343;
+    private int color2 = 0xA85062;
     private Random rand = new Random();
 
     public ExtraBookOfShadowsIcon(Supplier<ItemStack> secondary) {
         this.extraSupplier = secondary;
         this.findNewRecipe = true;
         if(Minecraft.getInstance().level != null) {
-            List<CraftingRecipe> recipes = Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING);
+            List<CraftingRecipe> recipes = Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING).stream().map(RecipeHolder::value).toList();
             this.flute_recipe = recipes.stream().filter((craftingRecipe) -> craftingRecipe instanceof CrowFluteRecipe).toList();
         }
     }
@@ -80,8 +81,8 @@ public class ExtraBookOfShadowsIcon implements IDrawable {
         if((timer <= 0.1 && findNewRecipe) || recipeShown == null){
             findNewRecipe = false;
             recipeShown = flute_recipe.get(new Random().nextInt(flute_recipe.size()));
-            this.color1 = rand.nextInt(DyeColor.values().length - 1);
-            this.color2 = rand.nextInt(DyeColor.values().length - 1);
+            this.color1 = DyeColor.byId(rand.nextInt(DyeColor.values().length - 1)).getTextureDiffuseColor();
+            this.color2 = DyeColor.byId(rand.nextInt(DyeColor.values().length - 1)).getTextureDiffuseColor();
         }
         if(timer > 0.1){
             findNewRecipe = true;
@@ -91,7 +92,7 @@ public class ExtraBookOfShadowsIcon implements IDrawable {
         RenderSystem.enableDepthTest();
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(xOffset, yOffset, 0);
-        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+        guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(9, -9, 9);

@@ -1,17 +1,23 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.data.candle.CandleData;
 import net.joefoxe.hexerei.item.ModItems;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
@@ -20,13 +26,13 @@ import javax.annotation.Nullable;
 
 public class AddToCandleRecipe extends CustomRecipe {
 
-    NonNullList<Ingredient> inputs;
+    Ingredient input;
     ItemStack output;
 
-    public AddToCandleRecipe(ResourceLocation pId, NonNullList<Ingredient> inputs, ItemStack output) {
-        super(pId, CraftingBookCategory.MISC);
+    public AddToCandleRecipe(Ingredient input, ItemStack output) {
+        super(CraftingBookCategory.MISC);
 
-        this.inputs = inputs;
+        this.input = input;
         this.output = output;
     }
     @Override
@@ -37,11 +43,13 @@ public class AddToCandleRecipe extends CustomRecipe {
     /**
      * Used to check if a recipe matches current crafting inventory
      */
-    public boolean matches(CraftingContainer pInv, Level pLevel) {
+
+
+    public boolean matches(CraftingInput pInv, Level pLevel) {
         int i = 0;
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(ModItems.CANDLE.get())) {
@@ -52,18 +60,14 @@ public class AddToCandleRecipe extends CustomRecipe {
                     itemstack = itemstack1;
                 } else {
 
-                    if(inputs.isEmpty() || inputs.get(1).getItems().length == 0)
+                    if(input.getItems().length == 0)
                         return false;
 
-                    CompoundTag tag = new CompoundTag();
-                    CompoundTag tag2 = new CompoundTag();
-                    if(itemstack1.hasTag())
-                        tag = itemstack1.getOrCreateTag();
-                    if(inputs.get(1).getItems()[0].hasTag())
-                        tag2 = inputs.get(1).getItems()[0].getOrCreateTag();
+                    CompoundTag tag = itemstack1.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                    CompoundTag tag2 = input.getItems()[0].getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                     boolean compare = NbtUtils.compareNbt(tag2, tag, true);
 
-                    if ((itemstack1.is(this.inputs.get(1).getItems()[0].getItem()) && compare)) {
+                    if ((itemstack1.is(this.input.getItems()[0].getItem()) && compare)) {
                         ++i;
                     }
 
@@ -77,11 +81,11 @@ public class AddToCandleRecipe extends CustomRecipe {
     /**
      * Returns an Item that is the result of this recipe
      */
-    public ItemStack assemble(CraftingContainer pInv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput pInv, HolderLookup.Provider registryAccess) {
         int i = 0;
         ItemStack candle = ItemStack.EMPTY;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(ModItems.CANDLE.get())) {
@@ -92,16 +96,11 @@ public class AddToCandleRecipe extends CustomRecipe {
                     candle = itemstack1;
                 } else {
 
-
-                    CompoundTag tag = new CompoundTag();
-                    CompoundTag tag2 = new CompoundTag();
-                    if(itemstack1.hasTag())
-                        tag = itemstack1.getOrCreateTag();
-                    if(inputs.get(1).getItems()[0].hasTag())
-                        tag2 = inputs.get(1).getItems()[0].getOrCreateTag();
+                    CompoundTag tag = itemstack1.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                    CompoundTag tag2 = input.getItems()[0].getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
                     boolean compare = NbtUtils.compareNbt(tag2, tag, true);
 
-                    if (!itemstack1.is(this.inputs.get(1).getItems()[0].getItem()) && compare) {
+                    if (!itemstack1.is(this.input.getItems()[0].getItem()) && compare) {
                         return ItemStack.EMPTY;
                     }
                     ++i;
@@ -113,10 +112,14 @@ public class AddToCandleRecipe extends CustomRecipe {
             ItemStack itemstack2 = candle.copy();
             itemstack2.setCount(1);
 
+            CompoundTag itemstack2tag = itemstack2.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            CompoundTag outputtag = output.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+
             CandleData data = new CandleData();
-            data.load(itemstack2.getOrCreateTag());
-            data.load(output.getOrCreateTag());
-            data.save(itemstack2.getOrCreateTag(), true);
+            data.load(itemstack2tag, registryAccess);
+            data.load(outputtag, registryAccess);
+            data.save(itemstack2tag, registryAccess, true);
+            itemstack2.set(DataComponents.CUSTOM_DATA, CustomData.of(itemstack2tag));
 
             return itemstack2;
         } else {
@@ -125,7 +128,7 @@ public class AddToCandleRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return getOutput();
     }
 
@@ -133,13 +136,9 @@ public class AddToCandleRecipe extends CustomRecipe {
         return output.copy();
     }
 
-    public NonNullList<Ingredient> getInputs() {
-        return inputs;
-    }
-
     @Override
     public NonNullList<Ingredient> getIngredients() {
-        return inputs;
+        return NonNullList.of(Ingredient.of(new ItemStack(ModItems.CANDLE.get())), input);
     }
 
     public RecipeSerializer<?> getSerializer() {
@@ -163,42 +162,38 @@ public class AddToCandleRecipe extends CustomRecipe {
         return pWidth * pHeight >= 2;
     }
 
-
-    // for Serializing the recipe into/from a json
     public static class Serializer implements RecipeSerializer<AddToCandleRecipe> {
-        public static final AddToCandleRecipe.Serializer INSTANCE = new AddToCandleRecipe.Serializer();
+        public static final Serializer INSTANCE = new Serializer();
+        private static final MapCodec<AddToCandleRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                Ingredient.CODEC.fieldOf("input").forGetter(recipe -> recipe.input),
+                                ItemStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.output)
+                        )
+                        .apply(instance, AddToCandleRecipe::new)
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, AddToCandleRecipe> STREAM_CODEC = StreamCodec.of(
+                AddToCandleRecipe.Serializer::toNetwork, AddToCandleRecipe.Serializer::fromNetwork
+        );
 
         @Override
-        public AddToCandleRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            NonNullList<Ingredient> inputs = NonNullList.withSize(2, Ingredient.EMPTY);
-            ItemStack input = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "input"));
-            ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-            inputs.set(0, Ingredient.of(new ItemStack(ModItems.CANDLE.get())));
-            inputs.set(1, Ingredient.of(input));
-
-            return new AddToCandleRecipe(recipeId, inputs,
-                    output);
-        }
-
-        @Nullable
-        @Override
-        public AddToCandleRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromNetwork(buffer));
-            }
-
-            ItemStack output = buffer.readItem();
-            return new AddToCandleRecipe(recipeId, inputs, output);
+        public MapCodec<AddToCandleRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public void toNetwork(FriendlyByteBuf buffer, AddToCandleRecipe recipe) {
-            buffer.writeInt(recipe.getIngredients().size());
-            for (Ingredient ing : recipe.getIngredients())
-                ing.toNetwork(buffer);
-            buffer.writeItem(recipe.getOutput());
+        public StreamCodec<RegistryFriendlyByteBuf, AddToCandleRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
 
+        private static AddToCandleRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            Ingredient input = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
+            ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
+            return new AddToCandleRecipe(input, output);
+        }
+
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, AddToCandleRecipe recipe) {
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.input);
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.output);
+        }
     }
 }

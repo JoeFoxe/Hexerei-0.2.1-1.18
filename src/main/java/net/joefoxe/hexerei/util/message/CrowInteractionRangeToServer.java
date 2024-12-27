@@ -1,15 +1,24 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class CrowInteractionRangeToServer extends AbstractPacket {
 
-public class CrowInteractionRangeToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrowInteractionRangeToServer> CODEC  = StreamCodec.ofMember(CrowInteractionRangeToServer::encode, CrowInteractionRangeToServer::new);
+    public static final Type<CrowInteractionRangeToServer> TYPE = new Type<>(HexereiUtil.getResource("crow_interaction_range_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int range;
 
@@ -18,36 +27,20 @@ public class CrowInteractionRangeToServer {
         this.range = newRange;
         entity.interactionRange = newRange;
     }
-    public CrowInteractionRangeToServer(FriendlyByteBuf buf) {
+    public CrowInteractionRangeToServer(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.range = buf.readInt();
     }
 
-    public static void encode(CrowInteractionRangeToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.range);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(range);
     }
 
-    public static CrowInteractionRangeToServer decode(FriendlyByteBuf buffer) {
-        return new CrowInteractionRangeToServer(buffer);
-    }
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
 
-    public static void consume(CrowInteractionRangeToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-
-            if(world.getEntity(packet.sourceId) instanceof CrowEntity crowEntity)
-                crowEntity.interactionRange = packet.range;
-
-        });
-        ctx.get().setPacketHandled(true);
+        if(player.level().getEntity(sourceId) instanceof CrowEntity crowEntity)
+            crowEntity.interactionRange = range;
     }
 }

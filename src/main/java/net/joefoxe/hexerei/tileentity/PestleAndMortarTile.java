@@ -1,11 +1,13 @@
 package net.joefoxe.hexerei.tileentity;
 
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.data.recipes.PestleAndMortarRecipe;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -25,9 +27,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -36,13 +41,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,10 +53,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class PestleAndMortarTile extends RandomizableContainerBlockEntity implements WorldlyContainer, Clearable, MenuProvider {
 
     public final ItemStackHandler itemHandler = createHandler();
-    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
+//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
     protected NonNullList<ItemStack> items = NonNullList.withSize(6, ItemStack.EMPTY);
-    LazyOptional<? extends IItemHandler>[] handlers =
-            SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
+//    LazyOptional<? extends IItemHandler>[] handlers =
+//            SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
 
     public int craftDelay;
     public static final int craftDelayMax = 100;
@@ -113,8 +113,11 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
     public void sync() {
 
         if (level != null) {
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+            if (!level.isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
+            }
 
             if (this.level != null)
                 this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
@@ -123,29 +126,30 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
     }
 
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
+    //TODO do capabilities
+//    @Override
+//    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
+////        if (facing != null && capability == ForgeCapabilities.ITEM_HANDLER) {
+////            return handler.cast();
+////        }
+//
 //        if (facing != null && capability == ForgeCapabilities.ITEM_HANDLER) {
-//            return handler.cast();
+//            return switch (facing) {
+//                case UP -> handlers[0].cast();
+//                case DOWN -> handlers[1].cast();
+//                default -> handlers[2].cast();
+//            };
 //        }
-
-        if (facing != null && capability == ForgeCapabilities.ITEM_HANDLER) {
-            return switch (facing) {
-                case UP -> handlers[0].cast();
-                case DOWN -> handlers[1].cast();
-                default -> handlers[2].cast();
-            };
-        }
-
-        return super.getCapability(capability, facing);
-    }
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
-
-        return super.getCapability(cap);
-    }
+//
+//        return super.getCapability(capability, facing);
+//    }
+//
+//    @Nonnull
+//    @Override
+//    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
+//
+//        return super.getCapability(cap);
+//    }
 
     public Item getItemInSlot(int slot) {
         return this.items.get(slot).getItem();
@@ -153,22 +157,6 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
 
     public ItemStack getItemStackInSlot(int slot) {
         return this.items.get(slot);
-    }
-
-
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        super.deserializeNBT(nbt);
-    }
-
-    @Override
-    public CompoundTag serializeNBT() {
-        return super.serializeNBT();
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
     }
 
     @Override
@@ -206,25 +194,38 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
         return itemstack;
     }
 
-    public void craft() {
-        SimpleContainer inv = new SimpleContainer(5);
-        for (int i = 0; i < 5; i++) {
-            inv.setItem(i, this.items.get(i));
-        }
 
-        Optional<PestleAndMortarRecipe> recipe = level.getRecipeManager()
-                .getRecipeFor(PestleAndMortarRecipe.Type.INSTANCE, inv, level);
+
+    private static CraftingContainer makeContainer(int width, int height, NonNullList<ItemStack> items) {
+        return new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
+
+            public @NotNull ItemStack quickMoveStack(@NotNull Player p_218264_, int p_218265_) {
+                return ItemStack.EMPTY;
+            }
+
+
+            public boolean stillValid(@NotNull Player p_29888_) {
+                return false;
+            }
+        }, width, height, items);
+    }
+
+    public void craft() {
+        CraftingContainer inv = makeContainer(5, 1, this.items);
+
+        Optional<RecipeHolder<PestleAndMortarRecipe>> recipe = level.getRecipeManager()
+                .getRecipeFor(ModRecipeTypes.PESTLE_AND_MORTAR_TYPE.get(), inv.asCraftInput(), level);
 
         BlockEntity blockEntity = level.getBlockEntity(this.worldPosition);
         AtomicBoolean matches = new AtomicBoolean(false);
         if (blockEntity instanceof PestleAndMortarTile pestleAndMortarTile) {
             recipe.ifPresent(iRecipe -> {
-                this.output = iRecipe.getResultItem(level.registryAccess());
+                this.output = iRecipe.value().getResultItem(level.registryAccess());
 
                 matches.set(true);
                 if (pestleAndMortarTile.getItemInSlot(5) == Items.AIR && !this.crafting) {
                     this.crafting = true;
-                    this.grindingTimeMax = iRecipe.getGrindingTime();
+                    this.grindingTimeMax = iRecipe.value().getGrindingTime();
                     this.grindingTime = this.grindingTimeMax;
                     setChanged();
 
@@ -253,29 +254,27 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
         this.items.set(5, output);
     }
 
-
     @Override
-    public void load(CompoundTag nbt) {
-        itemHandler.deserializeNBT(nbt.getCompound("inv"));
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        itemHandler.deserializeNBT(registries, tag.getCompound("inv"));
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(nbt)) {
-            ContainerHelper.loadAllItems(nbt, this.items);
+        if (!this.tryLoadLootTable(tag)) {
+            ContainerHelper.loadAllItems(tag, this.items, registries);
         }
 
 
-//        if (nbt.contains("CustomName", 8))
-//            this.customName = Component.Serializer.fromJson(nbt.getString("CustomName"));
+//        if (tag.contains("CustomName", 8))
+//            this.customName = Component.Serializer.fromJson(tag.getString("CustomName"));
 
-        if (nbt.contains("grindingTime", Tag.TAG_INT))
-            grindingTime = nbt.getInt("grindingTime");
-        if (nbt.contains("grindingTimeMax", Tag.TAG_INT))
-            grindingTimeMax = nbt.getInt("grindingTimeMax");
-        if (nbt.contains("crafting", Tag.TAG_INT))
-            crafting = nbt.getInt("crafting") == 1;
-        if (nbt.contains("crafted", Tag.TAG_INT))
-            crafted = nbt.getInt("crafted") == 1;
-        super.load(nbt);
-
+        if (tag.contains("grindingTime", Tag.TAG_INT))
+            grindingTime = tag.getInt("grindingTime");
+        if (tag.contains("grindingTimeMax", Tag.TAG_INT))
+            grindingTimeMax = tag.getInt("grindingTimeMax");
+        if (tag.contains("crafting", Tag.TAG_INT))
+            crafting = tag.getInt("crafting") == 1;
+        if (tag.contains("crafted", Tag.TAG_INT))
+            crafted = tag.getInt("crafted") == 1;
+        super.loadAdditional(tag, registries);
     }
 
     @Override
@@ -288,52 +287,37 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
         return null;
     }
 
-    public void saveAdditional(CompoundTag compound) {
-        ContainerHelper.saveAllItems(compound, this.items);
-        compound.put("inv", itemHandler.serializeNBT());
-
-        compound.putInt("grindingTime", grindingTime);
-
-        compound.putInt("grindingTimeMax", grindingTimeMax);
-
-        compound.putInt("crafted", crafted ? 1 : 0);
-
-        compound.putInt("crafting", crafting ? 1 : 0);
-    }
-
-
-    //    @Override
-    public CompoundTag save(CompoundTag compound) {
-//        compound.put("inv", itemHandler.serializeNBT());
-//        if (this.customName != null)
-//            compound.putString("CustomName", Component.Serializer.toJson(this.customName));
-        ContainerHelper.saveAllItems(compound, this.items);
-
-        compound.putInt("grindingTime", grindingTime);
-
-        compound.putInt("grindingTimeMax", grindingTimeMax);
-
-        compound.putInt("crafted", crafted ? 1 : 0);
-
-        compound.putInt("crafting", crafting ? 1 : 0);
-
-        return compound;
-    }
-
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.save(new CompoundTag());
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
+        ContainerHelper.saveAllItems(compound, this.items, registries);
+        compound.put("inv", itemHandler.serializeNBT(registries));
+
+        compound.putInt("grindingTime", grindingTime);
+
+        compound.putInt("grindingTimeMax", grindingTimeMax);
+
+        compound.putInt("crafted", crafted ? 1 : 0);
+
+        compound.putInt("crafting", crafting ? 1 : 0);
     }
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
 
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
     @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt) {
-        this.deserializeNBT(pkt.getTag());
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        this.saveAdditional(tag, registries);
+        return tag;
+    }
+
+    @Override
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
+        super.onDataPacket(net, pkt, lookupProvider);
     }
 
     public static double getDistanceToEntity(Entity entity, BlockPos pos) {
@@ -351,16 +335,6 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
         return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
     }
 
-
-//    @Override
-//    public double getMaxRenderDistanceSquared() {
-//        return 4096D;
-//    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
-    }
 
     public float getAngle(Vec3 pos) {
         float angle = (float) Math.toDegrees(Math.atan2(pos.z() - this.getBlockPos().getZ() - 0.5f, pos.x() - this.getBlockPos().getX() - 0.5f));
@@ -408,7 +382,7 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
 
             if (!level.isClientSide) {
                 if (!this.items.get(5).isEmpty()) {
-                    player.inventory.placeItemBackInInventory(this.items.get(5).copy());
+                    player.getInventory().placeItemBackInInventory(this.items.get(5).copy());
                     level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                     this.items.set(5, ItemStack.EMPTY);
                     setChanged();
@@ -437,38 +411,38 @@ public class PestleAndMortarTile extends RandomizableContainerBlockEntity implem
         } else {
             if (!level.isClientSide) {
                 if (!this.items.get(5).isEmpty()) {
-                    player.inventory.placeItemBackInInventory(this.items.get(5).copy());
+                    player.getInventory().placeItemBackInInventory(this.items.get(5).copy());
                     level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                     this.items.set(5, ItemStack.EMPTY);
                 }
 
                 if (!crafting) {
                     if (!this.items.get(0).isEmpty()) {
-                        player.inventory.placeItemBackInInventory(this.items.get(0).copy());
+                        player.getInventory().placeItemBackInInventory(this.items.get(0).copy());
                         level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                         this.items.set(0, ItemStack.EMPTY);
                         output = ItemStack.EMPTY;
                     }
                     if (!this.items.get(1).isEmpty()) {
-                        player.inventory.placeItemBackInInventory(this.items.get(1).copy());
+                        player.getInventory().placeItemBackInInventory(this.items.get(1).copy());
                         level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                         this.items.set(1, ItemStack.EMPTY);
                         output = ItemStack.EMPTY;
                     }
                     if (!this.items.get(2).isEmpty()) {
-                        player.inventory.placeItemBackInInventory(this.items.get(2).copy());
+                        player.getInventory().placeItemBackInInventory(this.items.get(2).copy());
                         level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                         this.items.set(2, ItemStack.EMPTY);
                         output = ItemStack.EMPTY;
                     }
                     if (!this.items.get(3).isEmpty()) {
-                        player.inventory.placeItemBackInInventory(this.items.get(3).copy());
+                        player.getInventory().placeItemBackInInventory(this.items.get(3).copy());
                         level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                         this.items.set(3, ItemStack.EMPTY);
                         output = ItemStack.EMPTY;
                     }
                     if (!this.items.get(4).isEmpty()) {
-                        player.inventory.placeItemBackInInventory(this.items.get(4).copy());
+                        player.getInventory().placeItemBackInInventory(this.items.get(4).copy());
                         level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                         this.items.set(4, ItemStack.EMPTY);
                         output = ItemStack.EMPTY;

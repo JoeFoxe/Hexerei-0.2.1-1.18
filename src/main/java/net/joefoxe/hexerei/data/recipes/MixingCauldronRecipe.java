@@ -1,34 +1,36 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.joefoxe.hexerei.Hexerei;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.fluid.FluidIngredient;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
+public class MixingCauldronRecipe implements Recipe<CraftingInput> {
 
-    private final ResourceLocation id;
     private final ItemStack output;
     private final NonNullList<Ingredient> recipeItems;
     private final FluidStack liquid;
@@ -44,25 +46,8 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
     public boolean isSpecial() {
         return true;
     }
-    public MixingCauldronRecipe(ResourceLocation id, ItemStack output,
-                                NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput, int fluidLevelsConsumed) {
-        this.id = id;
-        this.output = output;
-        this.recipeItems = recipeItems;
-        this.liquid = liquid;
-        this.liquidOutput = liquidOutput;
-        this.fluidLevelsConsumed = fluidLevelsConsumed;
-        this.heatCondition = FluidMixingRecipe.HeatCondition.NONE;
-        this.moonCondition = MoonPhases.MoonCondition.NONE;
 
-        for(int i = 0; i < 8; i++) {
-            itemMatchesSlot.add(false);
-        }
-
-    }
-    public MixingCauldronRecipe(ResourceLocation id, ItemStack output,
-                                NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput, int fluidLevelsConsumed, FluidMixingRecipe.HeatCondition heatCondition, MoonPhases.MoonCondition moonCondition) {
-        this.id = id;
+    public MixingCauldronRecipe(ItemStack output, NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput, int fluidLevelsConsumed, FluidMixingRecipe.HeatCondition heatCondition, MoonPhases.MoonCondition moonCondition) {
         this.output = output;
         this.recipeItems = recipeItems;
         this.liquid = liquid;
@@ -71,25 +56,20 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
         this.heatCondition = heatCondition;
         this.moonCondition = moonCondition;
 
-        for(int i = 0; i < 8; i++) {
-            itemMatchesSlot.add(false);
-        }
-
     }
 
     public List<FluidIngredient> getFluidIngredients(){
-        return new ArrayList<>(List.of(FluidIngredient.fromFluidStack(this.liquid)));
+        return new ArrayList<>(List.of(FluidIngredient.of(this.liquid)));
     }
     public FluidIngredient getFluidIngredient(){
-        return FluidIngredient.fromFluidStack(this.liquid);
+        return FluidIngredient.of(this.liquid);
     }
 
 
     @Override
-    public boolean matches(SimpleContainer inv, Level worldIn) {
+    public boolean matches(CraftingInput inv, Level worldIn) {
 
-        for(int i = 0; i < 8; i++)
-            itemMatchesSlot.set(i, false);
+        List<Boolean> itemMatchesSlot = Stream.generate(() -> false).limit(8).collect(Collectors.toList());
 
         // the flag is to break out early in case nothing matches for that slot
         boolean flag = false;
@@ -147,7 +127,7 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
 
 
     @Override
-    public ItemStack assemble(SimpleContainer p_44001_, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput p_44001_, HolderLookup.Provider registryAccess) {
         return output;
     }
 
@@ -157,7 +137,7 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registryAccess) {
 
         return getOutput();
     }
@@ -179,11 +159,6 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ResourceLocation getId() {
-        return id;
-    }
-
-    @Override
     public RecipeSerializer<?> getSerializer() {
         return ModRecipeTypes.MIXING_SERIALIZER.get();
     }
@@ -198,86 +173,58 @@ public class MixingCauldronRecipe implements Recipe<SimpleContainer> {
         public static final Type INSTANCE = new Type();
     }
 
-    // for Serializing the recipe into/from a json
     public static class Serializer implements RecipeSerializer<MixingCauldronRecipe> {
-            public static final Serializer INSTANCE = new Serializer();
+        public static final Serializer INSTANCE = new Serializer();
+        public static final MapCodec<MixingCauldronRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                ItemStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.output),
+                                NonNullList.codecOf(Ingredient.CODEC).fieldOf("input").forGetter(recipe -> recipe.recipeItems),
+                                FluidStack.CODEC.fieldOf("liquidOutput").forGetter(recipe -> recipe.liquidOutput),
+                                FluidStack.CODEC.fieldOf("liquid").forGetter(recipe -> recipe.liquid),
+                                Codec.INT.fieldOf("fluidLevelsConsumed").forGetter(recipe -> recipe.fluidLevelsConsumed),
+                                FluidMixingRecipe.HeatCondition.CODEC.optionalFieldOf("heatRequirement", FluidMixingRecipe.HeatCondition.NONE).forGetter(recipe -> recipe.heatCondition),
+                                MoonPhases.MoonCondition.CODEC.optionalFieldOf("moonRequirement", MoonPhases.MoonCondition.NONE).forGetter(recipe -> recipe.moonCondition)
+                        )
+                        .apply(instance, MixingCauldronRecipe::new)
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, MixingCauldronRecipe> STREAM_CODEC = StreamCodec.of(
+                MixingCauldronRecipe.Serializer::toNetwork, MixingCauldronRecipe.Serializer::fromNetwork
+        );
 
         @Override
-        public MixingCauldronRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-            FluidStack liquid = deserializeFluidStack(GsonHelper.getAsJsonObject(json, "liquid"));
-            FluidStack liquidOutput = deserializeFluidStack(GsonHelper.getAsJsonObject(json, "liquidOutput"));
-
-            int fluidLevelsConsumed = GsonHelper.getAsInt(json, "fluidLevelsConsumed");
-
-            String heatRequirement = GsonHelper.getAsString(json, "heatRequirement", "none");
-            FluidMixingRecipe.HeatCondition heatCondition = FluidMixingRecipe.HeatCondition.getHeated(heatRequirement);
-
-            String moonRequirement = GsonHelper.getAsString(json, "moonRequirement", "none");
-            MoonPhases.MoonCondition moonCondition = MoonPhases.MoonCondition.getMoonCondition(moonRequirement);
-
-            JsonArray ingredients = GsonHelper.getAsJsonArray(json, "ingredients");
-            NonNullList<Ingredient> inputs = NonNullList.withSize(8, Ingredient.EMPTY);
-
-            for(int i = 0; i < ingredients.size(); i++) {
-                inputs.set(i, Ingredient.fromJson(ingredients.get(i)));
-            }
-
-            return new MixingCauldronRecipe(recipeId, output,
-                    inputs, liquid, liquidOutput, fluidLevelsConsumed, heatCondition, moonCondition);
+        public MapCodec<MixingCauldronRecipe> codec() {
+            return CODEC;
         }
 
-        @Nullable
         @Override
-        public MixingCauldronRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
+        public StreamCodec<RegistryFriendlyByteBuf, MixingCauldronRecipe> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        private static MixingCauldronRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
             NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
+            inputs.replaceAll(ignored -> Ingredient.CONTENTS_STREAM_CODEC.decode(buffer));
+            FluidStack inputFluid = FluidStack.STREAM_CODEC.decode(buffer);
+            FluidStack outputFluid = FluidStack.STREAM_CODEC.decode(buffer);
+            int fluidLevelsConsumed = ByteBufCodecs.INT.decode(buffer);
+            FluidMixingRecipe.HeatCondition heatCondition = NeoForgeStreamCodecs.enumCodec(FluidMixingRecipe.HeatCondition.class).decode(buffer);
+            MoonPhases.MoonCondition moonCondition = NeoForgeStreamCodecs.enumCodec(MoonPhases.MoonCondition.class).decode(buffer);
 
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromNetwork(buffer));
-            }
-
-            return new MixingCauldronRecipe(recipeId, buffer.readItem(),
-                    inputs, buffer.readFluidStack(), buffer.readFluidStack(), buffer.readInt(), buffer.readEnum(FluidMixingRecipe.HeatCondition.class), buffer.readEnum(MoonPhases.MoonCondition.class));
+            return new MixingCauldronRecipe(output, inputs, inputFluid, outputFluid, fluidLevelsConsumed, heatCondition, moonCondition);
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, MixingCauldronRecipe recipe) {
-            buffer.writeInt(recipe.getIngredients().size());
-            for (Ingredient ing : recipe.getIngredients()) {
-                ing.toNetwork(buffer);
-            }
-            buffer.writeItem(recipe.output);
-            buffer.writeFluidStack(recipe.getLiquid());
-            buffer.writeFluidStack(recipe.getLiquidOutput());
-            buffer.writeInt(recipe.getFluidLevelsConsumed());
-            buffer.writeEnum(recipe.getHeatCondition());
-            buffer.writeEnum(recipe.getMoonCondition());
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, MixingCauldronRecipe recipe) {
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.output);
+            buffer.writeInt(recipe.recipeItems.size());
+            for (Ingredient ingredient : recipe.recipeItems)
+                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, ingredient);
+            FluidStack.STREAM_CODEC.encode(buffer, recipe.liquid);
+            FluidStack.STREAM_CODEC.encode(buffer, recipe.liquidOutput);
+            ByteBufCodecs.INT.encode(buffer, recipe.fluidLevelsConsumed);
+            NeoForgeStreamCodecs.enumCodec(FluidMixingRecipe.HeatCondition.class).encode(buffer, recipe.heatCondition);
+            NeoForgeStreamCodecs.enumCodec(MoonPhases.MoonCondition.class).encode(buffer, recipe.moonCondition);
         }
-
-        public static FluidStack deserializeFluidStack(JsonObject json) {
-            ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(json, "fluid"));
-            Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-            if (fluid == null)
-                throw new JsonSyntaxException("Unknown fluid '" + id + "'");
-            int amount = 1;
-            if(json.has("amount")) {
-                amount = GsonHelper.getAsInt(json, "amount");
-            }
-            FluidStack stack = new FluidStack(fluid, amount);
-            if (!json.has("nbt"))
-                return stack;
-
-            try {
-                JsonElement element = json.get("nbt");
-                stack.setTag(TagParser.parseTag(
-                        element.isJsonObject() ? Hexerei.GSON.toJson(element) : GsonHelper.convertToString(element, "nbt")));
-
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
-            return stack;
-        }
-
     }
+
 }

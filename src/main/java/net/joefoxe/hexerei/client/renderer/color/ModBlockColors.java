@@ -3,20 +3,17 @@ package net.joefoxe.hexerei.client.renderer.color;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.Coffer;
 import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
-import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.color.block.BlockColor;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.GrassColor;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 
-
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(value = Dist.CLIENT)
 public class ModBlockColors {
 
     // water blocks
@@ -41,7 +38,6 @@ public class ModBlockColors {
 
 
 
-
     @SubscribeEvent
     public static void onBlockColorsInit(RegisterColorHandlersEvent.Block event) {
         final BlockColors blockColors = event.getBlockColors();
@@ -57,16 +53,17 @@ public class ModBlockColors {
                 ModBlocks.COFFER.get()
         );
 
-        blockColors.register((state, reader, pos, color) -> ConnectingCarpetDyed.getColorValue(state),
-                ModBlocks.INFUSED_FABRIC_CARPET.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(),
-                ModBlocks.INFUSED_FABRIC_BLOCK.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get(),
-                ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get(),
-                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get()
-        );
+        //TODO dye colors for carpets when I figure out connecting texture stuff
+//        blockColors.register((state, reader, pos, color) -> ConnectingCarpetDyed.getColorValue(state),
+//                ModBlocks.INFUSED_FABRIC_CARPET.get(),
+//                ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get(),
+//                ModBlocks.INFUSED_FABRIC_BLOCK.get(),
+//                ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get(),
+//                ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get(),
+//                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get(),
+//                ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get(),
+//                ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get()
+//        );
 
         blockColors.register((state, reader, pos, color) -> {
                     return reader != null && pos != null ? Coffer.getColorValue(state, pos, reader) : 0x442013;

@@ -36,7 +36,7 @@ public class CustomRenderType extends RenderType {
 
 
     public static final Function<ResourceLocation, RenderType> TRANSPARENCY_FIX = Util.memoize((p_173200_) -> {
-        return create("transparent_fix", DefaultVertexFormat.POSITION_COLOR_TEX, VertexFormat.Mode.QUADS, 256, true, true,
+        return create("transparent_fix", DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS, 256, true, true,
                 RenderType.CompositeState.builder()
                         .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
                         .setTextureState(new TextureStateShard(p_173200_, true, true))

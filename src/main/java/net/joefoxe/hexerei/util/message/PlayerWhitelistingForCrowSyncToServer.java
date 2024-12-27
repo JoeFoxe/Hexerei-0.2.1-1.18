@@ -1,21 +1,31 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class PlayerWhitelistingForCrowSyncToServer extends AbstractPacket {
 
-public class PlayerWhitelistingForCrowSyncToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, PlayerWhitelistingForCrowSyncToServer> CODEC  = StreamCodec.ofMember(PlayerWhitelistingForCrowSyncToServer::encode, PlayerWhitelistingForCrowSyncToServer::new);
+    public static final Type<PlayerWhitelistingForCrowSyncToServer> TYPE = new Type<>(HexereiUtil.getResource("player_whitelisting_crow_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     boolean whitelisting;
 
     public PlayerWhitelistingForCrowSyncToServer(boolean whitelisting) {
         this.whitelisting = whitelisting;
     }
-    public PlayerWhitelistingForCrowSyncToServer(FriendlyByteBuf buf) {
+    public PlayerWhitelistingForCrowSyncToServer(RegistryFriendlyByteBuf buf) {
         this.whitelisting = buf.readBoolean();
     }
 
@@ -23,27 +33,11 @@ public class PlayerWhitelistingForCrowSyncToServer {
         buffer.writeBoolean(object.whitelisting);
     }
 
-    public static PlayerWhitelistingForCrowSyncToServer decode(FriendlyByteBuf buffer) {
-        return new PlayerWhitelistingForCrowSyncToServer(buffer);
-    }
-
-    public static void consume(PlayerWhitelistingForCrowSyncToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(packet.whitelisting)
-                CrowWhitelistEvent.playersActivelyWhitelisting.add(ctx.get().getSender());
-            else
-                CrowWhitelistEvent.playersActivelyWhitelisting.remove(ctx.get().getSender());
-
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(whitelisting)
+            CrowWhitelistEvent.playersActivelyWhitelisting.add(player);
+        else
+            CrowWhitelistEvent.playersActivelyWhitelisting.remove(player);
     }
 }

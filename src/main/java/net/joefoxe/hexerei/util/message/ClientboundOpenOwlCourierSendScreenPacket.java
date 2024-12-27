@@ -1,20 +1,26 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class ClientboundOpenOwlCourierSendScreenPacket extends AbstractPacket {
 
-public class ClientboundOpenOwlCourierSendScreenPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundOpenOwlCourierSendScreenPacket> CODEC  = StreamCodec.ofMember(ClientboundOpenOwlCourierSendScreenPacket::encode, ClientboundOpenOwlCourierSendScreenPacket::new);
+    public static final CustomPacketPayload.Type<ClientboundOpenOwlCourierSendScreenPacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("owl_courier_send_screen"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int owlId;
     InteractionHand hand;
     int selected;
@@ -25,42 +31,27 @@ public class ClientboundOpenOwlCourierSendScreenPacket {
         this.selected = selected;
     }
 
-    public static void encode(ClientboundOpenOwlCourierSendScreenPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.owlId);
-        buffer.writeBoolean(object.hand == InteractionHand.MAIN_HAND);
-        buffer.writeInt(object.selected);
+    public ClientboundOpenOwlCourierSendScreenPacket(RegistryFriendlyByteBuf buf) {
+        this(buf.readInt(), buf.readBoolean() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, buf.readInt());
+    }
+
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(owlId);
+        buffer.writeBoolean(hand == InteractionHand.MAIN_HAND);
+        buffer.writeInt(selected);
     }
 
     public static ClientboundOpenOwlCourierSendScreenPacket decode(FriendlyByteBuf buffer) {
         return new ClientboundOpenOwlCourierSendScreenPacket(buffer.readInt(), buffer.readBoolean() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, buffer.readInt());
     }
 
-    public static void consume(ClientboundOpenOwlCourierSendScreenPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-            if (world.getEntity(packet.owlId) instanceof OwlEntity owl) {
-                DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-                    setScreen(owl, packet.hand, packet.selected);
-                });
+        if (player.level().getEntity(owlId) instanceof OwlEntity owl) {
+            minecraft.setScreen(new net.joefoxe.hexerei.screen.OwlCourierSendScreen(owl, hand, selected));
 
-            }
-
-        });
-        ctx.get().setPacketHandled(true);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void setScreen(OwlEntity owl, InteractionHand hand, int selected) {
-        Minecraft.getInstance().setScreen(new net.joefoxe.hexerei.screen.OwlCourierSendScreen(owl, hand, selected));
-
+        }
     }
 
 }

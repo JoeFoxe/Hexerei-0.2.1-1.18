@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.world.terrablender;
 import com.mojang.datafixers.util.Pair;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.config.HexConfig;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.world.biome.ModBiomes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -24,7 +25,7 @@ public class ModRegion extends Region {
 
 
     public static void init() {
-        Regions.register(new SwampRegion(new ResourceLocation(Hexerei.MOD_ID, "overworld"), HexConfig.WILLOW_SWAMP_RARITY.get()));
+        Regions.register(new SwampRegion(HexereiUtil.getResource("overworld"), HexConfig.WILLOW_SWAMP_RARITY.get()));
     }
 
     private static class SwampRegion extends Region {

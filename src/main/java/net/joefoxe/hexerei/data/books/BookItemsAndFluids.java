@@ -5,7 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Registry;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
@@ -18,12 +20,13 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BookItemsAndFluids {
     public float x;
@@ -157,8 +160,8 @@ public class BookItemsAndFluids {
         this.x = x;
         this.y = y;
         this.tag = tag;
-        this.key = TagKey.create(Registries.ITEM, new ResourceLocation(tag));
-        this.item = new ItemStack(PageDrawing.getTagStackStatic(this.key).orElseGet(ItemStack.EMPTY::getItem));
+        this.key = TagKey.create(Registries.ITEM, ResourceLocation.parse(tag));
+        this.item = PageDrawing.getTagStack(this.key);
         this.type = "tag";
         this.show_slot = true;
         this.fluid_height = 16;
@@ -170,8 +173,8 @@ public class BookItemsAndFluids {
         this.x = x;
         this.y = y;
         this.tag = tag;
-        this.key = TagKey.create(Registries.ITEM, new ResourceLocation(tag));
-        this.item = new ItemStack(PageDrawing.getTagStackStatic(this.key).orElseGet(ItemStack.EMPTY::getItem));
+        this.key = TagKey.create(Registries.ITEM, ResourceLocation.parse(tag));
+        this.item = PageDrawing.getTagStack(this.key);
         this.type = "tag";
         this.show_slot = showSlot;
         this.fluid_height = 16;
@@ -183,8 +186,8 @@ public class BookItemsAndFluids {
         this.x = x;
         this.y = y;
         this.tag = tag;
-        this.key = TagKey.create(Registries.ITEM, new ResourceLocation(tag));
-        this.item = new ItemStack(PageDrawing.getTagStackStatic(this.key).orElseGet(ItemStack.EMPTY::getItem));
+        this.key = TagKey.create(Registries.ITEM, ResourceLocation.parse(tag));
+        this.item = PageDrawing.getTagStack(this.key);
         this.type = "tag";
         this.show_slot = showSlot;
         this.fluid_height = 16;
@@ -205,7 +208,7 @@ public class BookItemsAndFluids {
         String type = GsonHelper.getAsString(object, "type", "item");
         switch (type) {
             case "item" -> {
-                Item item = GsonHelper.getAsItem(object, "name", Items.AIR);
+                Holder<Item> item = GsonHelper.getAsItem(object, "name", Holder.direct(Items.AIR));
                 int count = GsonHelper.getAsInt(object, "count", 1);
 
                 ItemStack stack = new ItemStack(item, count);
@@ -213,7 +216,7 @@ public class BookItemsAndFluids {
                     String tagString = GsonHelper.getAsString(object, "tag", "");
                     CompoundTag tag = TagParser.parseTag(tagString);
 
-                    stack.setTag(tag);
+                    stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                 }
 
 
@@ -294,20 +297,20 @@ public class BookItemsAndFluids {
                 float fluid_offset_x = GsonHelper.getAsFloat(object, "fluid_offset_x", 0);
                 float fluid_offset_y = GsonHelper.getAsFloat(object, "fluid_offset_y", 0);
 
-                Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(loc));
-                if (fluid == null)
+                Optional<Fluid> fluid = BuiltInRegistries.FLUID.getOptional(ResourceLocation.parse(loc));
+                if (fluid.isEmpty())
                     throw (new JsonSyntaxException("Expected " + loc + " to be an fluid rl, was unknown string '" + loc + "'"));
 
                 int amount = GsonHelper.getAsInt(object, "amount", 0);
                 int capacity = GsonHelper.getAsInt(object, "capacity", 0);
 
 
-                FluidStack fluidStack = new FluidStack(fluid, amount <= 0 ? 1000 : amount);
+                FluidStack fluidStack = new FluidStack(fluid.get(), amount <= 0 ? 1000 : amount);
                 if (object.has("tag")) {
                     String tagString = GsonHelper.getAsString(object, "tag", "");
                     CompoundTag tag = TagParser.parseTag(tagString);
 
-                    fluidStack.setTag(tag);
+                    fluidStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                 }
 
                 JsonArray yourJson = GsonHelper.getAsJsonArray(object, "extra_tooltips", new JsonArray());

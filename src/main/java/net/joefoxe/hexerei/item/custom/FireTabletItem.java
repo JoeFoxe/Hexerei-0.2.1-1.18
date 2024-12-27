@@ -25,16 +25,4 @@ public class FireTabletItem extends Item {
      * Called to trigger the item's "innate" right click behavior. To handle when this item is used on a Block, see
      * {@link #use}.
      */
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-        if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_shift"));
-        } else {
-            tooltip.add(Component.translatable("tooltip.hexerei.broom"));
-        }
-
-
-        super.appendHoverText(stack, world, tooltip, flagIn);
-    }
 }

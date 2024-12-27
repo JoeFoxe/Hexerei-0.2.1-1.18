@@ -8,8 +8,8 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class ModelSwapper {
 //    }
 
     public void onModelBake(ModelEvent.ModifyBakingResult event) {
-        Map<ResourceLocation, BakedModel> modelRegistry = event.getModels();
+        Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
         customBlockModels.forEach((block, modelFunc) -> swapModels(modelRegistry, getAllBlockStateModelLocations(block), modelFunc));
 //        customItemModels.forEach((item, modelFunc) -> swapModels(modelRegistry, getItemModelLocation(item), modelFunc));
 //        CustomRenderedItems.forEach(item -> swapModels(modelRegistry, getItemModelLocation(item), CustomRenderedItemModel::new));
@@ -42,14 +42,14 @@ public class ModelSwapper {
         modEventBus.addListener(this::onModelBake);
     }
 
-    public static <T extends BakedModel> void swapModels(Map<ResourceLocation, BakedModel> modelRegistry,
+    public static <T extends BakedModel> void swapModels(Map<ModelResourceLocation, BakedModel> modelRegistry,
                                                          List<ModelResourceLocation> locations, Function<BakedModel, T> factory) {
         locations.forEach(location -> {
             swapModels(modelRegistry, location, factory);
         });
     }
 
-    public static <T extends BakedModel> void swapModels(Map<ResourceLocation, BakedModel> modelRegistry,
+    public static <T extends BakedModel> void swapModels(Map<ModelResourceLocation, BakedModel> modelRegistry,
                                                          ModelResourceLocation location, Function<BakedModel, T> factory) {
         modelRegistry.put(location, factory.apply(modelRegistry.get(location)));
     }

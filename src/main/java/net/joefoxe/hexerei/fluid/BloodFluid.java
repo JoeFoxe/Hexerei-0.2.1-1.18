@@ -18,19 +18,14 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
+import net.neoforged.neoforge.fluids.FluidType;
 
 import javax.annotation.Nonnull;
 
-public abstract class BloodFluid extends ForgeFlowingFluid {
-
-	protected BloodFluid(Properties properties) {
-		super(properties);
-	}
+public class BloodFluid extends FlowingFluid {
 
 	@Override
 	public Fluid getFlowing() {
@@ -98,79 +93,57 @@ public abstract class BloodFluid extends ForgeFlowingFluid {
 		return 0;
 	}
 
+	@Override
+	protected void animateTick(Level level, BlockPos pos, FluidState state, RandomSource random) {
+		if (!state.isSource() && !state.getValue(FALLING)) {
+			if (random.nextInt(64) == 0) {
+				level.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, SoundEvents.WATER_AMBIENT, SoundSource.BLOCKS, random.nextFloat() * 0.25F + 0.75F, random.nextFloat() + 0.5F);
+			}
+		} else if (random.nextInt(12) == 0) {
+			if (random.nextInt(3) == 0)
+				level.addParticle(ModParticleTypes.BLOOD.get(), (double) pos.getX() + random.nextDouble(), (double) pos.getY() + (random.nextDouble() * (state.getValue(LEVEL) / 8.0f)), (double) pos.getZ() + random.nextDouble(), -0.01D + (random.nextDouble() * 0.02), -0.02D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02));
+			level.addParticle(ModParticleTypes.BLOOD_BIT.get(), (double) pos.getX() + random.nextDouble(), (double) pos.getY() + (random.nextDouble() * (state.getValue(LEVEL) / 8.0f)), (double) pos.getZ() + random.nextDouble(), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02));
 
-//    public boolean isEquivalentTo(Fluid fluidIn) {
-//        return fluidIn == Fluids.WATER || fluidIn == Fluids.FLOWING_WATER;
-//    }
-//
-
-	public static class Flowing extends ForgeFlowingFluid
-	{
-		public Flowing(Properties properties)
-		{
-			super(properties);
-			registerDefaultState(getStateDefinition().any().setValue(LEVEL, 7));
 		}
+		super.animateTick(level, pos, state, random);
+	}
 
+	@Override
+	public FluidType getFluidType() {
+		return ModFluidTypes.BLOOD_FLUID_TYPE.value();
+	}
+
+	public static class Flowing extends BloodFluid {
+		@Override
 		protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> builder) {
 			super.createFluidStateDefinition(builder);
 			builder.add(LEVEL);
 		}
 
+		@Override
 		public int getAmount(FluidState state) {
 			return state.getValue(LEVEL);
 		}
 
+		@Override
 		public boolean isSource(FluidState state) {
 			return false;
 		}
-
-		@OnlyIn(Dist.CLIENT)
-		public void animateTick(Level worldIn, BlockPos pos, FluidState state, RandomSource random) {
-			if (!state.isSource() && !state.getValue(FALLING)) {
-				if (random.nextInt(64) == 0) {
-					worldIn.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, SoundEvents.WATER_AMBIENT, SoundSource.BLOCKS, random.nextFloat() * 0.25F + 0.75F, random.nextFloat() + 0.5F);
-				}
-			} else if (random.nextInt(12) == 0) {
-				if (random.nextInt(3) == 0)
-					worldIn.addParticle(ModParticleTypes.BLOOD.get(), (double) pos.getX() + random.nextDouble(), (double) pos.getY() + (random.nextDouble() * (state.getValue(LEVEL) / 8.0f)), (double) pos.getZ() + random.nextDouble(), -0.01D + (random.nextDouble() * 0.02), -0.02D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02));
-				worldIn.addParticle(ModParticleTypes.BLOOD_BIT.get(), (double) pos.getX() + random.nextDouble(), (double) pos.getY() + (random.nextDouble() * (state.getValue(LEVEL) / 8.0f)), (double) pos.getZ() + random.nextDouble(), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02));
-
-			}
-			//worldIn.addParticle(ModParticleTypes.BLOOD.get(), (double)pos.getX() + random.nextDouble(), (double)pos.getY() + (random.nextDouble() * (state.getValue(LEVEL) / 8)), (double)pos.getZ() + random.nextDouble(), 0.0D, 0.0D, 0.0D);
-		}
 	}
 
-	public static class Source extends ForgeFlowingFluid
-	{
-		public Source(Properties properties)
-		{
-			super(properties);
-		}
-
+	public static class Source extends BloodFluid {
+		@Override
 		public int getAmount(FluidState state) {
 			return 8;
 		}
 
+		@Override
 		public boolean isSource(FluidState state) {
 			return true;
 		}
-
-		@OnlyIn(Dist.CLIENT)
-		public void animateTick(Level worldIn, BlockPos pos, FluidState state, RandomSource random) {
-			if (!state.isSource() && !state.getValue(FALLING)) {
-				if (random.nextInt(64) == 0) {
-					worldIn.playSound(null, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, SoundEvents.WATER_AMBIENT, SoundSource.BLOCKS, random.nextFloat() * 0.25F + 0.75F, random.nextFloat() + 0.5F);
-				}
-			} else if (random.nextInt(14) == 0) {
-				if (random.nextInt(2) == 0)
-					worldIn.addParticle(ModParticleTypes.BLOOD.get(), (double) pos.getX() + random.nextDouble(), (double) pos.getY() + (random.nextDouble()), (double) pos.getZ() + random.nextDouble(), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02));
-				worldIn.addParticle(ModParticleTypes.BLOOD_BIT.get(), (double) pos.getX() + random.nextDouble(), (double) pos.getY() + (random.nextDouble()), (double) pos.getZ() + random.nextDouble(), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02), -0.01D + (random.nextDouble() * 0.02));
-
-			}
-			//worldIn.addParticle(ModParticleTypes.BLOOD.get(), (double)pos.getX() + random.nextDouble(), (double)pos.getY() + random.nextDouble(), (double)pos.getZ() + random.nextDouble(), 0.0D, 0.0D, 0.0D);
-		}
 	}
+
+
 //
 //	public static class Flowing extends ForgeFlowingFluid {
 //		protected Flowing(Properties properties) {

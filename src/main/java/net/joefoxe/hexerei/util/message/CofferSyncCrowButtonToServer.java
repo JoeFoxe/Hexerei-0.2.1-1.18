@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.CofferTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class CofferSyncCrowButtonToServer extends AbstractPacket {
 
-public class CofferSyncCrowButtonToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, CofferSyncCrowButtonToServer> CODEC  = StreamCodec.ofMember(CofferSyncCrowButtonToServer::encode, CofferSyncCrowButtonToServer::new);
+    public static final Type<CofferSyncCrowButtonToServer> TYPE = new Type<>(HexereiUtil.getResource("coffer_sync_crow_button"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos cofferTile;
     int toggled;
 
@@ -18,34 +27,20 @@ public class CofferSyncCrowButtonToServer {
         this.cofferTile = cofferTile.getBlockPos();
         this.toggled = toggled;
     }
-    public CofferSyncCrowButtonToServer(FriendlyByteBuf buf) {
+    public CofferSyncCrowButtonToServer(RegistryFriendlyByteBuf buf) {
         this.cofferTile = buf.readBlockPos();
         this.toggled = buf.readInt();
 
     }
 
-    public static void encode(CofferSyncCrowButtonToServer object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.cofferTile);
-        buffer.writeInt(object.toggled);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(cofferTile);
+        buffer.writeInt(toggled);
     }
 
-    public static CofferSyncCrowButtonToServer decode(FriendlyByteBuf buffer) {
-        return new CofferSyncCrowButtonToServer(buffer);
-    }
-
-    public static void consume(CofferSyncCrowButtonToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((CofferTile)world.getBlockEntity(packet.cofferTile)).setButtonToggled(packet.toggled);
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if (player.level().getBlockEntity(cofferTile) instanceof CofferTile coffer)
+            coffer.setButtonToggled(toggled);
     }
 }

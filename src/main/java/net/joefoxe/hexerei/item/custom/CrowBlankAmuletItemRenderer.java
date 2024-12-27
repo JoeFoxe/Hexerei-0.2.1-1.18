@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.item.custom;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -9,18 +10,21 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import java.util.OptionalInt;
 
@@ -36,12 +40,7 @@ public class CrowBlankAmuletItemRenderer extends CustomItemRenderer {
 //        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModelData.EMPTY, null);
 //        matrixStackIn.popPose();
 
-		this.renderTileStuff(stack.getOrCreateTag(), stack, itemDisplayContext, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
-	}
-
-	public static int getCustomColor(CompoundTag tag) {
-		CompoundTag compoundtag = tag.contains("display") ? tag.getCompound("display") : null;
-		return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0x422F1E;
+		this.renderTileStuff(stack, itemDisplayContext, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
 	}
 
 
@@ -63,16 +62,16 @@ public class CrowBlankAmuletItemRenderer extends CustomItemRenderer {
 
 	public OptionalInt getFramedMapId(ItemStack stack) {
 		if (stack.is(Items.FILLED_MAP)) {
-			Integer integer = MapItem.getMapId(stack);
-			if (integer != null) {
-				return OptionalInt.of(integer);
+			MapId mapId = stack.get(DataComponents.MAP_ID);
+			if (mapId != null) {
+				return OptionalInt.of(mapId.id());
 			}
 		}
 
 		return OptionalInt.empty();
 	}
 
-	public void renderTileStuff(CompoundTag tag, ItemStack stack, ItemDisplayContext itemDisplayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
+	public void renderTileStuff(ItemStack stack, ItemDisplayContext itemDisplayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
 
 		matrixStackIn.pushPose();
 		matrixStackIn.translate(45 / 64f, 13 / 32f, 7 / 16f);
@@ -80,10 +79,10 @@ public class CrowBlankAmuletItemRenderer extends CustomItemRenderer {
 		ItemStack otherItem = ItemStack.EMPTY;
 
 
-		CompoundTag tag2 = stack.getOrCreateTag();
+		CompoundTag tag2 = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 		if (tag2.contains("Items")) {
 			ListTag list = tag2.getList("Items", 10);
-			ItemStack other = ItemStack.of(list.getCompound(0));
+			ItemStack other = ItemStack.parseOptional(Hexerei.proxy.getLevel().registryAccess(), list.getCompound(0));
 			if (!other.isEmpty() && !list.isEmpty()) {
 				otherItem = other;
 			}
@@ -102,8 +101,8 @@ public class CrowBlankAmuletItemRenderer extends CustomItemRenderer {
 			matrixStackIn.translate(9.5F, 9.5F, 1F / 128F);
 
 			MapItemSavedData mapitemsaveddata = MapItem.getSavedData(otherItem, level);
-			if (mapitemsaveddata != null && getFramedMapId(otherItem).isPresent())
-				Minecraft.getInstance().gameRenderer.getMapRenderer().render(matrixStackIn, bufferIn, getFramedMapId(otherItem).getAsInt(), mapitemsaveddata, true, combinedLightIn);
+			if (mapitemsaveddata != null && otherItem.get(DataComponents.MAP_ID) != null)
+				Minecraft.getInstance().gameRenderer.getMapRenderer().render(matrixStackIn, bufferIn, otherItem.get(DataComponents.MAP_ID), mapitemsaveddata, true, combinedLightIn);
 			matrixStackIn.popPose();
 			matrixStackIn.translate(0, 0, 0.03F);
 			renderItem(new ItemStack(ModItems.CROW_BLANK_AMULET_TRINKET_FRAME.get()), matrixStackIn, bufferIn, combinedLightIn, ItemDisplayContext.FIXED);

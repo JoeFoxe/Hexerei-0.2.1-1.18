@@ -1,10 +1,9 @@
 package net.joefoxe.hexerei.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.WoodcutterContainer;
 import net.joefoxe.hexerei.data.recipes.WoodcutterRecipe;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -16,18 +15,13 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.List;
-import java.util.Optional;
 
-@OnlyIn(Dist.CLIENT)
 public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
-            "textures/gui/woodcutter_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
-            "textures/gui/inventory.png");
+    private final ResourceLocation GUI = HexereiUtil.getResource("textures/gui/woodcutter_gui.png");
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource("textures/gui/inventory.png");
     private static final int SCROLLER_WIDTH = 12;
     private static final int SCROLLER_HEIGHT = 15;
     private static final int RECIPES_COLUMNS = 4;
@@ -63,7 +57,7 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float pPartialTick, int pX, int pY) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, pX, pY, pPartialTick);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = this.leftPos;
@@ -95,14 +89,14 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
             int i = this.leftPos + RECIPES_X;
             int j = this.topPos + RECIPES_Y;
             int k = this.startIndex + 12;
-            List<WoodcutterRecipe> list = this.menu.getRecipes();
+            List<RecipeHolder<WoodcutterRecipe>> list = this.menu.getRecipes();
 
             for(int l = this.startIndex; l < k && l < this.menu.getNumRecipes(); ++l) {
                 int i1 = l - this.startIndex;
                 int j1 = i + i1 % RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_WIDTH + 2;
                 int k1 = j + i1 / RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_HEIGHT + 2;
                 if (pX >= j1 && pX < j1 + RECIPES_IMAGE_SIZE_WIDTH && pY >= k1 && pY < k1 + RECIPES_IMAGE_SIZE_HEIGHT) {
-                    guiGraphics.renderTooltip(Minecraft.getInstance().font, list.get(l).getResultItem(this.minecraft.level.registryAccess()), pX, pY);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, list.get(l).value().getResultItem(this.minecraft.level.registryAccess()), pX, pY);
                 }
             }
         }
@@ -147,7 +141,7 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
     }
 
     private void renderRecipes(GuiGraphics guiGraphics, int pLeft, int pTop, int pRecipeIndexOffsetMax) {
-        List<WoodcutterRecipe> list = this.menu.getRecipes();
+        List<RecipeHolder<WoodcutterRecipe>> list = this.menu.getRecipes();
 
         for(int i = this.startIndex; i < pRecipeIndexOffsetMax && i < this.menu.getNumRecipes(); ++i) {
             int j = i - this.startIndex;
@@ -155,13 +149,13 @@ public class WoodcutterScreen extends AbstractContainerScreen<WoodcutterContaine
             int l = j / RECIPES_COLUMNS;
             int i1 = pTop + l * RECIPES_IMAGE_SIZE_HEIGHT + 4;
 
-            ItemStack result = list.get(i).getResultItem(this.minecraft.level.registryAccess());
+            ItemStack result = list.get(i).value().getResultItem(this.minecraft.level.registryAccess());
             guiGraphics.renderItem(result, k, i1);
             guiGraphics.renderItemDecorations(this.font, result, k, i1);
         }
 
         if(this.menu.getSelectedRecipeIndex() != -1 && this.menu.getRecipes().size() >= this.menu.getSelectedRecipeIndex() + 1){
-            WoodcutterRecipe selectedRecipe = this.menu.getRecipes().get(this.menu.getSelectedRecipeIndex());
+            WoodcutterRecipe selectedRecipe = this.menu.getRecipes().get(this.menu.getSelectedRecipeIndex()).value();
             ItemStack stack = selectedRecipe.getIngredients().get(0).getItems()[0];
             stack.setCount(selectedRecipe.ingredientCount);
 

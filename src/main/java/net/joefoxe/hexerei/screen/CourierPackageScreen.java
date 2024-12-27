@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.CofferContainer;
 import net.joefoxe.hexerei.container.PackageContainer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -21,9 +22,9 @@ import org.joml.Matrix4f;
 import static net.joefoxe.hexerei.container.PackageContainer.OFFSET;
 
 public class CourierPackageScreen extends AbstractContainerScreen<PackageContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/courier_package_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
 
@@ -48,7 +49,7 @@ public class CourierPackageScreen extends AbstractContainerScreen<PackageContain
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
 
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
@@ -133,13 +134,12 @@ public class CourierPackageScreen extends AbstractContainerScreen<PackageContain
         RenderSystem.setShaderTexture(0, pAtlasLocation);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(matrix4f, pX1, pY1, pBlitOffset).uv(pMinU, pMinV).endVertex();
-        bufferbuilder.vertex(matrix4f, pX1, pY2, pBlitOffset).uv(pMinU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, pX2, pY2, pBlitOffset).uv(pMaxU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, pX2, pY1, pBlitOffset).uv(pMaxU, pMinV).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferbuilder.addVertex(matrix4f, pX1, pY1, pBlitOffset).setUv(pMinU, pMinV);
+        bufferbuilder.addVertex(matrix4f, pX1, pY2, pBlitOffset).setUv(pMinU, pMaxV);
+        bufferbuilder.addVertex(matrix4f, pX2, pY2, pBlitOffset).setUv(pMaxU, pMaxV);
+        bufferbuilder.addVertex(matrix4f, pX2, pY1, pBlitOffset).setUv(pMaxU, pMinV);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
     }
 
     @Override
@@ -150,7 +150,7 @@ public class CourierPackageScreen extends AbstractContainerScreen<PackageContain
             if (!this.menu.isEmpty()) {
                 if (x > this.leftPos + 141 && x < this.leftPos + 141 + 30 && y > this.topPos + 17 - CofferContainer.OFFSET && y < this.topPos + 17 + 16 - CofferContainer.OFFSET) {
                     this.clicked = true;
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 1.0F, 0.25f));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 0.25f));
                 }
             }
         }
@@ -186,7 +186,7 @@ public class CourierPackageScreen extends AbstractContainerScreen<PackageContain
     @Override
     public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
         if (this.clicked && pButton == 0)
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 0.85F, 0.25f));
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 0.85F, 0.25f));
         this.clicked = false;
         return super.mouseReleased(pMouseX, pMouseY, pButton);
     }
@@ -196,7 +196,7 @@ public class CourierPackageScreen extends AbstractContainerScreen<PackageContain
 
         if (clicked){
             if (!(x > this.leftPos + 141 && x < this.leftPos + 141 + 30 && y > this.topPos + 19 - CofferContainer.OFFSET && y < this.topPos + 19 + 16 - CofferContainer.OFFSET)) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 0.85F, 0.25f));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 0.85F, 0.25f));
                 this.clicked = false;
             }
         }

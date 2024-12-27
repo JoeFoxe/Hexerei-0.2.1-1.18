@@ -1,11 +1,11 @@
 package net.joefoxe.hexerei.integration.jei;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -15,11 +15,8 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.block.custom.MixingCauldron;
 import net.joefoxe.hexerei.block.custom.PickableDoublePlant;
-import net.joefoxe.hexerei.events.CrowWhitelistEvent;
-import net.joefoxe.hexerei.item.ModItems;
-import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,14 +24,11 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -44,10 +38,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -58,8 +52,8 @@ import java.util.List;
 import static net.joefoxe.hexerei.container.HerbJarContainer.OFFSET;
 
 public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingRecipeJEI> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "plant_picking");
-    public final static ResourceLocation TEXTURE = new ResourceLocation(Hexerei.MOD_ID, "textures/gui/plant_picking_gui_jei.png");
+    public final static ResourceLocation UID = HexereiUtil.getResource("plant_picking");
+    public final static ResourceLocation TEXTURE = HexereiUtil.getResource("textures/gui/plant_picking_gui_jei.png");
     private final IDrawable background;
     private final IDrawable icon;
     public PlantPickingRecipeCategory(IGuiHelper helper) {
@@ -67,19 +61,14 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
         this.icon = helper.createDrawableItemStack(new ItemStack(ModBlocks.MANDRAKE_PLANT.get()));
     }
 
-
     @Override
-    public List<Component> getTooltipStrings(PlantPickingRecipeJEI recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-
+    public void getTooltip(ITooltipBuilder tooltip, PlantPickingRecipeJEI recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
         if(isHovering(mouseX, mouseY, 86, 23, 20, 20)){
-            List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable("gui.jei.category.plant_picking_tooltip"));
-            return tooltip;
         }
-
-
-        return IRecipeCategory.super.getTooltipStrings(recipe, recipeSlotsView, mouseX, mouseY);
+        IRecipeCategory.super.getTooltip(tooltip, recipe, recipeSlotsView, mouseX, mouseY);
     }
+
     public boolean isHovering(double mouseX, double mouseY, double x, double y, double width, double height)
     {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
@@ -95,10 +84,10 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
         return Component.translatable("gui.jei.category.plant_picking");
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -123,6 +112,8 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
 
             @Override
             public void draw(GuiGraphics guiGraphics, int xOffset, int yOffset) {
+
+                background.draw(guiGraphics);
 
                 if (recipe.getInput().getItem() instanceof BlockItem blockItem){
 
@@ -163,7 +154,7 @@ public class PlantPickingRecipeCategory implements IRecipeCategory<PlantPickingR
                     guiGraphics.pose().pushPose();
 
                     guiGraphics.pose().translate(xOffset, yOffset, 0);
-                    guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+                    guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
                     guiGraphics.pose().translate(-3, -15, 0);
                     guiGraphics.pose().scale(17, 17, 17);
                     MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();

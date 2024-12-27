@@ -12,11 +12,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 
 public class MixingCauldronContainer extends AbstractContainerMenu {
@@ -33,20 +32,18 @@ public class MixingCauldronContainer extends AbstractContainerMenu {
 
         layoutPlayerInventorySlots(14, 120);
 
-        //add slots for mixing cauldron
-        if(tileEntity != null) {
-            tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(h -> {
-                this.addSlot(new SlotItemHandler(h, 9, 42, 24));
-                this.addSlot(new SlotItemHandler(h, 0, 105, 17));
-                this.addSlot(new SlotItemHandler(h, 1, 127, 26));
-                this.addSlot(new SlotItemHandler(h, 2, 136, 48));
-                this.addSlot(new SlotItemHandler(h, 3, 127, 70));
-                this.addSlot(new SlotItemHandler(h, 4, 105, 79));
-                this.addSlot(new SlotItemHandler(h, 5, 83, 70));
-                this.addSlot(new SlotItemHandler(h, 6, 74, 48));
-                this.addSlot(new SlotItemHandler(h, 7, 83, 26));
-                this.addSlot(new SlotItemHandler(h, 8, 178, 48));
-            });
+        if(tileEntity instanceof MixingCauldronTile cauldron) {
+            IItemHandler handler = new InvWrapper(cauldron);
+            this.addSlot(new SlotItemHandler(handler, 9, 42, 24));
+            this.addSlot(new SlotItemHandler(handler, 0, 105, 17));
+            this.addSlot(new SlotItemHandler(handler, 1, 127, 26));
+            this.addSlot(new SlotItemHandler(handler, 2, 136, 48));
+            this.addSlot(new SlotItemHandler(handler, 3, 127, 70));
+            this.addSlot(new SlotItemHandler(handler, 4, 105, 79));
+            this.addSlot(new SlotItemHandler(handler, 5, 83, 70));
+            this.addSlot(new SlotItemHandler(handler, 6, 74, 48));
+            this.addSlot(new SlotItemHandler(handler, 7, 83, 26));
+            this.addSlot(new SlotItemHandler(handler, 8, 178, 48));
         }
 
         if(tileEntity instanceof MixingCauldronTile mixingTile)

@@ -6,9 +6,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
-import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
@@ -18,13 +17,12 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.MixingCauldron;
-import net.joefoxe.hexerei.data.recipes.KeychainRecipe;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -34,8 +32,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -43,11 +39,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -56,9 +51,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecipeJEI> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "blood_sigil");
+    public final static ResourceLocation UID = HexereiUtil.getResource("blood_sigil");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/blood_sigil_gui_jei.png");
+            HexereiUtil.getResource("textures/gui/blood_sigil_gui_jei.png");
     private IDrawable background;
     private final IDrawable icon;
     private final IDrawable cauldronFG;
@@ -70,23 +65,20 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
 
     // TODO do jei for plant picking as well, so people know where mandrake roots come from
 
+
     @Override
-    public List<Component> getTooltipStrings(BloodSigilRecipeJEI recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public void getTooltip(ITooltipBuilder tooltip, BloodSigilRecipeJEI recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+
 
         if(isHovering(mouseX, mouseY, 33, 25, 24, 15)){
-            List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable("gui.jei.category.blood_sigil_tooltip1"));
-            return tooltip;
         }
         else if(isHovering(mouseX, mouseY, 58, 18, 24, 21)){
-            List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable("gui.jei.category.blood_sigil_tooltip2"));
-            return tooltip;
         }
-
-
-        return IRecipeCategory.super.getTooltipStrings(recipe, recipeSlotsView, mouseX, mouseY);
+        IRecipeCategory.super.getTooltip(tooltip, recipe, recipeSlotsView, mouseX, mouseY);
     }
+
     public boolean isHovering(double mouseX, double mouseY, double x, double y, double width, double height)
     {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
@@ -102,10 +94,10 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
         return Component.translatable("gui.jei.category.blood_sigil");
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -120,7 +112,7 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
         builder.addSlot(RecipeIngredientRole.INPUT,14, 24).addItemStack(recipe.getInput());
         builder.addSlot(RecipeIngredientRole.OUTPUT,96, 24)
                 .setFluidRenderer(500, false, 16, 16)
-                .addFluidStack(recipe.getOutputFluid().getFluid(), 250, recipe.getOutputFluid().hasTag() ? recipe.getOutputFluid().getTag() : new CompoundTag()).setOverlay(new IDrawable() {
+                .addFluidStack(recipe.getOutputFluid().getFluid(), 250, recipe.getOutputFluid().getComponentsPatch()).setOverlay(new IDrawable() {
             @Override
             public int getWidth() {
                 return 16;
@@ -133,6 +125,8 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
 
             @Override
             public void draw(GuiGraphics guiGraphics, int xOffset, int yOffset) {
+
+                background.draw(guiGraphics);
 
                 RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
                 RenderSystem.enableBlend();
@@ -154,7 +148,7 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
 
                 guiGraphics.pose().pushPose();
                 guiGraphics.pose().translate(xOffset, yOffset, 0);
-                guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+                guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
                 guiGraphics.pose().translate(-3, -15, 0);
                 guiGraphics.pose().scale(17, 17, 17);
                 guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(0));
@@ -180,7 +174,7 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
     public void draw(BloodSigilRecipeJEI recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
         Minecraft minecraft = Minecraft.getInstance();
-        Component outputName = recipe.getOutputFluid().getDisplayName();
+        Component outputName = recipe.getOutputFluid().getHoverName();
 
         int width = minecraft.font.width(outputName);
         float lineHeight = minecraft.font.lineHeight / 2f;
@@ -255,7 +249,7 @@ public class BloodSigilRecipeCategory implements IRecipeCategory<BloodSigilRecip
     public static void renderEntityInInventory(GuiGraphics pGuiGraphics, double pX, double pY, double pZ, int pScale, Quaternionf pPose, @Nullable Quaternionf pCameraOrientation, LivingEntity pEntity) {
         pGuiGraphics.pose().pushPose();
         pGuiGraphics.pose().translate((double)pX, (double)pY, (double)pZ);
-        pGuiGraphics.pose().mulPoseMatrix((new Matrix4f()).scaling((float)pScale, (float)pScale, (float)(-pScale)));
+        pGuiGraphics.pose().mulPose((new Matrix4f()).scaling((float)pScale, (float)pScale, (float)(-pScale)));
         pGuiGraphics.pose().mulPose(pPose);
         Lighting.setupForEntityInInventory();
         EntityRenderDispatcher entityrenderdispatcher = Minecraft.getInstance().getEntityRenderDispatcher();

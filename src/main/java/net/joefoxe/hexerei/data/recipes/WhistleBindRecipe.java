@@ -2,12 +2,14 @@ package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.custom.BroomItem;
 import net.joefoxe.hexerei.item.custom.WhistleItem;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -17,8 +19,8 @@ import java.util.UUID;
 
 public class WhistleBindRecipe extends CustomRecipe {
 
-    public WhistleBindRecipe(ResourceLocation registryName, CraftingBookCategory cBc) {
-        super(registryName, cBc);
+    public WhistleBindRecipe(CraftingBookCategory cBc) {
+        super(cBc);
 
     }
 
@@ -27,8 +29,8 @@ public class WhistleBindRecipe extends CustomRecipe {
         return true;
     }
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer p_44004_) {
-        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_44004_.getContainerSize(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput p_44004_) {
+        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_44004_.size(), ItemStack.EMPTY);
 
         for(int i = 0; i < nonnulllist.size(); ++i) {
             ItemStack item = p_44004_.getItem(i);
@@ -42,13 +44,13 @@ public class WhistleBindRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean matches(CraftingContainer inventory, Level world) {
+    public boolean matches(CraftingInput inventory, Level world) {
         int whistle = 0;
         int other = 0;
         int broom = 0;
         ItemStack whistleItem = null;
 
-        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+        for (int i = 0; i < inventory.size(); ++i) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof WhistleItem) {
@@ -66,15 +68,16 @@ public class WhistleBindRecipe extends CustomRecipe {
             }
         }
 
-        return whistle == 1 && other == 0 && (broom == 1 || (whistleItem.hasTag() && whistleItem.getOrCreateTag().contains("UUID")));
+        CompoundTag tag = whistleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return whistle == 1 && other == 0 && (broom == 1 || (tag.contains("UUID")));
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inventory, RegistryAccess pRegistryAccess) {
+    public ItemStack assemble(CraftingInput inventory, HolderLookup.Provider pRegistryAccess) {
         ItemStack whistleItem = ItemStack.EMPTY;
         UUID broomUUID = null;
 
-        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+        for (int i = 0; i < inventory.size(); ++i) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof WhistleItem) {
@@ -87,12 +90,14 @@ public class WhistleBindRecipe extends CustomRecipe {
             }
         }
 
+        CompoundTag tag = whistleItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if(broomUUID != null)
-            whistleItem.getOrCreateTag().putUUID("broomUUID", broomUUID);
+            tag.putUUID("broomUUID", broomUUID);
         else {
-            if(whistleItem.hasTag())
-                whistleItem.getOrCreateTag().remove("broomUUID");
+            tag.remove("broomUUID");
         }
+        if (!tag.isEmpty())
+            whistleItem.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 
         return whistleItem;
     }

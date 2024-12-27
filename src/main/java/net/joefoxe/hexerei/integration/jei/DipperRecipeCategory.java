@@ -1,19 +1,18 @@
 package net.joefoxe.hexerei.integration.jei;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.DipperRecipe;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,16 +21,18 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
+
+import java.util.Arrays;
 
 public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "dipper");
+    public final static ResourceLocation UID = HexereiUtil.getResource("dipper");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/dipper_jei.png");
+            HexereiUtil.getResource("textures/gui/dipper_jei.png");
     public final static ResourceLocation MIX_TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/mixing_cauldron_gui_jei.png");
+            HexereiUtil.getResource("textures/gui/mixing_cauldron_gui_jei.png");
     public final static ResourceLocation TEXTURE_BLANK =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/block/blank.png");
+            HexereiUtil.getResource("textures/block/blank.png");
     private final IDrawable background;
     private final IDrawable cauldron;
     private final IDrawable icon;
@@ -56,10 +57,10 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
         return ModBlocks.CANDLE_DIPPER.get().getName();
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -81,7 +82,7 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
             builder.addSlot(RecipeIngredientRole.INPUT, 17, 35)
                     .setFluidRenderer(input.getAmount(), false, 12, 10)
                     .setOverlay(this.liquid, 0, 0)
-                    .addIngredients(ForgeTypes.FLUID_STACK, recipe.getFluidIngredient().getMatchingFluidStacks());
+                    .addIngredients(NeoForgeTypes.FLUID_STACK, Arrays.stream(recipe.getFluidIngredient().getStacks()).toList());
         }
     }
 
@@ -92,6 +93,8 @@ public class DipperRecipeCategory implements IRecipeCategory<DipperRecipe> {
         int dippingTime = recipe.getDippingTime();
         int dryingTime = recipe.getDryingTime();
         Minecraft minecraft = Minecraft.getInstance();
+
+        background.draw(guiGraphics);
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().scale(0.6f, 0.6f, 0.6f);

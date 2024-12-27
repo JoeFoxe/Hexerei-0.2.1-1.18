@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.item.custom;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.sounds.ModSounds;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -10,10 +11,12 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
@@ -31,8 +34,9 @@ public class WhistleItem extends Item {
         ItemStack itemstack = playerIn.getItemInHand(handIn);
 
 
-        if(itemstack.hasTag()){
-            CompoundTag tag = itemstack.getOrCreateTag();
+        CustomData data = itemstack.get(DataComponents.CUSTOM_DATA);
+        if(data != null){
+            CompoundTag tag = data.copyTag();
             if(tag.contains("broomUUID")){
                 playerIn.level().playSound(null, playerIn.getX() + playerIn.getLookAngle().x(), playerIn.getY() + playerIn.getEyeHeight(), playerIn.getZ() + playerIn.getLookAngle().z(), ModSounds.BROOM_WHISTLE.get(), SoundSource.PLAYERS, 1.0F, 0.8F + 0.4F * new Random().nextFloat());
                 BroomEntity broomFound = null;
@@ -47,7 +51,7 @@ public class WhistleItem extends Item {
                         playerIn.getCooldowns().addCooldown(this, 40);
 
                         if(!playerIn.isCreative())
-                            itemstack.hurtAndBreak(1, playerIn, player1 -> player1.broadcastBreakEvent(handIn));
+                            itemstack.hurtAndBreak(1, playerIn, LivingEntity.getSlotForHand(handIn));
 
                         break;
                     }
@@ -78,47 +82,49 @@ public class WhistleItem extends Item {
         playerIn.getCooldowns().addCooldown(this, 40);
         return InteractionResultHolder.success(itemstack);
     }
+
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 
 
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
         if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             boolean flag = false;
-            if(stack.hasTag()) {
-                CompoundTag tag = stack.getOrCreateTag();
+            if(data != null) {
+                CompoundTag tag = data.copyTag();
                 if (tag.contains("broomUUID")) {
 
                     flag = true;
-                    tooltip.add(Component.translatable("Bound to: %s", tag.getUUID("broomUUID")).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x119911))));
+                    tooltipComponents.add(Component.translatable("Bound to: %s", tag.getUUID("broomUUID")).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x119911))));
 
                 }
             }
             if(!flag)
-                tooltip.add(Component.translatable("Not Bound").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x991100))));
-            tooltip.add(Component.literal(""));
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_whistle_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_whistle_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltipComponents.add(Component.translatable("Not Bound").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x991100))));
+            tooltipComponents.add(Component.literal(""));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_whistle_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_whistle_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         } else {
-            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             boolean flag = false;
-            if(stack.hasTag()) {
-                CompoundTag tag = stack.getOrCreateTag();
+            if(data != null) {
+                CompoundTag tag = data.copyTag();
                 if (tag.contains("broomUUID")) {
 
                     flag = true;
-                    tooltip.add(Component.translatable("Bound").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x119911))));
+                    tooltipComponents.add(Component.translatable("Bound").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x119911))));
 
                 }
             }
             if(!flag)
-                tooltip.add(Component.translatable("Not Bound").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x991100))));
-            tooltip.add(Component.literal(""));
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_whistle").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_whistle_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltipComponents.add(Component.translatable("Not Bound").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x991100))));
+            tooltipComponents.add(Component.literal(""));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_whistle").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_whistle_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         }
 
 
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 }

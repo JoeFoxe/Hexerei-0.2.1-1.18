@@ -9,11 +9,11 @@ import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.HexereiTags;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.HerbJarSyncCrowButtonToServer;
-import net.joefoxe.hexerei.util.message.MessageCountUpdate;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
@@ -30,20 +30,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,10 +44,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class HerbJarTile extends RandomizableContainerBlockEntity implements Clearable, MenuProvider {
+public class HerbJarTile extends RandomizableContainerBlockEntity implements Clearable, MenuProvider, ICapabilityProvider<HerbJarTile, Direction, IItemHandler> {
 
     public JarHandler itemHandler;
-    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler).cast();
 
     protected NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
 
@@ -97,8 +89,8 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
     }
 
 
-    public void readInventory(CompoundTag compound) {
-        itemHandler.deserializeNBT(compound);
+    public void readInventory(HolderLookup.Provider provider, CompoundTag compound) {
+        itemHandler.deserializeNBT(provider, compound);
     }
 
     public void setDyeColor(int dyeColor){
@@ -151,70 +143,52 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
 //            this.customName = Component.Serializer.fromJson(nbt.getString("CustomName"));
 //    }
 
-
-
-//    @Override
-    public CompoundTag save(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put("inv", itemHandler.serializeNBT());
-        tag.putInt("ButtonToggled", this.buttonToggled);
-        if(this.dyeColor != 0x422F1E && this.dyeColor != 0)
-            tag.putInt("DyeColor", this.dyeColor);
-        return tag;
-    }
-
-
     @Override
-    public void saveAdditional(CompoundTag compound) {
-        compound.put("inv", itemHandler.serializeNBT());
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        compound.put("inv", itemHandler.serializeNBT(registries));
         if (this.customName != null)
-            compound.putString("CustomName", Component.Serializer.toJson(this.customName));
+            compound.putString("CustomName", Component.Serializer.toJson(this.customName, registries));
         compound.putInt("ButtonToggled", this.buttonToggled);
         if(this.dyeColor != 0x422F1E && this.dyeColor != 0)
             compound.putInt("DyeColor", this.dyeColor);
     }
 
-
-
     @Override
-    public void load(CompoundTag compoundTag) {
-        super.load(compoundTag);
-        itemHandler.deserializeNBT(compoundTag.getCompound("inv"));
-        if (compoundTag.contains("CustomName", 8))
-            this.customName = Component.Serializer.fromJson(compoundTag.getString("CustomName"));
-        if(compoundTag.contains("ButtonToggled"))
-            this.buttonToggled = compoundTag.getInt("ButtonToggled");
-        if(compoundTag.contains("DyeColor")) {
-            this.dyeColor = compoundTag.getInt("DyeColor");
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        itemHandler.deserializeNBT(registries, tag.getCompound("inv"));
+        if(tag.contains("ButtonToggled"))
+            this.buttonToggled = tag.getInt("ButtonToggled");
+        if(tag.contains("DyeColor")) {
+            this.dyeColor = tag.getInt("DyeColor");
         }
     }
 
     @Override
-    public CompoundTag getUpdateTag()
-    {
-        return this.save(new CompoundTag());
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        this.saveAdditional(tag, registries);
+        return tag;
     }
+
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
-
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt)
-    {
-        this.deserializeNBT(pkt.getTag());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
+        super.onDataPacket(net, pkt, lookupProvider);
     }
 
     public void sync() {
 
         if(level != null){
             if (!level.isClientSide) {
-                CompoundTag tag = save(new CompoundTag());
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, tag));
-//                System.out.println(this.itemHandler.getContents().get(0).getCount());
-//                syncClientCount(0, this.itemHandler.getContents().get(0).getCount());
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
             }
 
             if (this.level != null)
@@ -235,20 +209,8 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
         super.clearContent();
     }
 
-//    @Override
-//    public double getMaxRenderDistanceSquared() {
-//        return 4096D;
-//    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        AABB aabb = super.getRenderBoundingBox().inflate(5, 5, 5);
-        return aabb;
-    }
-
 
     @Nullable
-    @OnlyIn(Dist.CLIENT)
     public FormattedCharSequence reorderText(int row, Function<Component, FormattedCharSequence> textProcessorFunction) {
         if (this.renderText[row] == null && this.customName != null) {
             this.renderText[row] = textProcessorFunction.apply(this.customName);
@@ -276,29 +238,11 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
         };
     }
 
-    @Nonnull
+
+
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return handler.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    public Item getItemInSlot(int slot) {
-        return this.itemHandler.getStackInSlot(slot).getItem();
-    }
-
-    public int getNumberOfItems() {
-
-        int num = 0;
-        for(int i = 0; i < this.itemHandler.getSlots(); i++)
-        {
-            if(this.itemHandler.getStackInSlot(i) != ItemStack.EMPTY)
-                num++;
-        }
-        return num;
-
+    public @Nullable IItemHandler getCapability(HerbJarTile object, Direction context) {
+        return this.itemHandler;
     }
 
     public static double getDistanceToEntity(Entity entity, BlockPos pos) {
@@ -337,7 +281,7 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
             return count;
         }
 
-        if (!ItemStack.isSameItemSameTags(stack, this.itemHandler.getContents().get(0)))
+        if (!ItemStack.isSameItemSameComponents(stack, this.itemHandler.getContents().get(0)))
             return 0;
 
         int countAdded = Math.min(count, stack.getCount());
@@ -349,14 +293,12 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public void clientUpdateCount (final int slot, final int count) {
         if (!Objects.requireNonNull(getLevel()).isClientSide)
             return;
         Minecraft.getInstance().tell(() -> HerbJarTile.this.clientUpdateCountAsync(slot, count));
     }
 
-    @OnlyIn(Dist.CLIENT)
     private void clientUpdateCountAsync (int slot, int count) {
         if (this.itemHandler.getStackInSlot(0).getCount() != count){
             ItemStack newStack = this.itemHandler.getStackInSlot(0).copy();
@@ -364,14 +306,14 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
         }
     }
 
-    protected void syncClientCount (int slot, int count) {
-        if (getLevel() != null && getLevel().isClientSide)
-            return;
-
-        PacketDistributor.TargetPoint point = new PacketDistributor.TargetPoint(
-                getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 500, getLevel().dimension());
-        HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new MessageCountUpdate(getBlockPos(), slot, count));
-    }
+//    protected void syncClientCount (int slot, int count) {
+//        if (getLevel() != null && getLevel().isClientSide)
+//            return;
+//
+//        PacketDistributor.TargetPoint point = new PacketDistributor.TargetPoint(
+//                getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), 500, getLevel().dimension());
+//        HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new MessageCountUpdate(getBlockPos(), slot, count));
+//    }
 
 
 
@@ -398,7 +340,7 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
     public int interactPutCurrentItem (int slot, Player player) {
 
         int count = 0;
-        ItemStack playerStack = player.inventory.getSelected();
+        ItemStack playerStack = player.getInventory().getSelected();
         if (!playerStack.isEmpty())
             count = putItems(slot, playerStack, playerStack.getCount());
 
@@ -409,12 +351,12 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
     public int interactPutCurrentInventory (int slot, Player player) {
         int count = 0;
         if (!this.itemHandler.getContents().get(0).isEmpty()) {
-            for (int i = 0, n = player.inventory.getContainerSize(); i < n; i++) {
-                ItemStack subStack = player.inventory.getItem(i);
+            for (int i = 0, n = player.getInventory().getContainerSize(); i < n; i++) {
+                ItemStack subStack = player.getInventory().getItem(i);
                 if (!subStack.isEmpty()) {
                     int subCount = putItems(slot, subStack, subStack.getCount());
                     if (subCount > 0 && subStack.getCount() == 0)
-                        player.inventory.setItem(i, ItemStack.EMPTY);
+                        player.getInventory().setItem(i, ItemStack.EMPTY);
 
                     count += subCount;
                 }
@@ -426,6 +368,11 @@ public class HerbJarTile extends RandomizableContainerBlockEntity implements Cle
                 ((ServerPlayer) player).initMenu(player.containerMenu);
 
         return count;
+    }
+
+    @Override
+    public @org.jetbrains.annotations.Nullable AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return super.createMenu(containerId, playerInventory, player);
     }
 
     @Override

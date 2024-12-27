@@ -3,7 +3,7 @@ package net.joefoxe.hexerei.particle;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
@@ -12,8 +12,8 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.Random;
@@ -21,7 +21,7 @@ import java.util.Random;
 @OnlyIn(Dist.CLIENT)
 public class BloodParticle extends TextureSheetParticle {
 
-    private final ResourceLocation TEXTURE = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation TEXTURE = HexereiUtil.getResource(
             "textures/particle/cauldron_boil_particle.png");
     // thanks to understanding simibubi's code from the Create mod for rendering particles I was able to render my own :D
     public static final Vec3[] CUBE = {
@@ -157,25 +157,36 @@ public class BloodParticle extends TextureSheetParticle {
     };
 
     public final static ResourceLocation TEXTURE_BLANK =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/block/blank.png");
+            HexereiUtil.getResource("textures/block/blank.png");
     private static final ParticleRenderType renderType = new ParticleRenderType() {
         @Override
-        public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
+        public @Nullable BufferBuilder begin(Tesselator tesselator, TextureManager textureManager) {
             RenderSystem.setShaderTexture(0, TEXTURE_BLANK);
 
             RenderSystem.depthMask(false);
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
 
-            bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+            return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
 
-        @Override
-        public void end(Tesselator tesselator) {
-            tesselator.end();
-            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA,
-                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        }
+//        @Override
+//        public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
+//            RenderSystem.setShaderTexture(0, TEXTURE_BLANK);
+//
+//            RenderSystem.depthMask(false);
+//            RenderSystem.enableBlend();
+//            RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+//
+//            bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+//        }
+//
+//        @Override
+//        public void end(Tesselator tesselator) {
+//            tesselator.end();
+//            RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA,
+//                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+//        }
     };
 
     protected float scale;
@@ -288,68 +299,59 @@ public class BloodParticle extends TextureSheetParticle {
                 Vec3 normal = CUBE_NORMALS[i];
 
                 if(i == 0 || i == 1 || i == 2 || i == 3) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(Mth.clamp(rCol * 1.25f, 0, 1.0f), Mth.clamp(gCol * 1.25f, 0, 1.0f), Mth.clamp(bCol * 1.25f, 0, 1.0f), alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(Mth.clamp(rCol * 1.25f, 0, 1.0f), Mth.clamp(gCol * 1.25f, 0, 1.0f), Mth.clamp(bCol * 1.25f, 0, 1.0f), alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 4 || i == 5 || i == 6 || i == 7) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.55f, gCol * 0.55f, bCol * 0.55f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.55f, gCol * 0.55f, bCol * 0.55f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 8) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.75f, gCol * 0.95f, bCol * 0.95f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.75f, gCol * 0.95f, bCol * 0.95f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 9) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.85f, gCol * 0.75f, bCol * 0.75f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.85f, gCol * 0.75f, bCol * 0.75f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 10) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.95f, gCol * 0.9f, bCol * 0.9f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.95f, gCol * 0.9f, bCol * 0.9f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 11) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 1.05f, gCol * 1.05f, bCol * 1.05f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 1.05f, gCol * 1.05f, bCol * 1.05f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 12 || i == 13 || i == 14 || i == 15) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.4f, gCol * 0.4f, bCol * 0.4f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.4f, gCol * 0.4f, bCol * 0.4f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else if(i == 17 || i == 16) {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.4f, gCol * 0.4f, bCol * 0.4f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.4f, gCol * 0.4f, bCol * 0.4f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }else {
-                    builder.vertex(vec.x, vec.y, vec.z)
-                            .uv(0, 0)
-                            .color(rCol * 0.85f, gCol * 0.85f, bCol * 0.85f, alpha)
-                            .normal((float) normal.x, (float) normal.y, (float) normal.z)
-                            .uv2(light)
-                            .endVertex();
+                    builder.addVertex((float)vec.x, (float)vec.y, (float)vec.z)
+                            .setUv(0, 0)
+                            .setColor(rCol * 0.85f, gCol * 0.85f, bCol * 0.85f, alpha)
+                            .setNormal((float) normal.x, (float) normal.y, (float) normal.z)
+                            .setLight(light);
                 }
             }
         }

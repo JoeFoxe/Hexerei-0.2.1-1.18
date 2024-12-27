@@ -1,17 +1,26 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class PeckPacket extends AbstractPacket {
 
-public class PeckPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, PeckPacket> CODEC  = StreamCodec.ofMember(PeckPacket::encode, PeckPacket::new);
+    public static final Type<PeckPacket> TYPE = new Type<>(HexereiUtil.getResource("peck"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int duration;
     public PeckPacket(Entity entity) {
@@ -22,41 +31,27 @@ public class PeckPacket {
         this.sourceId = entity.getId();
         this.duration = duration;
     }
-    public PeckPacket(FriendlyByteBuf buf) {
+    public PeckPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.duration = buf.readInt();
     }
 
-    public static void encode(PeckPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.duration);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(duration);
     }
 
-    public static PeckPacket decode(FriendlyByteBuf buffer) {
-        return new PeckPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(PeckPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if(player.level().getEntity(sourceId) != null) {
+            if((player.level().getEntity(sourceId)) instanceof CrowEntity crow) {
+                crow.peck();
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
+            if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+                owl.peckAnimation.start();
+                owl.peckAnimation.activeTimer = duration;
             }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof CrowEntity crow) {
-                   crow.peck();
-                }
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                   owl.peckAnimation.start();
-                   owl.peckAnimation.activeTimer = packet.duration;
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

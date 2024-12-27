@@ -79,7 +79,7 @@ public class BookEntity {
                 entity.load(tag);
 
             if(entity instanceof TamableAnimal)
-                ((TamableAnimal)entity).setTame(true);
+                ((TamableAnimal)entity).setTame(true, false);
 
         }
 

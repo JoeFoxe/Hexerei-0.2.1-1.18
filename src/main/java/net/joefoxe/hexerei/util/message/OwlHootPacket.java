@@ -1,17 +1,26 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class OwlHootPacket extends AbstractPacket {
 
-public class OwlHootPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, OwlHootPacket> CODEC  = StreamCodec.ofMember(OwlHootPacket::encode, OwlHootPacket::new);
+    public static final Type<OwlHootPacket> TYPE = new Type<>(HexereiUtil.getResource("owl_hoot"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int duration;
 
@@ -24,33 +33,18 @@ public class OwlHootPacket {
         this.duration = buf.readInt();
     }
 
-    public static void encode(OwlHootPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.duration);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(duration);
     }
 
-    public static OwlHootPacket decode(FriendlyByteBuf buffer) {
-        return new OwlHootPacket(buffer);
-    }
-
-    public static void consume(OwlHootPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if(player.level().getEntity(sourceId) != null) {
+            if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+                owl.hootAnimation.start();
+                owl.hootAnimation.activeTimer = duration;
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                    owl.hootAnimation.start();
-                    owl.hootAnimation.activeTimer = packet.duration;
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

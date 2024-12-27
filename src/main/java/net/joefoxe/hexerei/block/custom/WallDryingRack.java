@@ -8,7 +8,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -98,14 +100,14 @@ public class WallDryingRack extends HerbDryingRack {
                                   LEFT = BooleanProperty.create("left");
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        BlockEntity tileEntity = worldIn.getBlockEntity(pos);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        BlockEntity tileEntity = level.getBlockEntity(pos);
 
         if (tileEntity instanceof DryingRackTile) {
-            ((DryingRackTile)tileEntity).interactDryingRack(player, hit);
-            return InteractionResult.SUCCESS;
+            ((DryingRackTile)tileEntity).interactDryingRack(player, hitResult);
+            return ItemInteractionResult.SUCCESS;
         }
-        return InteractionResult.PASS;
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Override
@@ -132,20 +134,6 @@ public class WallDryingRack extends HerbDryingRack {
             return AABBS.get(pState.getValue(HorizontalDirectionalBlock.FACING));
         }
     }
-//
-//    @Override
-//    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
-//
-//        if(Screen.hasShiftDown()) {
-//            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//
-//            tooltip.add(Component.translatable("tooltip.hexerei.herb_drying_rack_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//        } else {
-//            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-////            tooltip.add(Component.translatable("tooltip.hexerei.herb_drying_rack"));
-//        }
-//        super.appendHoverText(stack, world, tooltip, flagIn);
-//    }
 
     public WallDryingRack(Properties properties) {
 

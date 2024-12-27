@@ -6,6 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -19,6 +20,7 @@ import net.joefoxe.hexerei.block.custom.MixingCauldron;
 import net.joefoxe.hexerei.data.recipes.FluidMixingRecipe;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
 import net.joefoxe.hexerei.util.HexereiTags;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,14 +29,11 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -42,7 +41,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -53,24 +51,23 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix4f;
 
 import java.util.*;
 
 public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "fluid_mixing");
-    public final static ResourceLocation POTION_UID = new ResourceLocation(Hexerei.MOD_ID, "potion_mixing");
+    public final static ResourceLocation UID = HexereiUtil.getResource("fluid_mixing");
+    public final static ResourceLocation POTION_UID = HexereiUtil.getResource("potion_mixing");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/fluid_mixing_gui_jei.png");
+            HexereiUtil.getResource("textures/gui/fluid_mixing_gui_jei.png");
     public final static ResourceLocation TEXTURE_BLANK =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/block/blank.png");
+            HexereiUtil.getResource("textures/block/blank.png");
     private IDrawable background;
     private final IDrawable icon;
 
@@ -84,12 +81,11 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
     private boolean findNewHeatSource;
     private String type;
 
+
     @Override
-    public List<Component> getTooltipStrings(FluidMixingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-        //79, 59       24 x 18
+    public void getTooltip(ITooltipBuilder tooltip, FluidMixingRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
 
         if(recipe.getHeatCondition() != FluidMixingRecipe.HeatCondition.NONE && isHovering(mouseX, mouseY, 79, 59, 24, 18)){
-            List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable("tooltip.hexerei.heat_source"));
 
             if(Screen.hasShiftDown()) {
@@ -103,15 +99,10 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
                 tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
                 tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
-
-
-
-            return tooltip;
         }
-
-
-        return IRecipeCategory.super.getTooltipStrings(recipe, recipeSlotsView, mouseX, mouseY);
+        IRecipeCategory.super.getTooltip(tooltip, recipe, recipeSlotsView, mouseX, mouseY);
     }
+
     public boolean isHovering(double mouseX, double mouseY, double x, double y, double width, double height)
     {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
@@ -144,9 +135,9 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
     public static Block getTagStack(TagKey<Block> key){
 
-        if (ForgeRegistries.BLOCKS.tags() != null){
-            Optional<Block> optional = ForgeRegistries.BLOCKS.tags().getTag(key).getRandomElement(RandomSource.create());
-            return optional.orElse(Blocks.AIR);
+        if (BuiltInRegistries.BLOCK.getTag(key).isPresent()){
+            Optional<Holder<Block>> optional = BuiltInRegistries.BLOCK.getTag(key).get().getRandomElement(RandomSource.create());
+            return optional.orElse(Holder.direct(Blocks.AIR)).value();
         }
         return Blocks.AIR;
 
@@ -154,7 +145,7 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
     @Override
     public RecipeType<FluidMixingRecipe> getRecipeType() {
-        return new RecipeType<>(new ResourceLocation(Hexerei.MOD_ID, this.type.toLowerCase(Locale.ROOT) + "_mixing"), FluidMixingRecipe.class);
+        return new RecipeType<>(HexereiUtil.getResource(this.type.toLowerCase(Locale.ROOT) + "_mixing"), FluidMixingRecipe.class);
     }
 
     @Override
@@ -162,10 +153,10 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
         return Component.translatable("gui.jei.category." + ((this.type + "_mixing")).toLowerCase(Locale.ROOT));
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -188,13 +179,13 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
                 .setFluidRenderer(2000, true, 12, 10)
                 .setBackground(this.cauldron, 0, 0)
                 .setOverlay(this.cauldron, 0, 0)
-                .addFluidStack(recipe.getLiquidOutput().getFluid(), 2000, recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getTag() : new CompoundTag());
+                .addFluidStack(recipe.getLiquidOutput().getFluid(), 2000, recipe.getLiquidOutput().getComponentsPatch());
 
         builder.addSlot(RecipeIngredientRole.INPUT,  20,  57)
                 .setFluidRenderer(2000, false, 16, 32)
                 .setBackground(this.liquid, 0, 0)
                 .setOverlay(this.liquid, 0, 0)
-                .addFluidStack(recipe.getLiquid().getFluid(), 2000, recipe.getLiquid().hasTag() ? recipe.getLiquid().getTag() : new CompoundTag());
+                .addFluidStack(recipe.getLiquid().getFluid(), 2000, recipe.getLiquid().getComponentsPatch());
         int size = recipe.getIngredients().size();
 
         if(size > 0)
@@ -218,6 +209,9 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
 
     @Override
     public void draw(FluidMixingRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+
+        background.draw(guiGraphics);
+
         if(recipe.getHeatCondition() == FluidMixingRecipe.HeatCondition.HEATED || recipe.getHeatCondition() == FluidMixingRecipe.HeatCondition.SUPERHEATED){
 
             FluidStack input = recipe.getLiquid();
@@ -237,13 +231,15 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
             if (newHeatSource > 0.05f)
                 this.findNewHeatSource = true;
 
-            boolean flag = recipe.getLiquid().hasTag() || recipe.getLiquidOutput().hasTag();
-            CompoundTag tag = recipe.getLiquid().hasTag() ? recipe.getLiquid().getOrCreateTag() : new CompoundTag();
-            CompoundTag tag2 = recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getOrCreateTag() : new CompoundTag();
-            boolean compare = NbtUtils.compareNbt(tag2, tag, true);
+//            boolean flag = recipe.getLiquid().hasTag() || recipe.getLiquidOutput().hasTag();
+//            CompoundTag tag = recipe.getLiquid().hasTag() ? recipe.getLiquid().getOrCreateTag() : new CompoundTag();
+//            CompoundTag tag2 = recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getOrCreateTag() : new CompoundTag();
+            boolean compare = FluidStack.isSameFluidSameComponents(recipe.getLiquid(), recipe.getLiquidOutput());
+
+
 
             Minecraft minecraft = Minecraft.getInstance();
-            Component outputName = recipe.getLiquidOutput().getDisplayName();
+            Component outputName = recipe.getLiquidOutput().getHoverName();
             int width = minecraft.font.width(outputName);
             float lineHeight = minecraft.font.lineHeight / 2f;
             if(width > 131){
@@ -270,7 +266,7 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
             guiGraphics.pose().translate(75f, 67, 100.0F);
             guiGraphics.pose().translate(8.0F, -8.0F, 0.0F);
             guiGraphics.pose().scale(16.0F, 16.0F, 16.0F);
-            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+            guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
 
             Vec3 rotationOffset = new Vec3(0.5f, 0, 0.5f);
             float zRot = 0;
@@ -293,8 +289,8 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
             guiGraphics.pose().translate(0F, -1.0F, 0.0F);
             BlockState state = this.heatSource.defaultBlockState();
             if (state.getBlock() instanceof LiquidBlock liquidBlock) {
-                state = liquidBlock.getFluidState(liquidBlock.defaultBlockState()).createLegacyBlock().setValue(LiquidBlock.LEVEL, 7);
-                MixingCauldronRenderer.renderFluidBlockGUI(guiGraphics.pose(), buffer, new FluidStack(liquidBlock.getFluid(), 2000), 1, OverlayTexture.NO_OVERLAY);
+                state = liquidBlock.fluid.defaultFluidState().createLegacyBlock().setValue(LiquidBlock.LEVEL, 7);
+                MixingCauldronRenderer.renderFluidBlockGUI(guiGraphics.pose(), buffer, new FluidStack(liquidBlock.fluid, 2000), 1, OverlayTexture.NO_OVERLAY);
             }
             renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, 0xFFFFFFFF);
             guiGraphics.pose().popPose();
@@ -344,7 +340,7 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
             buffer.endBatch();
             RenderSystem.enableDepthTest();
 
-            if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (flag && recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
+            if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
                 output2.draw(guiGraphics, 138, 16);
 
                 guiGraphics.pose().pushPose();
@@ -373,15 +369,16 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
                 this.findNewHeatSource = true;
             }
 
-            boolean flag = recipe.getLiquid().hasTag() || recipe.getLiquidOutput().hasTag();
-
-            CompoundTag tag = recipe.getLiquid().hasTag() ? recipe.getLiquid().getOrCreateTag() : new CompoundTag();
-            CompoundTag tag2 = recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getOrCreateTag() : new CompoundTag();
-            boolean compare = NbtUtils.compareNbt(tag2, tag, true);
+//            boolean flag = recipe.getLiquid().hasTag() || recipe.getLiquidOutput().hasTag();
+//
+//            CompoundTag tag = recipe.getLiquid().hasTag() ? recipe.getLiquid().getOrCreateTag() : new CompoundTag();
+//            CompoundTag tag2 = recipe.getLiquidOutput().hasTag() ? recipe.getLiquidOutput().getOrCreateTag() : new CompoundTag();
+//            boolean compare = NbtUtils.compareNbt(tag2, tag, true);
+            boolean compare = FluidStack.isSameFluidSameComponents(recipe.getLiquid(), recipe.getLiquidOutput());
 
             Minecraft minecraft = Minecraft.getInstance();
 
-            Component outputName = recipe.getLiquidOutput().getDisplayName();
+            Component outputName = recipe.getLiquidOutput().getHoverName();
 
             int width = minecraft.font.width(outputName);
             float lineHeight = minecraft.font.lineHeight / 2f;
@@ -412,7 +409,7 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
             guiGraphics.pose().translate(70f, 73, 100.0F);
             guiGraphics.pose().translate(8.0F, -8.0F, 0.0F);
             guiGraphics.pose().scale(20.0F, 20.0F, 20.0F);
-            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+            guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
 
             Vec3 rotationOffset = new Vec3(0, 0, 0);
             float zRot = 0;
@@ -488,7 +485,7 @@ public class FluidMixingRecipeCategory implements IRecipeCategory<FluidMixingRec
             guiGraphics.pose().popPose();
 
 
-            if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (flag && recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
+            if (!output.isEmpty() && (!recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) || (recipe.getLiquid().getFluid().isSame(recipe.getLiquidOutput().getFluid()) && !compare))) {
 
                 output2.draw(guiGraphics, 138, 16);
 

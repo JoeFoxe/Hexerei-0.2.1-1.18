@@ -77,7 +77,7 @@ public class CuttingCrystal extends Block implements ITileEntity<CuttingCrystalT
                 for(BlockPos pos : cuttingCrystalTile.boundPos){
                     if(pLevel.getBlockEntity(pos) instanceof CuttingCrystalTile cuttingCrystalTile1){
                         cuttingCrystalTile1.boundPos = cuttingCrystalTile.boundPos;
-                        cuttingCrystalTile1.sync();
+//                        cuttingCrystalTile1.sync();
                     }
                 }
             }
@@ -90,38 +90,31 @@ public class CuttingCrystal extends Block implements ITileEntity<CuttingCrystalT
 
         withTileEntityDo(pLevel, pPos, te -> {
 
-            if(pStack.hasTag()){
-                CompoundTag tag = pStack.getOrCreateTag();
-                if(tag.contains("boundPos")) {
-                    BlockPos blockPos = NbtUtils.readBlockPos(tag.getCompound("boundPos"));
-                    if(pLevel.getBlockState(blockPos).getBlock() instanceof CuttingCrystal cuttingCrystal) {
-
-                        cuttingCrystal.withTileEntityDo(pLevel, blockPos, cuttingCrystalTile -> {
-                            if(!cuttingCrystalTile.boundPos.contains(pPos))
-                                cuttingCrystalTile.boundPos.add(pPos);
-                            if(!cuttingCrystalTile.boundPos.contains(blockPos))
-                                cuttingCrystalTile.boundPos.add(blockPos);
-//                            cuttingCrystalTile.boundPos.removeIf(pos -> !(pLevel.getBlockEntity(pos) instanceof CuttingCrystalTile));
-                            for(BlockPos pos : cuttingCrystalTile.boundPos){
-                                if((pLevel.getBlockEntity(pos) instanceof CuttingCrystalTile cuttingCrystalTile1)){
-                                    cuttingCrystalTile1.boundPos = cuttingCrystalTile.boundPos;
-                                }
-                            }
-
-                        });
-
-                    }
-
-                }
-            }
-//            te.readInventory(pStack.getOrCreateTag()
-//                    .getCompound("Inventory"));
+//            if(pStack.hasTag()){
+//                CompoundTag tag = pStack.getOrCreateTag();
+//                if(tag.contains("boundPos")) {
+//                    BlockPos blockPos = NbtUtils.readBlockPos(tag.getCompound("boundPos"));
+//                    if(pLevel.getBlockState(blockPos).getBlock() instanceof CuttingCrystal cuttingCrystal) {
 //
-//            te.setDyeColor(Coffer.getColorStatic(pStack));
+//                        cuttingCrystal.withTileEntityDo(pLevel, blockPos, cuttingCrystalTile -> {
+//                            if(!cuttingCrystalTile.boundPos.contains(pPos))
+//                                cuttingCrystalTile.boundPos.add(pPos);
+//                            if(!cuttingCrystalTile.boundPos.contains(blockPos))
+//                                cuttingCrystalTile.boundPos.add(blockPos);
+////                            cuttingCrystalTile.boundPos.removeIf(pos -> !(pLevel.getBlockEntity(pos) instanceof CuttingCrystalTile));
+//                            for(BlockPos pos : cuttingCrystalTile.boundPos){
+//                                if((pLevel.getBlockEntity(pos) instanceof CuttingCrystalTile cuttingCrystalTile1)){
+//                                    cuttingCrystalTile1.boundPos = cuttingCrystalTile.boundPos;
+//                                }
+//                            }
 //
-//            te.buttonToggled = pStack.getOrCreateTag()
-//                    .getInt("ButtonToggled");
-            te.sync();
+//                        });
+//
+//                    }
+//
+//                }
+//            }
+//            te.sync();
         });
         super.setPlacedBy(pLevel, pPos, pState, pPlacer, pStack);
     }
@@ -136,30 +129,30 @@ public class CuttingCrystal extends Block implements ITileEntity<CuttingCrystalT
     }
 
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        BlockEntity tileEntity = worldIn.getBlockEntity(pos);
-
-
-        if (player.getItemInHand(handIn).is(ModItems.CROW_FLUTE.get()) && player.getItemInHand(handIn).getOrCreateTag().getInt("commandMode") == 2) {
-            player.getItemInHand(handIn).useOn(new UseOnContext(player, handIn, hit));
-            return InteractionResult.SUCCESS;
-        }
-
-        ItemStack itemstack = player.getItemInHand(handIn);
-        Random random = new Random();
-        if (tileEntity instanceof CuttingCrystalTile tile) {
-
-            if(itemstack.getItem() == ModBlocks.CUTTING_CRYSTAL.get().asItem()){
-                CompoundTag tag = itemstack.getOrCreateTag();
-                tag.put("boundPos", NbtUtils.writeBlockPos(tile.getBlockPos()));
-            }
-
-            return InteractionResult.SUCCESS;
-        }
-        return InteractionResult.PASS;
-    }
+//    @SuppressWarnings("deprecation")
+//    @Override
+//    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+//        BlockEntity tileEntity = worldIn.getBlockEntity(pos);
+//
+//
+//        if (player.getItemInHand(handIn).is(ModItems.CROW_FLUTE.get()) && player.getItemInHand(handIn).getOrCreateTag().getInt("commandMode") == 2) {
+//            player.getItemInHand(handIn).useOn(new UseOnContext(player, handIn, hit));
+//            return InteractionResult.SUCCESS;
+//        }
+//
+//        ItemStack itemstack = player.getItemInHand(handIn);
+//        Random random = new Random();
+//        if (tileEntity instanceof CuttingCrystalTile tile) {
+//
+//            if(itemstack.getItem() == ModBlocks.CUTTING_CRYSTAL.get().asItem()){
+//                CompoundTag tag = itemstack.getOrCreateTag();
+//                tag.put("boundPos", NbtUtils.writeBlockPos(tile.getBlockPos()));
+//            }
+//
+//            return InteractionResult.SUCCESS;
+//        }
+//        return InteractionResult.PASS;
+//    }
 
 
     public CuttingCrystal(Properties properties) {
@@ -188,29 +181,6 @@ public class CuttingCrystal extends Block implements ITileEntity<CuttingCrystalT
     @Override
     public FluidState getFluidState(BlockState state) {
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
-
-        if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-
-            MutableComponent string = Component.translatable(HexConfig.SAGE_BURNING_PLATE_RANGE.get() + "").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)));
-            MutableComponent itemText = Component.translatable(ModItems.DRIED_SAGE_BUNDLE.get().getDescriptionId()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x998800)));
-
-            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate_shift_1", itemText).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate_shift_3", string).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate_shift_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate_shift_5").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate_shift_6").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-        } else {
-            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//            tooltip.add(Component.translatable("tooltip.hexerei.sage_burning_plate").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-
-        }
-        super.appendHoverText(stack, world, tooltip, flagIn);
     }
 
 //    @SuppressWarnings("deprecation")

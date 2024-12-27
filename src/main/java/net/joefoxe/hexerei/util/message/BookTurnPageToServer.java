@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.BookOfShadowsAltarTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class BookTurnPageToServer extends AbstractPacket {
 
-public class BookTurnPageToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BookTurnPageToServer> CODEC  = StreamCodec.ofMember(BookTurnPageToServer::encode, BookTurnPageToServer::new);
+    public static final Type<BookTurnPageToServer> TYPE = new Type<>(HexereiUtil.getResource("book_turn_page_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos bookAltar;
     int turnPage;
     int chapter;
@@ -22,7 +31,7 @@ public class BookTurnPageToServer {
         this.chapter = chapter;
         this.page = page;
     }
-    public BookTurnPageToServer(FriendlyByteBuf buf) {
+    public BookTurnPageToServer(RegistryFriendlyByteBuf buf) {
         this.bookAltar = buf.readBlockPos();
         this.turnPage = buf.readInt();
         this.chapter = buf.readInt();
@@ -30,30 +39,16 @@ public class BookTurnPageToServer {
 
     }
 
-    public static void encode(BookTurnPageToServer object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.bookAltar);
-        buffer.writeInt(object.turnPage);
-        buffer.writeInt(object.chapter);
-        buffer.writeInt(object.page);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(bookAltar);
+        buffer.writeInt(turnPage);
+        buffer.writeInt(chapter);
+        buffer.writeInt(page);
     }
 
-    public static BookTurnPageToServer decode(FriendlyByteBuf buffer) {
-        return new BookTurnPageToServer(buffer);
-    }
-
-    public static void consume(BookTurnPageToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BookOfShadowsAltarTile)world.getBlockEntity(packet.bookAltar)).setTurnPage(packet.turnPage, packet.chapter, packet.page);
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if (player.level().getBlockEntity(bookAltar) instanceof  BookOfShadowsAltarTile book)
+            book.setTurnPage(turnPage, chapter, page);
     }
 }

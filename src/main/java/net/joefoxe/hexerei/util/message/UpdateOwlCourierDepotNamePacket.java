@@ -1,72 +1,63 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.OwlCourierDepot;
 import net.joefoxe.hexerei.data.owl.OwlCourierDepotSavedData;
-import net.joefoxe.hexerei.tileentity.OwlCourierDepotTile;
-import net.minecraft.core.BlockPos;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
 
-import java.util.function.Supplier;
+public class UpdateOwlCourierDepotNamePacket extends AbstractPacket {
 
-public class UpdateOwlCourierDepotNamePacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, UpdateOwlCourierDepotNamePacket> CODEC  = StreamCodec.ofMember(UpdateOwlCourierDepotNamePacket::encode, UpdateOwlCourierDepotNamePacket::new);
+    public static final CustomPacketPayload.Type<UpdateOwlCourierDepotNamePacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("owl_courier_depot_name_update"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     GlobalPos pos;
-    Component name;
+    String name;
 
     public UpdateOwlCourierDepotNamePacket(GlobalPos pos, String name) {
         this.pos = pos;
-        Component component = Component.literal(name).withStyle(Style.EMPTY.withColor(0xAAAAAA));
-        this.name = component;
+        this.name = name;
     }
 
     public UpdateOwlCourierDepotNamePacket(FriendlyByteBuf buff) {
         this.pos = buff.readGlobalPos();
-        this.name = buff.readComponent();
+        this.name = buff.readUtf();
     }
 
     public static void encode(UpdateOwlCourierDepotNamePacket object, FriendlyByteBuf buffer) {
         buffer.writeGlobalPos(object.pos);
-        buffer.writeComponent(object.name);
+        buffer.writeUtf(object.name);
     }
 
     public static UpdateOwlCourierDepotNamePacket decode(FriendlyByteBuf buffer) {
         return new UpdateOwlCourierDepotNamePacket(buffer);
     }
 
-    public static void consume(UpdateOwlCourierDepotNamePacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            } else {
-                ServerPlayer sender = ctx.get().getSender();
-                if (sender == null) return;
-                world = sender.getCommandSenderWorld();
-            }
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
 
-
-            if(world instanceof ServerLevel server) {
-                ServerLevel serverLevel = server.getServer().getLevel(packet.pos.dimension());
-                if (serverLevel != null && world.getBlockState(packet.pos.pos()).getBlock() instanceof OwlCourierDepot depot){
-                    depot.withTileEntityDo(serverLevel, packet.pos.pos(), te -> {
-                        // change message depot to the custom name on the tile
-                        te.setCustomName(packet.name);
-                        OwlCourierDepotSavedData.get().addOwlCourierDepot(packet.name.getString(), packet.pos);
-                        te.sync();
-                    });
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        ServerLevel serverLevel = server.getLevel(pos.dimension());
+        if (serverLevel != null && serverLevel.getBlockState(pos.pos()).getBlock() instanceof OwlCourierDepot depot){
+            depot.withTileEntityDo(serverLevel, pos.pos(), te -> {
+                // change message depot to the custom name on the tile
+                te.name = Component.literal(name).withStyle(Style.EMPTY.withColor(0xAAAAAA));
+                OwlCourierDepotSavedData.get().addOwlCourierDepot(name, pos);
+                te.sync();
+            });
+        }
     }
 }

@@ -1,5 +1,7 @@
 package net.joefoxe.hexerei.data.books;
 
+import net.joefoxe.hexerei.Hexerei;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -10,8 +12,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public class BookPage {
                     //(x, y, fluidStack, amount, capacity, show_slot, fluid_height, fluid_width, fluid_offset_x, fluid_offset_y, textComponentsList)
                     compound.putFloat("item_x" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).x));
                     compound.putFloat("item_y" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).y));
-                    compound.put("item_fluid" + i, ((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).fluid.writeToNBT(new CompoundTag()));
+                    compound.put("item_fluid" + i, ((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).fluid.save(Hexerei.proxy.getLevel().registryAccess(), new CompoundTag()));
                     compound.putFloat("item_capacity" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).capacity));
                     compound.putFloat("item_amount" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).amount));
                     compound.putFloat("item_fluid_height" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).fluid_height));
@@ -104,7 +105,7 @@ public class BookPage {
                 }
                 case "item" -> {
                     //(float x, float y, ItemStack item, boolean show_slot, List<Component> extra_tooltips)
-                    (((BookItemsAndFluids) bookPage.itemList.toArray()[i]).item).save(compound);
+                    (((BookItemsAndFluids) bookPage.itemList.toArray()[i]).item).save(Hexerei.proxy.getLevel().registryAccess(), compound);
 
                     compound.putFloat("item_x" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).x));
                     compound.putFloat("item_y" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).y));
@@ -124,7 +125,7 @@ public class BookPage {
                 }
                 case "tag" -> {
                     //(float x, float y, ItemStack item, boolean show_slot, List<Component> extra_tooltips)
-                    (((BookItemsAndFluids) bookPage.itemList.toArray()[i]).item).save(compound);
+                    (((BookItemsAndFluids) bookPage.itemList.toArray()[i]).item).save(Hexerei.proxy.getLevel().registryAccess(), compound);
 
                     compound.putFloat("item_x" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).x));
                     compound.putFloat("item_y" + i, (((BookItemsAndFluids) (bookPage.itemList.toArray()[i])).y));
@@ -391,7 +392,7 @@ public class BookPage {
                         }
 
                     }
-                    BookItemsAndFluids bookItemStackInSlot = new BookItemsAndFluids(x, y, ItemStack.of(itemsAndFluids), show_slot, extra_tooltips, tooltipExtras);
+                    BookItemsAndFluids bookItemStackInSlot = new BookItemsAndFluids(x, y, ItemStack.parse(Hexerei.proxy.getLevel().registryAccess(), itemsAndFluids).orElse(ItemStack.EMPTY), show_slot, extra_tooltips, tooltipExtras);
                     itemList.add(bookItemStackInSlot);
                 }
                 case "fluid" -> {
@@ -408,7 +409,7 @@ public class BookPage {
                     boolean show_slot = itemsAndFluids.getBoolean("item_show_slot" + i);
                     int item_number_of_extra_tooltips = itemsAndFluids.getInt("item_number_of_extra_tooltips" + i);
                     CompoundTag compoundFluid = itemsAndFluids.getCompound("item_fluid" + i);
-                    FluidStack fluid = FluidStack.loadFluidStackFromNBT(compoundFluid);
+                    FluidStack fluid = FluidStack.parseOptional(Hexerei.proxy.getLevel().registryAccess(), compoundFluid);
                     List<Component> extra_tooltips = new ArrayList<>();
 
                     Component component = Component.translatable("");
@@ -493,9 +494,9 @@ public class BookPage {
                 case "block" -> {
                     //(float x, float y, ItemStack item, boolean show_slot, List<Component> extra_tooltips)
 
-                    Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(tag.getString("Block")));
-                    if (block == null) {
-                        block = Blocks.AIR; // Default to air if block is not found
+                    Block block = Blocks.AIR;
+                    if (BuiltInRegistries.BLOCK.containsKey(ResourceLocation.parse(tag.getString("Block")))) {
+                        block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(tag.getString("Block")));
                     }
 
                     BlockState state = block.defaultBlockState();

@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.data.owl;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,14 +14,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
-@Mod.EventBusSubscriber(modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID)
 public class OwlLoadedChunksSavedData extends SavedData {
     protected static final String DATA_NAME = Hexerei.MOD_ID + "_owl_loaded_chunks";
 
@@ -129,18 +130,17 @@ public class OwlLoadedChunksSavedData extends SavedData {
 
 
     @SubscribeEvent
-    public static void serverTickEvent(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.START)
-            OwlLoadedChunksSavedData.get(event.getServer().overworld()).tick(event.getServer().overworld());
+    public static void serverTickEvent(ServerTickEvent.Pre event) {
+        OwlLoadedChunksSavedData.get(event.getServer().overworld()).tick(event.getServer().overworld());
     }
 
-    private static OwlLoadedChunksSavedData create(CompoundTag tag) {
+    private static OwlLoadedChunksSavedData create(CompoundTag tag, HolderLookup.Provider registries) {
         OwlLoadedChunksSavedData data = new OwlLoadedChunksSavedData();
-        data.load(tag);
+        data.load(tag, registries);
         return data;
     }
 
-    public void load(CompoundTag pCompoundTag) {
+    public void load(CompoundTag pCompoundTag, HolderLookup.Provider registries) {
 
 
         this.selfLoadedChunks.clear();
@@ -149,7 +149,7 @@ public class OwlLoadedChunksSavedData extends SavedData {
             CompoundTag selfLoadedChunksTag = pCompoundTag.getCompound("selfLoadedChunks");
             for (String key : selfLoadedChunksTag.getAllKeys()) {
                 ListTag chunkListTag = selfLoadedChunksTag.getList(key, 10);
-                ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(key));
+                ResourceKey<Level> levelKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(key));
                 Set<ChunkPos> chunkPosSet = new HashSet<>();
 
                 for (int i = 0; i < chunkListTag.size(); i++) {
@@ -165,7 +165,7 @@ public class OwlLoadedChunksSavedData extends SavedData {
 
         CompoundTag dataTag = pCompoundTag.getCompound("chunkData");
         dataTag.getAllKeys().forEach(resourceKeyString -> {
-            ResourceKey<Level> resourceKey = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(resourceKeyString));
+            ResourceKey<Level> resourceKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(resourceKeyString));
             CompoundTag resourceTag = dataTag.getCompound(resourceKeyString);
 
             Map<ChunkPos, List<UUID>> chunkMap = new HashMap<>();
@@ -187,7 +187,7 @@ public class OwlLoadedChunksSavedData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag pCompoundTag) {
+    public CompoundTag save(CompoundTag pCompoundTag, HolderLookup.Provider registries) {
 
         CompoundTag compoundTag = new CompoundTag();
         selfLoadedChunks.forEach((resourceKey, chunkSet) -> {
@@ -224,12 +224,16 @@ public class OwlLoadedChunksSavedData extends SavedData {
         return pCompoundTag;
     }
 
+    public static SavedData.Factory<OwlLoadedChunksSavedData> factory() {
+        return new SavedData.Factory<>(OwlLoadedChunksSavedData::new, OwlLoadedChunksSavedData::create, null);
+    }
+
     public static OwlLoadedChunksSavedData get(ServerLevel world) {
         return world.getServer().overworld()
-                .getDataStorage().computeIfAbsent(OwlLoadedChunksSavedData::create, OwlLoadedChunksSavedData::new, DATA_NAME);
+                .getDataStorage().computeIfAbsent(factory(), DATA_NAME);
     }
     public static OwlLoadedChunksSavedData get() {
         return ServerLifecycleHooks.getCurrentServer().overworld()
-                .getDataStorage().computeIfAbsent(OwlLoadedChunksSavedData::create, OwlLoadedChunksSavedData::new, DATA_NAME);
+                .getDataStorage().computeIfAbsent(factory(), DATA_NAME);
     }
 }

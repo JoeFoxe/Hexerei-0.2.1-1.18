@@ -1,30 +1,34 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.data.books.HexereiBookItem;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.*;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 
 
 public class BookOfShadowsRecipe extends ShapedRecipe {
 
-    public BookOfShadowsRecipe(ShapedRecipe compose) {
-        super(compose.getId(), compose.getGroup(), CraftingBookCategory.MISC, compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem(null));
+//    public ShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStack result) {
+//    public BookOfShadowsRecipe(ShapedRecipe compose) {
+//        super(compose.getGroup(), CraftingBookCategory.MISC, compose.pattern, compose.getResultItem(null));
+//    }
+
+    public BookOfShadowsRecipe(ShapedRecipe shapedRecipe) {
+        super(shapedRecipe.getGroup(), shapedRecipe.category(), shapedRecipe.pattern, shapedRecipe.result, shapedRecipe.showNotification());
+    }
+
+    public BookOfShadowsRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStack result, boolean showNotification) {
+        super(group, category, pattern, result, showNotification);
     }
     @Override
     public boolean isSpecial() {
@@ -33,12 +37,12 @@ public class BookOfShadowsRecipe extends ShapedRecipe {
 
     @Nonnull
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
         DyeColor color1 = null;
         DyeColor color2 = null;
 
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            ItemStack stack = inv.getItem(i);
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             Item item = stack.getItem();
 
             if (item instanceof DyeItem dye) {
@@ -48,7 +52,7 @@ public class BookOfShadowsRecipe extends ShapedRecipe {
                     color2 = dye.getDyeColor();
             }
         }
-        return HexereiBookItem.withColors(color1 == null ? 0 : color1.getId(), color2 == null ? 0 : color2.getId());
+        return HexereiBookItem.withColors(color1 == null ? 0 : color1.getTextureDiffuseColor(), color2 == null ? 0 : color2.getTextureDiffuseColor());
     }
 
     public ItemStack getOutput() {
@@ -60,22 +64,35 @@ public class BookOfShadowsRecipe extends ShapedRecipe {
     }
 
     public static class Serializer implements RecipeSerializer<BookOfShadowsRecipe> {
-        @Nonnull
+
+        public static final MapCodec<BookOfShadowsRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                p_340778_ -> p_340778_.group(
+                                ShapedRecipe.Serializer.CODEC.forGetter(bookOfShadowsRecipe -> bookOfShadowsRecipe)
+                        )
+                        .apply(p_340778_, BookOfShadowsRecipe::new)
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, BookOfShadowsRecipe> STREAM_CODEC = StreamCodec.of(
+                BookOfShadowsRecipe.Serializer::toNetwork, BookOfShadowsRecipe.Serializer::fromNetwork
+        );
+
         @Override
-        public BookOfShadowsRecipe fromJson(@Nonnull ResourceLocation recipeId, @Nonnull JsonObject json) {
-            return new BookOfShadowsRecipe(SHAPED_RECIPE.fromJson(recipeId, json));
+        public MapCodec<BookOfShadowsRecipe> codec() {
+            return CODEC;
         }
 
-        @Nonnull
         @Override
-        public BookOfShadowsRecipe fromNetwork(@Nonnull ResourceLocation recipeId, @Nonnull FriendlyByteBuf buffer) {
-            return new BookOfShadowsRecipe(SHAPED_RECIPE.fromNetwork(recipeId, buffer));
+        public StreamCodec<RegistryFriendlyByteBuf, BookOfShadowsRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
 
-        @Override
-        public void toNetwork(@Nonnull FriendlyByteBuf buffer, @Nonnull BookOfShadowsRecipe recipe) {
-            SHAPED_RECIPE.toNetwork(buffer, recipe);
+        private static BookOfShadowsRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            return new BookOfShadowsRecipe(ShapedRecipe.Serializer.STREAM_CODEC.decode(buffer));
         }
+
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, BookOfShadowsRecipe recipe) {
+            ShapedRecipe.Serializer.STREAM_CODEC.encode(buffer, recipe);
+        }
+
     }
 
     @Override

@@ -4,6 +4,7 @@ import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.items.JarSlot;
 import net.joefoxe.hexerei.tileentity.HerbJarTile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -11,10 +12,9 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,6 +30,10 @@ public class HerbJarContainer extends AbstractContainerMenu {
     public static final int OFFSET = 28;
 
 
+    public HerbJarContainer(int windowId, Inventory inventory, RegistryFriendlyByteBuf byteBuf) {
+        this(windowId, ItemStack.parseOptional(inventory.player.level().registryAccess(), byteBuf.readNbt()), inventory.player.level(), byteBuf.readBlockPos(), inventory, inventory.player);
+    }
+
     public HerbJarContainer(int windowId, ItemStack itemStack, Level world, BlockPos pos, Inventory playerInventory, Player player) {
         super(ModContainers.HERB_JAR_CONTAINER.get(), windowId);
         this.stack = itemStack;
@@ -39,10 +43,9 @@ public class HerbJarContainer extends AbstractContainerMenu {
 
         layoutPlayerInventorySlots(11, 147 - OFFSET);
 
-        if(tileEntity != null) {
-            tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(h -> addSlot(new JarSlot(h, 0, 83, 74 - OFFSET)));
+        if(tileEntity instanceof HerbJarTile herbJarTile) {
 
-
+            addSlot(new JarSlot(herbJarTile.itemHandler, 0, 83, 74 - OFFSET));
 
             addDataSlot(new DataSlot() {
                 @Override
@@ -72,7 +75,7 @@ public class HerbJarContainer extends AbstractContainerMenu {
         if (slot != null) {
             ItemStack slotStack = slot.getItem();
 
-            if (!flag && ItemStack.isSameItemSameTags(slotStack, stack)) {
+            if (!flag && ItemStack.isSameItemSameComponents(slotStack, stack)) {
                 return slotStack.getCount() + (stackSizeMatters ? 0 : stack.getCount()) <= slot.getMaxStackSize(slotStack);
             }
         }
@@ -209,14 +212,14 @@ public class HerbJarContainer extends AbstractContainerMenu {
 //                                slot7.onTake(p_150434_, p_150421_);
 //                            });
                         } else if (slot7.mayPlace(itemstack11)) {
-                            if (ItemStack.isSameItemSameTags(itemstack10, itemstack11)) {
+                            if (ItemStack.isSameItemSameComponents(itemstack10, itemstack11)) {
                                 int j3 = clickaction == ClickAction.PRIMARY ? itemstack11.getCount() : 1;
                                 this.setCarried(slot7.safeInsert(itemstack11, j3));
                             } else if (itemstack11.getCount() <= slot7.getMaxStackSize(itemstack11)) {
                                 slot7.set(itemstack11);
                                 this.setCarried(itemstack10);
                             }
-                        } else if (ItemStack.isSameItemSameTags(itemstack10, itemstack11)) {
+                        } else if (ItemStack.isSameItemSameComponents(itemstack10, itemstack11)) {
                             Optional<ItemStack> optional = slot7.tryRemove(itemstack10.getCount(), itemstack11.getMaxStackSize() - itemstack11.getCount(), p_150434_);
                             optional.ifPresent((p_150428_) -> {
                                 itemstack11.grow(p_150428_.getCount());
@@ -337,7 +340,7 @@ public class HerbJarContainer extends AbstractContainerMenu {
             Slot slot = this.slots.get(i);
             ItemStack itemstack = slot.getItem();
 
-            if (!itemstack.isEmpty() && itemstack.getItem() == stack.getItem() && ItemStack.isSameItemSameTags(stack, itemstack)) {
+            if (!itemstack.isEmpty() && itemstack.getItem() == stack.getItem() && ItemStack.isSameItemSameComponents(stack, itemstack)) {
                 int j = itemstack.getCount() + stack.getCount();
                 int maxSize = slot.getMaxStackSize(itemstack);
 

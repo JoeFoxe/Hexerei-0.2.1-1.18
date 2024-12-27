@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.HerbJarContainer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -26,9 +27,9 @@ import java.util.Optional;
 import static net.joefoxe.hexerei.container.HerbJarContainer.OFFSET;
 
 public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/herb_jar_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
     public HerbJarScreen(HerbJarContainer screenContainer, Inventory inv, Component titleIn) {
@@ -48,7 +49,7 @@ public class HerbJarScreen extends AbstractContainerScreen<HerbJarContainer> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
 
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
         this.renderButtonTooltip(guiGraphics, mouseX, mouseY);

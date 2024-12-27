@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -16,6 +17,7 @@ import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.recipes.KeychainRecipe;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.KeychainItem;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,31 +25,28 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -56,9 +55,8 @@ import java.util.List;
 import java.util.Random;
 
 public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "keychain_apply");
-    public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/add_to_candle_gui_jei.png");
+    public final static ResourceLocation UID = HexereiUtil.getResource("keychain_apply");
+    public final static ResourceLocation TEXTURE = HexereiUtil.getResource("textures/gui/add_to_candle_gui_jei.png");
     private IDrawable background;
     private final IDrawable icon;
 
@@ -67,19 +65,14 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
     private boolean findNewItem;
 
     @Override
-    public List<Component> getTooltipStrings(KeychainRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-
+    public void getTooltip(ITooltipBuilder tooltip, KeychainRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
         if(isHovering(mouseX, mouseY, 33, 19, 16, 16)){
-            List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable("Any Item"));
             tooltip.add(Component.translatable("item shown: - %s", Component.translatable(itemShown.getHoverName().getString()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCC5522)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-
-            return tooltip;
         }
-
-
-        return IRecipeCategory.super.getTooltipStrings(recipe, recipeSlotsView, mouseX, mouseY);
+        IRecipeCategory.super.getTooltip(tooltip, recipe, recipeSlotsView, mouseX, mouseY);
     }
+
     public boolean isHovering(double mouseX, double mouseY, double x, double y, double width, double height)
     {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
@@ -88,7 +81,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
     public KeychainApplyRecipeCategory(IGuiHelper helper) {
         this.background = helper.createDrawable(TEXTURE, 0, 0, 144, 86);
         this.icon = new ExtraKeychainIcon(() -> new ItemStack(ModItems.CANDLE.get()));
-        Collection<Item> col = ForgeRegistries.ITEMS.getValues();
+        Collection<Item> col = BuiltInRegistries.ITEM.stream().toList();
         Random rand = new Random();
         if (col.toArray()[(int)(col.size() * rand.nextFloat())] instanceof Item item)
             this.itemShown = new ItemStack(item);
@@ -96,7 +89,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
 
     @Override
     public RecipeType<KeychainRecipe> getRecipeType() {
-        return new RecipeType<>(new ResourceLocation(Hexerei.MOD_ID, "keychain_apply"), KeychainRecipe.class);
+        return new RecipeType<>(HexereiUtil.getResource("keychain_apply"), KeychainRecipe.class);
     }
 
     @Override
@@ -104,10 +97,10 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
         return Component.translatable("Keychain Attach");
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -130,11 +123,13 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
     @Override
     public void draw(KeychainRecipe recipe, IRecipeSlotsView view, GuiGraphics guiGraphics, double mouseX, double mouseY) {
 
+        background.draw(guiGraphics);
+
         float newItem = (Hexerei.getClientTicks()) % 200 / 200f;
         if ((newItem <= 0.05f && this.findNewItem) || this.itemShown == null) {
             this.findNewItem = false;
             if (Minecraft.getInstance().level != null) {
-                Collection<Item> col = ForgeRegistries.ITEMS.getValues();
+                Collection<Item> col = BuiltInRegistries.ITEM.stream().toList();
                 Random rand = new Random();
                 if (col.toArray()[(int)(col.size() * rand.nextFloat())] instanceof Item item)
                     this.itemShown = new ItemStack(item);
@@ -161,27 +156,25 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
         ItemStack other = this.itemShown;
 
         if (keychain.getItem() instanceof KeychainItem && !other.isEmpty()) {
-            CompoundTag tag = new CompoundTag();
-            if(keychain.hasTag())
-                tag = keychain.getTag();
+            CompoundTag tag = keychain.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
             ListTag listtag = new ListTag();
 
             if (!other.isEmpty()) {
                 CompoundTag compoundtag = new CompoundTag();
                 compoundtag.putByte("Slot", (byte)0);
-                other.save(compoundtag);
+                other.save(Hexerei.proxy.getLevel().registryAccess(), compoundtag);
                 listtag.add(compoundtag);
             }
 
             tag.put("Items", listtag);
 
-            keychain.setTag(tag);
+            keychain.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(41, 27, 0);
-        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+        guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
 
         guiGraphics.pose().translate(0, 0, 100);
         guiGraphics.pose().scale(16, 16, 16);
@@ -192,7 +185,7 @@ public class KeychainApplyRecipeCategory implements IRecipeCategory<KeychainReci
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(117, 45, 0);
-        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+        guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
         guiGraphics.pose().translate(0, 0, 100);
         guiGraphics.pose().scale(16, 16, 16);
         guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));

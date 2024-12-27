@@ -1,47 +1,42 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.SageBurningPlateTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class EmitExtinguishParticlesPacket extends AbstractPacket {
 
-public class EmitExtinguishParticlesPacket
-{
+    public static final StreamCodec<RegistryFriendlyByteBuf, EmitExtinguishParticlesPacket> CODEC  = StreamCodec.ofMember(EmitExtinguishParticlesPacket::encode, EmitExtinguishParticlesPacket::new);
+    public static final Type<EmitExtinguishParticlesPacket> TYPE = new Type<>(HexereiUtil.getResource("emit_extinguish_particles"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos pos;
 
     public EmitExtinguishParticlesPacket(BlockPos pos) {
         this.pos = pos;
     }
 
-    public static void encode(EmitExtinguishParticlesPacket object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.pos);
+    public EmitExtinguishParticlesPacket(RegistryFriendlyByteBuf buf) {
+        this(buf.readBlockPos());
     }
 
-    public static EmitExtinguishParticlesPacket decode(FriendlyByteBuf buffer) {
-        return new EmitExtinguishParticlesPacket(buffer.readBlockPos());
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
     }
 
-    public static void handle(EmitExtinguishParticlesPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getBlockEntity(packet.pos) instanceof SageBurningPlateTile) {
-                ((SageBurningPlateTile) world.getBlockEntity(packet.pos)).extinguishParticles();
-            }
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if(player.level().getBlockEntity(pos) instanceof SageBurningPlateTile sageBurningPlateTile)
+            sageBurningPlateTile.extinguishParticles();
     }
-
 }

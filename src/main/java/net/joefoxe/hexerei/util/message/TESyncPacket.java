@@ -1,16 +1,27 @@
 package net.joefoxe.hexerei.util.message;
 
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class TESyncPacket extends AbstractPacket {
 
-public class TESyncPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, TESyncPacket> CODEC  = StreamCodec.ofMember(TESyncPacket::encode, TESyncPacket::new);
+    public static final CustomPacketPayload.Type<TESyncPacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("te_sync"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos pos;
     CompoundTag tag;
 
@@ -19,31 +30,21 @@ public class TESyncPacket {
         this.tag = tag;
     }
 
-    public static void encode(TESyncPacket object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.pos);
-        buffer.writeNbt(object.tag);
+    public TESyncPacket(RegistryFriendlyByteBuf buffer) {
+        this(buffer.readBlockPos(), buffer.readNbt());
     }
 
-    public static TESyncPacket decode(FriendlyByteBuf buffer) {
-        return new TESyncPacket(buffer.readBlockPos(), buffer.readNbt());
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeNbt(tag);
     }
 
-    public static void consume(TESyncPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-            if(world.getBlockEntity(packet.pos) != null){
-                world.getBlockEntity(packet.pos).load(packet.tag);
-                world.getBlockEntity(packet.pos).setChanged();
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        if(minecraft.level.getBlockEntity(pos) != null){
+            minecraft.level.getBlockEntity(pos).loadWithComponents(tag, minecraft.level.registryAccess());
+            minecraft.level.getBlockEntity(pos).setChanged();
+        }
     }
 }

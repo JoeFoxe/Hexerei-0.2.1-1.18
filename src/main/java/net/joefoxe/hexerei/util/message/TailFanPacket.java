@@ -1,18 +1,28 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Random;
-import java.util.function.Supplier;
 
-public class TailFanPacket {
+public class TailFanPacket extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, TailFanPacket> CODEC  = StreamCodec.ofMember(TailFanPacket::encode, TailFanPacket::new);
+    public static final Type<TailFanPacket> TYPE = new Type<>(HexereiUtil.getResource("tail_fan"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int duration;
 
@@ -20,43 +30,29 @@ public class TailFanPacket {
         this.sourceId = entity.getId();
         this.duration = duration;
     }
-    public TailFanPacket(FriendlyByteBuf buf) {
+    public TailFanPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.duration = buf.readInt();
     }
 
-    public static void encode(TailFanPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.duration);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(duration);
     }
 
-    public static TailFanPacket decode(FriendlyByteBuf buffer) {
-        return new TailFanPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(TailFanPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if(player.level().getEntity(sourceId) != null) {
+            if((player.level().getEntity(sourceId)) instanceof CrowEntity crow) {
+                crow.tailFan = true;
+                crow.tailFanTimer = 15;
+                crow.tailFanTiltAngle = 20 + new Random().nextInt(20);
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
+            if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+                owl.tailFanAnimation.start();
+                owl.tailFanAnimation.activeTimer = duration;
             }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof CrowEntity crow) {
-                    crow.tailFan = true;
-                    crow.tailFanTimer = 15;
-                    crow.tailFanTiltAngle = 20 + new Random().nextInt(20);
-                }
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                    owl.tailFanAnimation.start();
-                    owl.tailFanAnimation.activeTimer = packet.duration;
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

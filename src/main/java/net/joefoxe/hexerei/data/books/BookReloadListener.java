@@ -8,8 +8,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.fml.util.thread.EffectiveSide;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -49,7 +48,7 @@ public class BookReloadListener extends SimpleJsonResourceReloadListener {
             }
         });
 
-        if (EffectiveSide.get().isServer() && ServerLifecycleHooks.getCurrentServer() != null) {
+        if (!FMLEnvironment.dist.isClient()) {
             BookManager.sendBookEntriesToClient();
             BookManager.sendBookPagesToClient();
         }

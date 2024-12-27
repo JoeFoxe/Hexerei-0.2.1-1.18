@@ -25,10 +25,10 @@ import java.util.Optional;
 
 public class HexereiMahoganyTreeFeature extends Feature<TreeConfiguration> {
 
-    private static final ResourceLocation MAHOGANY_TREE1 = new ResourceLocation("hexerei:mahogany_tree1");
-    private static final ResourceLocation MAHOGANY_TREE2 = new ResourceLocation("hexerei:mahogany_tree2");
-    private static final ResourceLocation MAHOGANY_TREE3 = new ResourceLocation("hexerei:mahogany_tree3");
-    private static final ResourceLocation MAHOGANY_TREE4 = new ResourceLocation("hexerei:mahogany_tree4");
+    private static final ResourceLocation MAHOGANY_TREE1 = ResourceLocation.parse("hexerei:mahogany_tree1");
+    private static final ResourceLocation MAHOGANY_TREE2 = ResourceLocation.parse("hexerei:mahogany_tree2");
+    private static final ResourceLocation MAHOGANY_TREE3 = ResourceLocation.parse("hexerei:mahogany_tree3");
+    private static final ResourceLocation MAHOGANY_TREE4 = ResourceLocation.parse("hexerei:mahogany_tree4");
     private static final ResourceLocation[] MAHOGANY_TREE = new ResourceLocation[]{MAHOGANY_TREE1, MAHOGANY_TREE2, MAHOGANY_TREE3, MAHOGANY_TREE4};
 
     public HexereiMahoganyTreeFeature(Codec codec) {
@@ -131,7 +131,7 @@ public class HexereiMahoganyTreeFeature extends Feature<TreeConfiguration> {
         StructurePlaceSettings placementsettings = (new StructurePlaceSettings()).setRotation(rotation).setRotationPivot(halfLengths).setIgnoreEntities(false);
 
 //        Optional<StructureProcessorList> processor = reader.getLevel().getServer().registryAccess().registry(Registries.PROCESSOR_LIST).get().getOptional(
-//                new ResourceLocation(Hexerei.MOD_ID, "mangrove_tree/mangrove_tree_legs"));
+//                HexereiUtil.getResource("mangrove_tree/mangrove_tree_legs"));
 //        // add all processors
 //        processor.ifPresent(structureProcessorList -> structureProcessorList.list().forEach(placementsettings::addProcessor));
 

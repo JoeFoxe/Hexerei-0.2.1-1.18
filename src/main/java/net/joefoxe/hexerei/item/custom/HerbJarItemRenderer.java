@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.item.custom;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.HerbJar;
 import net.joefoxe.hexerei.item.ModItems;
@@ -20,20 +21,24 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.RenderTypeHelper;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import java.util.List;
 import java.util.Random;
@@ -54,7 +59,7 @@ public class HerbJarItemRenderer extends CustomItemRenderer {
 //        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModelData.EMPTY, RenderType.tripwire());
 //        matrixStackIn.popPose();
 
-        this.renderTileStuff(stack.getOrCreateTag(), stack, transformType, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+        this.renderTileStuff(stack, transformType, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
     }
 
     public static int getCustomColor(CompoundTag tag) {
@@ -68,9 +73,9 @@ public class HerbJarItemRenderer extends CustomItemRenderer {
             Block block = blockItem.getBlock();
             if (block instanceof HerbJar herbJar) {
                 HerbJarTile te = (HerbJarTile)herbJar.newBlockEntity(BlockPos.ZERO, block.defaultBlockState().setValue(HerbJar.GUI_RENDER, true).setValue(HorizontalDirectionalBlock.FACING, Direction.SOUTH));
-                te.itemHandler.deserializeNBT(tag.getCompound("Inventory"));
+                te.itemHandler.deserializeNBT(Hexerei.proxy.getLevel().registryAccess(), tag.getCompound("Inventory"));
                 te.dyeColor = getCustomColor(tag);
-                if(item.hasCustomHoverName())
+                if(item.has(DataComponents.CUSTOM_NAME))
                     te.customName = item.getHoverName();
 //                if (te != null) te.load(tag);
                 return te;
@@ -85,14 +90,15 @@ public class HerbJarItemRenderer extends CustomItemRenderer {
                 OverlayTexture.NO_OVERLAY, matrixStackIn, bufferIn, level, 1);
     }
 
-    public void renderTileStuff(CompoundTag tag, ItemStack stack, ItemDisplayContext transformType, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void renderTileStuff(ItemStack stack, ItemDisplayContext transformType, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
 
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         HerbJarTile tileEntityIn = loadBlockEntityFromItem(tag, stack);
 
         String name = tileEntityIn.getDisplayName().getString();
         DyeColor col = HexereiUtil.getDyeColorNamed(name);
 
-        int color = col != null ? HexereiUtil.getColorValue(col) : HexereiUtil.getColorStatic(stack);
+        int color = col != null ? HexereiUtil.getColorValue(col) : HexereiUtil.getDyeColor(stack);
 
         matrixStackIn.pushPose();
 
@@ -190,7 +196,7 @@ public class HerbJarItemRenderer extends CustomItemRenderer {
 
 
         Component component = null;
-        if(stack.hasCustomHoverName())
+        if(stack.has(DataComponents.CUSTOM_NAME))
             component = stack.getHoverName();
 //
         if(component == null){
@@ -227,7 +233,7 @@ public class HerbJarItemRenderer extends CustomItemRenderer {
     }
 
 
-    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_, net.minecraftforge.client.model.data.ModelData modelData, net.minecraft.client.renderer.RenderType renderType, int color) {
+    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_, ModelData modelData, net.minecraft.client.renderer.RenderType renderType, int color) {
         RenderShape rendershape = p_110913_.getRenderShape();
         if (rendershape != RenderShape.INVISIBLE) {
             switch (rendershape) {
@@ -239,11 +245,11 @@ public class HerbJarItemRenderer extends CustomItemRenderer {
                     float f1 = (float) (i >> 8 & 255) / 255.0F;
                     float f2 = (float) (i & 255) / 255.0F;
                     for (RenderType rt : bakedmodel.getRenderTypes(p_110913_, RandomSource.create(42), modelData))
-                        dispatcher.getModelRenderer().renderModel(p_110914_.last(), p_110915_.getBuffer(renderType != null ? renderType : net.minecraftforge.client.RenderTypeHelper.getEntityRenderType(rt, false)), p_110913_, bakedmodel, f, f1, f2, p_110916_, p_110917_, modelData, rt);
+                        dispatcher.getModelRenderer().renderModel(p_110914_.last(), p_110915_.getBuffer(renderType != null ? renderType : RenderTypeHelper.getEntityRenderType(rt, false)), p_110913_, bakedmodel, f, f1, f2, p_110916_, p_110917_, modelData, rt);
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    net.minecraftforge.client.extensions.common.IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 

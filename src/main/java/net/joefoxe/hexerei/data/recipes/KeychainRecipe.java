@@ -1,24 +1,20 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.custom.KeychainItem;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 
 public class KeychainRecipe extends CustomRecipe {
-    public static final SimpleCraftingRecipeSerializer<KeychainRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>((KeychainRecipe::new));
 
-    public KeychainRecipe(ResourceLocation registryName, CraftingBookCategory cBc) {
-        super(registryName, cBc);
+    public KeychainRecipe(CraftingBookCategory cBc) {
+        super(cBc);
 
     }
 
@@ -28,15 +24,15 @@ public class KeychainRecipe extends CustomRecipe {
         return true;
     }
     @Override
-    public boolean matches(CraftingContainer inventory, Level world) {
+    public boolean matches(CraftingInput inventory, Level world) {
         int keychain = 0;
         int other = 0;
 
-        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+        for (int i = 0; i < inventory.size(); ++i) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof KeychainItem) {
-                    CompoundTag tag = stack.getOrCreateTag();
+                    CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
                     if(!tag.contains("Items")){
                         ++keychain;
@@ -55,11 +51,11 @@ public class KeychainRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput inventory, HolderLookup.Provider registryAccess) {
         ItemStack keychain = ItemStack.EMPTY;
         ItemStack other = ItemStack.EMPTY;
 
-        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+        for (int i = 0; i < inventory.size(); ++i) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof KeychainItem) {
@@ -72,23 +68,21 @@ public class KeychainRecipe extends CustomRecipe {
             }
         }
         if (keychain.getItem() instanceof KeychainItem && !other.isEmpty()) {
-            CompoundTag tag = new CompoundTag();
-            if(keychain.hasTag())
-                tag = keychain.getTag();
+            CompoundTag tag = keychain.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
             ListTag listtag = new ListTag();
 
             if (!other.isEmpty()) {
                 CompoundTag compoundtag = new CompoundTag();
                 compoundtag.putByte("Slot", (byte)0);
-                other.save(compoundtag);
+                other.save(registryAccess, compoundtag);
                 listtag.add(compoundtag);
 
             }
 
             tag.put("Items", listtag);
 
-            keychain.setTag(tag);
+            keychain.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
 
         return keychain;

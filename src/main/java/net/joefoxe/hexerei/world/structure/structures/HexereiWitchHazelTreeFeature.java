@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.world.structure.structures;
 
 import com.mojang.serialization.Codec;
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -22,12 +23,12 @@ import java.util.Optional;
 
 public class HexereiWitchHazelTreeFeature extends Feature<TreeConfiguration> {
 
-    private static final ResourceLocation WITCH_HAZEL_TREE1 = new ResourceLocation("hexerei:witch_hazel_tree1");
-    private static final ResourceLocation WITCH_HAZEL_TREE2 = new ResourceLocation("hexerei:witch_hazel_tree2");
-    private static final ResourceLocation WITCH_HAZEL_TREE3 = new ResourceLocation("hexerei:witch_hazel_tree3");
-    private static final ResourceLocation WITCH_HAZEL_TREE4 = new ResourceLocation("hexerei:witch_hazel_tree4");
-    private static final ResourceLocation WITCH_HAZEL_TREE5 = new ResourceLocation("hexerei:witch_hazel_tree5");
-    private static final ResourceLocation WITCH_HAZEL_TREE6 = new ResourceLocation("hexerei:witch_hazel_tree6");
+    private static final ResourceLocation WITCH_HAZEL_TREE1 = ResourceLocation.parse("hexerei:witch_hazel_tree1");
+    private static final ResourceLocation WITCH_HAZEL_TREE2 = ResourceLocation.parse("hexerei:witch_hazel_tree2");
+    private static final ResourceLocation WITCH_HAZEL_TREE3 = ResourceLocation.parse("hexerei:witch_hazel_tree3");
+    private static final ResourceLocation WITCH_HAZEL_TREE4 = ResourceLocation.parse("hexerei:witch_hazel_tree4");
+    private static final ResourceLocation WITCH_HAZEL_TREE5 = ResourceLocation.parse("hexerei:witch_hazel_tree5");
+    private static final ResourceLocation WITCH_HAZEL_TREE6 = ResourceLocation.parse("hexerei:witch_hazel_tree6");
     private static final ResourceLocation[] WITCH_HAZEL_TREE = new ResourceLocation[]{WITCH_HAZEL_TREE1, WITCH_HAZEL_TREE2, WITCH_HAZEL_TREE3, WITCH_HAZEL_TREE4, WITCH_HAZEL_TREE5, WITCH_HAZEL_TREE6};
 
     public HexereiWitchHazelTreeFeature(Codec codec) {
@@ -134,7 +135,7 @@ public class HexereiWitchHazelTreeFeature extends Feature<TreeConfiguration> {
 
         StructurePlaceSettings placementsettings = (new StructurePlaceSettings()).setRotation(rotation).setRotationPivot(halfLengths).setIgnoreEntities(false);
         Optional<StructureProcessorList> processor = reader.getLevel().getServer().registryAccess().registry(Registries.PROCESSOR_LIST).get().getOptional(
-                new ResourceLocation(Hexerei.MOD_ID, "mangrove_tree/mangrove_tree_legs"));
+                HexereiUtil.getResource("mangrove_tree/mangrove_tree_legs"));
         processor.ifPresent(structureProcessorList -> structureProcessorList.list().forEach(placementsettings::addProcessor)); // add all processors
 
         BlockPos pos1 = mutable.set(pos).move(-halfLengths.getX(), 0, -halfLengths.getZ());

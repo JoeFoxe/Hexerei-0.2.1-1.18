@@ -3,48 +3,25 @@ package net.joefoxe.hexerei.item.custom;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.function.Consumer;
 
-public class MixingCauldronItem extends BlockItem implements DyeableLeatherItem {
+public class MixingCauldronItem extends BlockItem {
 
     public MixingCauldronItem(Block block, Properties properties) {
         super(block, properties);
     }
 
-    @Override
-    public void setColor(ItemStack p_41116_, int p_41117_) {
-        DyeableLeatherItem.super.setColor(p_41116_, p_41117_);
-    }
-
     public static int getColorValue(DyeColor color, ItemStack stack) {
-        int dyeCol = getColorStatic(stack);
+        int dyeCol = HexereiUtil.getDyeColor(stack, 0xFFBE1C);
         if(color == null && dyeCol != -1)
             return dyeCol;
-        float[] colors = color.getTextureDiffuseColors();
-        int r = (int) (colors[0] * 255.0F);
-        int g = (int) (colors[1] * 255.0F);
-        int b = (int) (colors[2] * 255.0F);
-        return (r << 16) | (g << 8) | b;
-    }
-
-    public static int getColorStatic(ItemStack p_41122_) {
-        CompoundTag compoundtag = p_41122_.getTagElement("display");
-        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0xFFBE1C;
+        return color.getTextureDiffuseColor();
     }
 
     public static int getDyeColorNamed(String name) {
@@ -55,8 +32,8 @@ public class MixingCauldronItem extends BlockItem implements DyeableLeatherItem 
             DyeColor col1 = HexereiUtil.getDyeColorNamed(name, 0);
             DyeColor col2 = HexereiUtil.getDyeColorNamed(name, 1);
 
-            float[] afloat1 = Sheep.getColorArray(col1);
-            float[] afloat2 = Sheep.getColorArray(col2);
+            float[] afloat1 = HexereiUtil.rgbIntToFloatArray(col1.getTextureDiffuseColor());
+            float[] afloat2 = HexereiUtil.rgbIntToFloatArray(col2.getTextureDiffuseColor());
             float f = afloat1[0] * (1.0F - f3) + afloat2[0] * f3;
             float f1 = afloat1[1] * (1.0F - f3) + afloat2[1] * f3;
             float f2 = afloat1[2] * (1.0F - f3) + afloat2[2] * f3;
@@ -72,12 +49,6 @@ public class MixingCauldronItem extends BlockItem implements DyeableLeatherItem 
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-
-        super.appendHoverText(stack, world, tooltip, flagIn);
-    }
-
-    @Override
     public InteractionResult place(BlockPlaceContext context) {
         return super.place(context);
     }
@@ -90,27 +61,6 @@ public class MixingCauldronItem extends BlockItem implements DyeableLeatherItem 
                 return 64;
             }
         };
-    }
-
-
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        super.initializeClient(consumer);
-        MixingCauldronItemRenderer renderer = createItemRenderer();
-        if (renderer != null) {
-            consumer.accept(new IClientItemExtensions() {
-                @Override
-                public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                    return renderer.getRenderer();
-                }
-            });
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public MixingCauldronItemRenderer createItemRenderer() {
-        return new MixingCauldronItemRenderer();
     }
 
 }

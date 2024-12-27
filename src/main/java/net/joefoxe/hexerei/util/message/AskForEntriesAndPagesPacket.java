@@ -1,42 +1,37 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.books.BookManager;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class AskForEntriesAndPagesPacket extends AbstractPacket {
 
-public class AskForEntriesAndPagesPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, AskForEntriesAndPagesPacket> CODEC  = StreamCodec.ofMember(AskForEntriesAndPagesPacket::encode, AskForEntriesAndPagesPacket::new);
+    public static final Type<AskForEntriesAndPagesPacket> TYPE = new Type<>(HexereiUtil.getResource("ask_for_book_entries"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     public AskForEntriesAndPagesPacket() {
     }
-    public AskForEntriesAndPagesPacket(FriendlyByteBuf buf) {
+
+    public AskForEntriesAndPagesPacket(RegistryFriendlyByteBuf buf) {
     }
 
-    public static void encode(AskForEntriesAndPagesPacket object, FriendlyByteBuf buffer) {
+    public void encode(RegistryFriendlyByteBuf buffer) {
     }
 
-    public static AskForEntriesAndPagesPacket decode(FriendlyByteBuf buffer) {
-        return new AskForEntriesAndPagesPacket(buffer);
-    }
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
 
-    public static void consume(AskForEntriesAndPagesPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            BookManager.sendBookEntriesToClient();
-            BookManager.sendBookPagesToClient();
-        });
-        ctx.get().setPacketHandled(true);
+        BookManager.sendBookEntriesToClient(player);
+        BookManager.sendBookPagesToClient(player);
     }
 }

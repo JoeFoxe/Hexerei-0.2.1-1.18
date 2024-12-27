@@ -1,9 +1,8 @@
 package net.joefoxe.hexerei.data.candle;
 
-import net.joefoxe.hexerei.Hexerei;
-import net.minecraft.core.Registry;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +14,13 @@ public class CandleEffects {
      public static void init() {
          effects = new HashMap<>();
 
-         ForgeRegistries.MOB_EFFECTS.forEach(mobEffect -> {
-             ResourceLocation loc = ForgeRegistries.MOB_EFFECTS.getKey(mobEffect);
+         BuiltInRegistries.MOB_EFFECT.forEach(mobEffect -> {
+             ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(mobEffect);
              String str = loc != null ? loc.toString() : mobEffect.getDescriptionId();
              effects.put(str, new PotionCandleEffect(mobEffect));
          });
-         effects.put(new ResourceLocation(Hexerei.MOD_ID, "growth_effect").toString(), new BonemealingCandleEffect());
-         effects.put(new ResourceLocation(Hexerei.MOD_ID, "sunshine_effect").toString(), new SunshineCandleEffect());
+         effects.put(HexereiUtil.getResource("growth_effect").toString(), new BonemealingCandleEffect());
+         effects.put(HexereiUtil.getResource("sunshine_effect").toString(), new SunshineCandleEffect());
 
 //         effects.forEach(((s, candleEffect) -> {
 //             System.out.println(s + " - " + candleEffect);

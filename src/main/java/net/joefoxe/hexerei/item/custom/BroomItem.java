@@ -1,5 +1,6 @@
 package net.joefoxe.hexerei.item.custom;
 
+import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.ModEntityTypes;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.config.ModKeyBindings;
@@ -7,6 +8,7 @@ import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.util.CachedMap;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -21,15 +23,16 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -54,18 +57,18 @@ public class BroomItem extends BroomStickItem {
         if (cmp != 0) {
             return cmp;
         }
-        CompoundTag c1 = item1.getTag();
-        CompoundTag c2 = item2.getTag();
+//        CompoundTag c1 = item1.getTag();
+//        CompoundTag c2 = item2.getTag();
+//
+//        if (c1 == null && c2 == null) {
+//            return 0;
+//        } else if (c1 == null) {
+//            return 1;
+//        } else if (c2 == null) {
+//            return -1;
+//        }
 
-        if (c1 == null && c2 == null) {
-            return 0;
-        } else if (c1 == null) {
-            return 1;
-        } else if (c2 == null) {
-            return -1;
-        }
-
-        return c1.hashCode() - c2.hashCode();
+        return item1.getComponents().hashCode() - item2.getComponents().hashCode();
     };
 
     private ItemStackHandler createHandler() {
@@ -75,7 +78,8 @@ public class BroomItem extends BroomStickItem {
 
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         ItemStackHandler handler = createHandler();
-        handler.deserializeNBT(stack.getOrCreateTag().getCompound("Inventory"));
+
+        handler.deserializeNBT(Hexerei.proxy.getLevel().registryAccess(), stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompound("Inventory"));
 
         return Optional.of(new BroomItem.BroomItemToolTip(handler, stack));
     }
@@ -101,28 +105,9 @@ public class BroomItem extends BroomStickItem {
         return new Vec3(0, 0, 0);
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        super.initializeClient(consumer);
-        CustomItemRenderer renderer = createItemRenderer();
-        if (renderer != null) {
-            consumer.accept(new IClientItemExtensions() {
-                @Override
-                public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                    return renderer.getRenderer();
-                }
-            });
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public CustomItemRenderer createItemRenderer() {
-        return new BroomItemRenderer();
-    }
-
     public static UUID getUUID(ItemStack stack) {
 
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if (tag.contains("broomUUID")) {
             return tag.getUUID("broomUUID");
         }
@@ -134,9 +119,10 @@ public class BroomItem extends BroomStickItem {
 
     public BroomEntity getBroom(Level world, ItemStack stack) {
 
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         BroomEntity broom = new BroomEntity(ModEntityTypes.BROOM.get(), world);
-        if(stack.getOrCreateTag().contains("floatMode"))
-            broom.itemHandler.deserializeNBT(stack.getOrCreateTag().getCompound("Inventory"));
+        if(tag.contains("floatMode"))
+            broom.itemHandler.deserializeNBT(world.registryAccess(), tag.getCompound("Inventory"));
         else
             broom.itemHandler.setStackInSlot(2, new ItemStack(ModItems.BROOM_BRUSH.get()));
         if(stack.getItem() instanceof BroomItem broomItem)
@@ -144,7 +130,7 @@ public class BroomItem extends BroomStickItem {
         broom.isItem = true;
         broom.selfItem = stack.copy();
 
-        if (stack.hasCustomHoverName()) {
+        if (stack.get(DataComponents.CUSTOM_NAME) != null) {
             broom.setCustomName(stack.getHoverName());
         }
 
@@ -186,12 +172,13 @@ public class BroomItem extends BroomStickItem {
                     broom.setBroomType(broomItem.type);
                 broom.broomUUID = BroomItem.getUUID(itemstack);
                 broom.setYRot(playerIn.getYRot());
-                broom.itemHandler.deserializeNBT(itemstack.getOrCreateTag().getCompound("Inventory"));
-                if(!itemstack.getOrCreateTag().contains("floatMode")) {
+                CompoundTag tag = itemstack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+                broom.itemHandler.deserializeNBT(worldIn.registryAccess(), tag.getCompound("Inventory"));
+                if(!tag.contains("floatMode")) {
                     broom.itemHandler.setStackInSlot(2, new ItemStack(ModItems.BROOM_BRUSH.get()));
                     broom.sync();
                 }
-                broom.floatMode = (itemstack.getOrCreateTag().getBoolean("floatMode"));
+                broom.floatMode = (tag.getBoolean("floatMode"));
 
                 broom.setCustomName(itemstack.getHoverName());
 
@@ -216,26 +203,25 @@ public class BroomItem extends BroomStickItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 
         if(Screen.hasShiftDown()) {
 
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_shift_2", Component.translatable(ModKeyBindings.broomDescend.getKey().getName()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCCCC00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_shift_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.broom_shift_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_shift_2", Component.translatable(ModKeyBindings.broomDescend.getKey().getName()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCCCC00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_shift_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.broom_shift_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             if(stack.is(ModItems.MAHOGANY_BROOM.get())) {
-                tooltip.add(Component.translatable(""));
-                tooltip.add(Component.translatable("tooltip.hexerei.mahogany_broom_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-                tooltip.add(Component.translatable("tooltip.hexerei.mahogany_broom_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltipComponents.add(Component.translatable(""));
+                tooltipComponents.add(Component.translatable("tooltip.hexerei.mahogany_broom_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltipComponents.add(Component.translatable("tooltip.hexerei.mahogany_broom_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
             else {
-                tooltip.add(Component.translatable(""));
-                tooltip.add(Component.translatable("tooltip.hexerei.willow_broom_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-                tooltip.add(Component.translatable("tooltip.hexerei.willow_broom_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltipComponents.add(Component.translatable(""));
+                tooltipComponents.add(Component.translatable("tooltip.hexerei.willow_broom_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+                tooltipComponents.add(Component.translatable("tooltip.hexerei.willow_broom_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
             }
         }
 
-
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 }

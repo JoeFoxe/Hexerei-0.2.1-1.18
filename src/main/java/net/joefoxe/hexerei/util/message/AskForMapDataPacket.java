@@ -1,65 +1,60 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.AbstractPacket;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.Supplier;
 
-public class AskForMapDataPacket {
+public class AskForMapDataPacket extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, AskForMapDataPacket> CODEC  = StreamCodec.ofMember(AskForMapDataPacket::encode, AskForMapDataPacket::new);
+    public static final Type<AskForMapDataPacket> TYPE = new Type<>(HexereiUtil.getResource("map_data_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     ItemStack stack;
 
     public AskForMapDataPacket(ItemStack stack) {
         this.stack = stack;
     }
-    public AskForMapDataPacket(FriendlyByteBuf buf) {
-        this.stack = buf.readItem();
+    public AskForMapDataPacket(RegistryFriendlyByteBuf buf) {
+        this.stack = ItemStack.STREAM_CODEC.decode(buf);
     }
 
-    public static void encode(AskForMapDataPacket object, FriendlyByteBuf buffer) {
-        buffer.writeItem(object.stack);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        ItemStack.STREAM_CODEC.encode(buffer, stack);
     }
 
-    public static AskForMapDataPacket decode(FriendlyByteBuf buffer) {
-        return new AskForMapDataPacket(buffer);
-    }
-
-    public static void consume(AskForMapDataPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-            HoldingPlayer holdingPlayer = HoldingPlayer.create(ctx.get().getSender());
-            MapItemSavedData.MapPatch mapitemsaveddata$mappatch;
-            MapItemSavedData mapitemsaveddata = MapItem.getSavedData(packet.stack, world);
-            if(mapitemsaveddata != null){
-                Integer integer = MapItem.getMapId(packet.stack);
-                int id = integer == null ? 0 : integer;
-                mapitemsaveddata$mappatch = holdingPlayer.createPatch(mapitemsaveddata);
-                Collection<MapDecoration> collection = new ArrayList<>();
-                mapitemsaveddata.getDecorations().forEach(collection::add);
-                MapDataPacket mapDataPacket = new MapDataPacket(id, mapitemsaveddata.scale, mapitemsaveddata.locked, collection, mapitemsaveddata$mappatch);
-                HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), mapDataPacket);
-            }
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        HoldingPlayer holdingPlayer = HoldingPlayer.create(player);
+        MapItemSavedData.MapPatch mapitemsaveddata$mappatch;
+        MapItemSavedData mapitemsaveddata = MapItem.getSavedData(stack, player.level());
+        if(mapitemsaveddata != null){
+            MapId mapId = stack.getOrDefault(DataComponents.MAP_ID, new MapId(0));
+            mapitemsaveddata$mappatch = holdingPlayer.createPatch(mapitemsaveddata);
+            Collection<MapDecoration> collection = new ArrayList<>();
+            mapitemsaveddata.getDecorations().forEach(collection::add);
+            MapDataPacket mapDataPacket = new MapDataPacket(mapId, mapitemsaveddata.scale, mapitemsaveddata.locked, collection, mapitemsaveddata$mappatch);
+            HexereiPacketHandler.sendToAllPlayers(mapDataPacket, server);
+        }
     }
 
 

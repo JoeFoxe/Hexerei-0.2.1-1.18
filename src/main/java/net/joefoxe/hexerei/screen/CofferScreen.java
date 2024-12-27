@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.container.CofferContainer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -31,9 +32,9 @@ import java.util.Optional;
 import static net.joefoxe.hexerei.container.CofferContainer.OFFSET;
 
 public class CofferScreen extends AbstractContainerScreen<CofferContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/coffer_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
     public int mouseX;
@@ -67,7 +68,7 @@ public class CofferScreen extends AbstractContainerScreen<CofferContainer> {
 
         this.mouseX = mouseX;
         this.mouseY = mouseY;
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
         this.renderButtonTooltip(guiGraphics, mouseX, mouseY);
@@ -104,7 +105,7 @@ public class CofferScreen extends AbstractContainerScreen<CofferContainer> {
                 this.topPos - 25 - OFFSET);
 
         if(this.minecraft.player != null)
-            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 107, this.topPos + 88 - OFFSET, 20, (float)(i + 51) - x, (float)(j + 75 - 50) - y, this.minecraft.player);
+            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 107 - 20, this.topPos + 88 - 20 - OFFSET, this.leftPos + 107 + 20, this.topPos + 88 + 20 - OFFSET, 20, 0.0625F, (float)(i + 51) - x, (float)(j + 75 - 50) - y, this.minecraft.player);
 
         RenderSystem.enableDepthTest();
 

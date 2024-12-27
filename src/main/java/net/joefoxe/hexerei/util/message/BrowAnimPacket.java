@@ -1,21 +1,38 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
 
-public class BrowAnimPacket {
+public class BrowAnimPacket extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, BrowAnimPacket> CODEC  = StreamCodec.ofMember(BrowAnimPacket::encode, BrowAnimPacket::new);
+    public static final Type<BrowAnimPacket> TYPE = new Type<>(HexereiUtil.getResource("brow_anim"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     OwlEntity.BrowAnim browAnim;
     int duration;
     boolean happyAnim;
+
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeEnum(browAnim);
+        buffer.writeInt(duration);
+        buffer.writeBoolean(happyAnim);
+    }
 
     public BrowAnimPacket(Entity entity, OwlEntity.BrowAnim browAnim, int duration) {
         this.sourceId = entity.getId();
@@ -39,42 +56,19 @@ public class BrowAnimPacket {
         this.happyAnim = buf.readBoolean();
     }
 
-    public static void encode(BrowAnimPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeEnum(object.browAnim);
-        buffer.writeInt(object.duration);
-        buffer.writeBoolean(object.happyAnim);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static BrowAnimPacket decode(FriendlyByteBuf buffer) {
-        return new BrowAnimPacket(buffer);
-    }
-
-    public static void consume(BrowAnimPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if((minecraft.level.getEntity(sourceId)) instanceof OwlEntity owl) {
+            if (happyAnim) {
+                owl.browHappyAnimation.start();
+                owl.browHappyAnimation.activeTimer = duration;
+                owl.browHappyAnimation.setBrowAnim(browAnim);
+            } else {
+                owl.browAnimation.start();
+                owl.browAnimation.activeTimer = duration;
+                owl.browAnimation.setBrowAnim(browAnim);
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                    if (packet.happyAnim) {
-                        owl.browHappyAnimation.start();
-                        owl.browHappyAnimation.activeTimer = packet.duration;
-                        owl.browHappyAnimation.setBrowAnim(packet.browAnim);
-                    } else {
-                        owl.browAnimation.start();
-                        owl.browAnimation.activeTimer = packet.duration;
-                        owl.browAnimation.setBrowAnim(packet.browAnim);
-                    }
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

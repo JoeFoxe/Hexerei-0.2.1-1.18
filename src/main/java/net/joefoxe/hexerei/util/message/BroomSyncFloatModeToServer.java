@@ -1,51 +1,47 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class BroomSyncFloatModeToServer extends AbstractPacket {
 
-public class BroomSyncFloatModeToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BroomSyncFloatModeToServer> CODEC  = StreamCodec.ofMember(BroomSyncFloatModeToServer::encode, BroomSyncFloatModeToServer::new);
+    public static final CustomPacketPayload.Type<BroomSyncFloatModeToServer> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("broom_sync_mode"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     boolean mode;
 
-    public BroomSyncFloatModeToServer(Entity entity, boolean tag) {
-        this.sourceId = entity.getId();
-        this.mode = tag;
-    }
-    public BroomSyncFloatModeToServer(FriendlyByteBuf buf) {
-        this.sourceId = buf.readInt();
-        this.mode = buf.readBoolean();
-
+    public BroomSyncFloatModeToServer(int id, boolean mode) {
+        this.sourceId = id;
+        this.mode = mode;
     }
 
-    public static void encode(BroomSyncFloatModeToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeBoolean(object.mode);
+    public BroomSyncFloatModeToServer(RegistryFriendlyByteBuf buffer) {
+        this(buffer.readInt(), buffer.readBoolean());
     }
 
-    public static BroomSyncFloatModeToServer decode(FriendlyByteBuf buffer) {
-        return new BroomSyncFloatModeToServer(buffer);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeBoolean(mode);
     }
 
-    public static void consume(BroomSyncFloatModeToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BroomEntity)world.getEntity(packet.sourceId)).setFloatMode(packet.mode);
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(server.overworld().getEntity(sourceId) instanceof BroomEntity broom) {
+            broom.setFloatMode(mode);
+        }
     }
 }

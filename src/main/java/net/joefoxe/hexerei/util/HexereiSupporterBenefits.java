@@ -4,17 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
-
-import static net.joefoxe.hexerei.Hexerei.LOGGER;
 
 public class HexereiSupporterBenefits {
 
@@ -38,7 +33,7 @@ public class HexereiSupporterBenefits {
 
         } catch(IOException err) {
             err.printStackTrace();
-            if(!FMLEnvironment.production){
+            if(!net.neoforged.fml.loading.FMLEnvironment.production){
                 throw new RuntimeException("Failed to load supporters.json");
             }
         }

@@ -1,14 +1,18 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.custom.CrowAmuletItem;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -16,8 +20,8 @@ import net.minecraft.world.level.Level;
 
 public class CrowAmuletUndoRecipe extends CustomRecipe {
 
-    public CrowAmuletUndoRecipe(ResourceLocation registryName, CraftingBookCategory cBc) {
-        super(registryName, cBc);
+    public CrowAmuletUndoRecipe(CraftingBookCategory cBc) {
+        super(cBc);
 
     }
 
@@ -26,8 +30,8 @@ public class CrowAmuletUndoRecipe extends CustomRecipe {
         return true;
     }
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer p_44004_) {
-        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_44004_.getContainerSize(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput p_44004_) {
+        NonNullList<ItemStack> nonnulllist = NonNullList.withSize(p_44004_.size(), ItemStack.EMPTY);
 
         for(int i = 0; i < nonnulllist.size(); ++i) {
             ItemStack item = p_44004_.getItem(i);
@@ -41,15 +45,15 @@ public class CrowAmuletUndoRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean matches(CraftingContainer inventory, Level world) {
+    public boolean matches(CraftingInput inventory, Level world) {
         int keychain = 0;
         int other = 0;
 
-        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+        for (int i = 0; i < inventory.size(); ++i) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof CrowAmuletItem) {
-                    CompoundTag tag = stack.getOrCreateTag();
+                    CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
                     if(tag.contains("Items")){
                         ++keychain;
@@ -68,10 +72,10 @@ public class CrowAmuletUndoRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput inventory, HolderLookup.Provider registryAccess) {
         ItemStack keychain = ItemStack.EMPTY;
 
-        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+        for (int i = 0; i < inventory.size(); ++i) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
                 if (stack.getItem() instanceof CrowAmuletItem) {
@@ -81,9 +85,9 @@ public class CrowAmuletUndoRecipe extends CustomRecipe {
             }
         }
         if (keychain.getItem() instanceof CrowAmuletItem) {
-            CompoundTag tag = keychain.getOrCreateTag();
+            CompoundTag tag = keychain.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             ListTag list = tag.getList("Items", 10);
-            keychain = ItemStack.of(list.getCompound(0));
+            keychain = ItemStack.parseOptional(registryAccess, list.getCompound(0));
         }
 
         return keychain;

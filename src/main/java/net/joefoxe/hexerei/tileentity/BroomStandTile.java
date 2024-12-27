@@ -1,15 +1,10 @@
 package net.joefoxe.hexerei.tileentity;
 
-import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.data.books.BookEntries;
-import net.joefoxe.hexerei.data.books.BookManager;
-import net.joefoxe.hexerei.data.books.HexereiBookItem;
-import net.joefoxe.hexerei.data.books.PageDrawing;
 import net.joefoxe.hexerei.item.custom.BroomItem;
-import net.joefoxe.hexerei.sounds.ModSounds;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
@@ -22,32 +17,23 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Random;
-
-import static net.joefoxe.hexerei.util.HexereiUtil.moveTo;
-import static net.joefoxe.hexerei.util.HexereiUtil.moveToAngle;
 
 public class BroomStandTile extends RandomizableContainerBlockEntity implements Clearable, MenuProvider {
 
@@ -56,7 +42,6 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
 //    protected NonNullList<ItemStack> items = NonNullList.withSize(8, ItemStack.EMPTY);
 
     public final ItemStackHandler itemHandler = createHandler();
-    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
 
 
     public BroomStandTile(BlockEntityType<?> tileEntityTypeIn, BlockPos blockPos, BlockState blockState) {
@@ -93,21 +78,21 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
         };
     }
 
-
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.save(new CompoundTag());
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        this.saveAdditional(tag, registries);
+        return tag;
     }
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
-
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
     @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt) {
-        this.deserializeNBT(pkt.getTag());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
+        super.onDataPacket(net, pkt, lookupProvider);
     }
 
     @Override
@@ -118,8 +103,11 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
 
     public void sync() {
         if (this.level != null) {
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+            if (!level.isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
+            }
 
             if (this.level != null)
                 this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
@@ -127,28 +115,24 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
         }
     }
 
-    public CompoundTag save(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put("inv", itemHandler.serializeNBT());
-        return tag;
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        tag.put("inv", itemHandler.serializeNBT(registries));
+        super.saveAdditional(tag, registries);
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        tag.put("inv", itemHandler.serializeNBT());
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        itemHandler.deserializeNBT(registries, tag.getCompound("inv"));
     }
 
-    @Override
-    public void load(CompoundTag compoundTag) {
-        super.load(compoundTag);
-        itemHandler.deserializeNBT(compoundTag.getCompound("inv"));
-    }
-
-    public int interact(Player player, InteractionHand handIn) {
-        if (this.itemHandler.getStackInSlot(0).isEmpty()) {
-            if (!player.getItemInHand(handIn).isEmpty()) {
+    public int interact(Player player, InteractionHand handIn, boolean withItem) {
+        ItemStack stack = this.itemHandler.getStackInSlot(0);
+        if (stack.isEmpty()) {
+            if (withItem) {
                 Random rand = new Random();
-                if (this.itemHandler.getStackInSlot(0).isEmpty()) {
+                if (stack.isEmpty()) {
                     if(this.itemHandler.isItemValid(0, player.getItemInHand(handIn))) {
                         this.itemHandler.setStackInSlot(0, player.getItemInHand(handIn));
                         level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
@@ -159,12 +143,12 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
                 }
 
             }
-        } else if (!this.itemHandler.getStackInSlot(0).isEmpty()) {
+        } else {
 
             if (player.getMainHandItem().isEmpty())
-                player.setItemInHand(InteractionHand.MAIN_HAND, this.itemHandler.getStackInSlot(0).copy());
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
             else
-                player.inventory.placeItemBackInInventory(this.itemHandler.getStackInSlot(0).copy());
+                player.getInventory().placeItemBackInInventory(stack.copy());
 
             level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
             this.itemHandler.setStackInSlot(0, ItemStack.EMPTY);
@@ -182,31 +166,11 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
         super.requestModelDataUpdate();
     }
 
-    @NotNull
-    @Override
-    public ModelData getModelData() {
-        return super.getModelData();
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
-    }
-
     @Override
     public void onLoad() {
         super.onLoad();
     }
 
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        super.deserializeNBT(nbt);
-    }
-
-    @Override
-    public CompoundTag serializeNBT() {
-        return super.serializeNBT();
-    }
 
     @Override
     protected Component getDefaultName() {
@@ -285,10 +249,6 @@ public class BroomStandTile extends RandomizableContainerBlockEntity implements 
         this(ModTileEntities.BROOM_STAND_TILE.get(), blockPos, blockState);
     }
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
-    }
 
     public float getAngle(Vec3 pos) {
         float angle = (float) Math.toDegrees(Math.atan2(pos.z() - this.worldPosition.getZ() - 0.5f, pos.x() - this.worldPosition.getX() - 0.5f));

@@ -14,7 +14,7 @@ public class ModWallSign extends WallSignBlock {
     protected final Supplier<BlockEntityType<ModSignBlockEntity>> blockEntityType;
 
     public ModWallSign(Properties pProperties, Supplier<BlockEntityType<ModSignBlockEntity>> blockEntityType, WoodType pType) {
-        super(pProperties, pType);
+        super(pType, pProperties);
         this.blockEntityType = blockEntityType;
     }
 

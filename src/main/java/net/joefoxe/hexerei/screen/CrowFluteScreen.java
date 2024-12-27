@@ -6,6 +6,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.CrowFluteContainer;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
+import net.joefoxe.hexerei.item.ModDataComponents;
+import net.joefoxe.hexerei.item.data_components.FluteData;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,6 +18,8 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -25,14 +30,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/crow_flute_gui.png");
 
     public final ItemStack crowFluteStack;
@@ -72,7 +79,7 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
         this.renderButtonTooltip(guiGraphics, mouseX, mouseY);
@@ -243,7 +250,7 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
     public Component getTitle() {
 
         MutableComponent mutablecomponent = (Component.translatable("")).append(crowFluteStack.getHoverName());
-        if (crowFluteStack.hasCustomHoverName()) {
+        if (crowFluteStack.has(DataComponents.CUSTOM_NAME)) {
             mutablecomponent.withStyle(ChatFormatting.ITALIC);
         }
 
@@ -336,7 +343,9 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
 
         guiGraphics.blit(GUI, i + 81, j - 14, 230, 0, 26, 26);
 
-        if(crowFluteStack.getOrCreateTag().contains("crowList")) {
+        CompoundTag tag = crowFluteStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+
+        if(tag.contains("crowList")) {
 
             for(int k = 0; k < this.menu.crowList.size(); k++){
                 if (this.menu.crowList.get(k) != null) {
@@ -356,12 +365,14 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
                 this.leftPos + 86,
                 this.topPos - 25 + 16);
 
-        if(crowFluteStack.getOrCreateTag().contains("crowList")) {
+        if(tag.contains("crowList")) {
 
             for(int k = 0; k < this.menu.crowList.size(); k++){
                 if (this.menu.crowList.get(k) != null) {
                     int offset = (this.menu.crowList.size() % 2 == 1 ? 0 : -10) + (k % 2 == 1 ? 1 : -1) * ((k + 1) / 2) * 20;
-                    InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 94 + offset, this.topPos + 126, 20, (new Quaternionf()).rotationXYZ(0.43633232F, 0.0F, (float)Math.PI), (Quaternionf)null, (LivingEntity) this.menu.crowList.get(k));
+                    float f9 = ((LivingEntity)this.menu.crowList.get(k)).getScale();
+                    Vector3f vector3f = new Vector3f(0.0F, this.menu.crowList.get(k).getBbHeight() / 2.0F + 0.0625F * f9, 0.0F);
+                    InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 94 + offset, this.topPos + 126, 20, vector3f, (new Quaternionf()).rotationXYZ(0.43633232F, 0.0F, (float)Math.PI), (Quaternionf)null, (LivingEntity) this.menu.crowList.get(k));
                 }
             }
         }
@@ -462,7 +473,7 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
             else
                 this.menu.setCommandMode(0);
 
-            if(this.menu.stack.getOrCreateTag().getInt("commandMode") == 1) {
+            if(this.menu.stack.getOrDefault(ModDataComponents.FLUTE, FluteData.EMPTY).commandMode() == 1) {
 //                Hexerei.proxy.getPlayer().closeContainer();
                 Hexerei.proxy.getPlayer().displayClientMessage(Component.translatable("entity.hexerei.crow_flute_select_message"), true);
             }
@@ -474,7 +485,7 @@ public class CrowFluteScreen extends AbstractContainerScreen<CrowFluteContainer>
             else
                 this.menu.setCommandMode(0);
 
-            if(this.menu.stack.getOrCreateTag().getInt("commandMode") == 2) {
+            if(this.menu.stack.getOrDefault(ModDataComponents.FLUTE, FluteData.EMPTY).commandMode() == 2) {
                 Hexerei.proxy.getPlayer().displayClientMessage(Component.translatable("entity.hexerei.crow_flute_perch_message"), true);
             }
         }

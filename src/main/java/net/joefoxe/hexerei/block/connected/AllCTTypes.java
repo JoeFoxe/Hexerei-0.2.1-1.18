@@ -132,7 +132,7 @@ public enum AllCTTypes implements CTType {
     private final float percentChanceFromBase;
 
     AllCTTypes(int sheetSize, ConnectedTextureBehaviour.ContextRequirement contextRequirement) {
-        this.id = new ResourceLocation(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
+        this.id = ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
         this.sheetSize = sheetSize;
         this.contextRequirement = contextRequirement;
         this.extraFaceVariations = 0;
@@ -141,7 +141,7 @@ public enum AllCTTypes implements CTType {
         CTTypeRegistry.register(this);
     }
     AllCTTypes(int sheetSize, ConnectedTextureBehaviour.ContextRequirement contextRequirement, int mainFaceVariations) {
-        this.id = new ResourceLocation(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
+        this.id = ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
         this.sheetSize = sheetSize;
         this.contextRequirement = contextRequirement;
         this.extraFaceVariations = mainFaceVariations;
@@ -150,7 +150,7 @@ public enum AllCTTypes implements CTType {
         CTTypeRegistry.register(this);
     }
     AllCTTypes(int sheetSize, ConnectedTextureBehaviour.ContextRequirement contextRequirement, int mainFaceVariations, float percentChanceFromBase) {
-        this.id = new ResourceLocation(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
+        this.id = ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"ct_" + name().toLowerCase(Locale.ROOT));
         this.sheetSize = sheetSize;
         this.contextRequirement = contextRequirement;
         this.extraFaceVariations = mainFaceVariations;

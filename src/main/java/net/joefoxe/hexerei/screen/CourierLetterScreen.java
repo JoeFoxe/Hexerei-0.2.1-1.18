@@ -27,6 +27,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
@@ -40,6 +41,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.SignText;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -54,7 +56,7 @@ import java.util.stream.IntStream;
 
 public class CourierLetterScreen extends Screen {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/courier_letter_gui.png");
     private final String[] messages;
     private OwlEntity.MessageText text;
@@ -82,15 +84,15 @@ public class CourierLetterScreen extends Screen {
         super(Component.translatable("screen.hexerei.letter"));
         this.text = new OwlEntity.MessageText();
 
-        CompoundTag tag = BlockItem.getBlockEntityData(stack);
+        CustomData tag = stack.get(DataComponents.BLOCK_ENTITY_DATA);
         if (tag != null) {
             if (tag.contains("Message")) {
-                OwlEntity.MessageText.DIRECT_CODEC.parse(NbtOps.INSTANCE, tag.getCompound("Message")).resultOrPartial(LOGGER::error).ifPresent((message) -> {
+                OwlEntity.MessageText.DIRECT_CODEC.parse(NbtOps.INSTANCE, tag.copyTag().getCompound("Message")).resultOrPartial(LOGGER::error).ifPresent((message) -> {
                     this.text = this.loadLines(message);
                 });
             }
             if (tag.contains("Sealed")) {
-                this.sealed = tag.getBoolean("Sealed");
+                this.sealed = tag.copyTag().getBoolean("Sealed");
             }
         }
 
@@ -148,7 +150,7 @@ public class CourierLetterScreen extends Screen {
 
             if (!this.sealed && x > this.left + 71 && x < this.left + 71 + 30 && y > this.top + 151 && y < this.top + 151 + 15 && !isEmpty()) {
                 this.clicked = true;
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 1.0F, 0.25f));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 0.25f));
                 return true;
             }
         }
@@ -161,7 +163,7 @@ public class CourierLetterScreen extends Screen {
 
         if (!this.sealed) {
             if (this.clicked && pButton == 0 && !isEmpty()) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 0.85F, 0.25f));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 0.85F, 0.25f));
                 this.clicked = false;
             }
         }
@@ -174,7 +176,7 @@ public class CourierLetterScreen extends Screen {
         if (!this.sealed) {
             if (clicked && pButton == 0 && !isEmpty()) {
                 if (!(x > this.left + 71 && x < this.left + 71 + 30 && y > this.top + 151 && y < this.top + 151 + 15)) {
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.get(), 0.85F, 0.25f));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 0.85F, 0.25f));
                     this.clicked = false;
                 }
             }
@@ -228,7 +230,7 @@ public class CourierLetterScreen extends Screen {
     @Override
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         Lighting.setupForFlatItems();
-        this.renderBackground(pGuiGraphics);
+        this.renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         pGuiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.top + 4, 0x333333);
 
         pGuiGraphics.blit(GUI, left, top, 0, 0, img_width, img_height);
@@ -368,13 +370,12 @@ public class CourierLetterScreen extends Screen {
         RenderSystem.setShaderTexture(0, pAtlasLocation);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bufferbuilder.vertex(matrix4f, pX1, pY1, pBlitOffset).uv(pMinU, pMinV).endVertex();
-        bufferbuilder.vertex(matrix4f, pX1, pY2, pBlitOffset).uv(pMinU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, pX2, pY2, pBlitOffset).uv(pMaxU, pMaxV).endVertex();
-        bufferbuilder.vertex(matrix4f, pX2, pY1, pBlitOffset).uv(pMaxU, pMinV).endVertex();
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        bufferbuilder.addVertex(matrix4f, pX1, pY1, pBlitOffset).setUv(pMinU, pMinV);
+        bufferbuilder.addVertex(matrix4f, pX1, pY2, pBlitOffset).setUv(pMinU, pMaxV);
+        bufferbuilder.addVertex(matrix4f, pX2, pY2, pBlitOffset).setUv(pMaxU, pMaxV);
+        bufferbuilder.addVertex(matrix4f, pX2, pY1, pBlitOffset).setUv(pMaxU, pMinV);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
     }
 
     @Override

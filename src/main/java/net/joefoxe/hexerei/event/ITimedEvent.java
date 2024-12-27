@@ -1,15 +1,20 @@
 package net.joefoxe.hexerei.event;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.event.TickEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * A basic timed event for the EventQueue.
  */
 public interface ITimedEvent {
 
-    default void tickEvent(TickEvent event){
-        tick(event.side.isServer());
+    default void tickEvent(ClientTickEvent event){
+        tick(false);
+    }
+
+    default void tickEvent(ServerTickEvent event){
+        tick(true);
     }
 
     void tick(boolean serverSide);

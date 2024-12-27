@@ -2,27 +2,18 @@ package net.joefoxe.hexerei.client.renderer.entity.custom;
 
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.item.ModItems;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.ChestBoat;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -36,20 +27,14 @@ public class ModChestBoatEntity extends ChestBoat {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_ID_TYPE, Type.WILLOW.ordinal());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_ID_TYPE, Type.WILLOW.ordinal());
     }
-
 
     @Override
     public ItemStack getPickResult() {
         return new ItemStack(this.getDropItem());
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
     }
 
     @Override
@@ -87,37 +72,35 @@ public class ModChestBoatEntity extends ChestBoat {
         };
     }
 
-
-
-    @Override
-    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
-        this.lastYd = getDeltaMovement().y;
-        if (!isPassenger()) {
-            if (onGround) {
-                if (this.fallDistance > 3f) {
-                    if (this.status != Status.ON_LAND) {
-                        this.fallDistance = 0f;
-                        return;
-                    }
-                    causeFallDamage(this.fallDistance, 1f, this.damageSources().fall());
-                    if (!this.level().isClientSide && !this.isRemoved()) {
-                        this.remove(RemovalReason.KILLED);
-                        if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-                            for (int i = 0; i < 3; ++i) {
-                                spawnAtLocation(getModel().getPlanks());
-                            }
-                            for (int j = 0; j < 2; ++j) {
-                                spawnAtLocation(Items.STICK);
-                            }
-                        }
-                    }
-                }
-                this.fallDistance = 0f;
-            } else if (!this.level().getFluidState(this.blockPosition().below()).is(FluidTags.WATER) && y < 0d) {
-                this.fallDistance = (float) ((double) this.fallDistance - y);
-            }
-        }
-    }
+//    @Override
+//    protected void checkFallDamage(double y, boolean onGround, BlockState state, BlockPos pos) {
+//        this.lastYd = getDeltaMovement().y;
+//        if (!isPassenger()) {
+//            if (onGround) {
+//                if (this.fallDistance > 3f) {
+//                    if (this.status != Status.ON_LAND) {
+//                        this.fallDistance = 0f;
+//                        return;
+//                    }
+//                    causeFallDamage(this.fallDistance, 1f, this.damageSources().fall());
+//                    if (!this.level().isClientSide && !this.isRemoved()) {
+//                        this.remove(RemovalReason.KILLED);
+//                        if (this.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
+//                            for (int i = 0; i < 3; ++i) {
+//                                spawnAtLocation(getModel().getPlanks());
+//                            }
+//                            for (int j = 0; j < 2; ++j) {
+//                                spawnAtLocation(Items.STICK);
+//                            }
+//                        }
+//                    }
+//                }
+//                this.fallDistance = 0f;
+//            } else if (!this.level().getFluidState(this.blockPosition().below()).is(FluidTags.WATER) && y < 0d) {
+//                this.fallDistance = (float) ((double) this.fallDistance - y);
+//            }
+//        }
+//    }
 
     public ModChestBoatEntity withModel(Type type) {
         this.entityData.set(DATA_ID_TYPE, type.ordinal());

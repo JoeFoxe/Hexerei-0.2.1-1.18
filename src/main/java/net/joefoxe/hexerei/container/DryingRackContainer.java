@@ -1,7 +1,10 @@
 package net.joefoxe.hexerei.container;
 
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.tileentity.CandleDipperTile;
+import net.joefoxe.hexerei.tileentity.DryingRackTile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -10,10 +13,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 
 public class DryingRackContainer extends AbstractContainerMenu {
@@ -29,16 +31,17 @@ public class DryingRackContainer extends AbstractContainerMenu {
 
         layoutPlayerInventorySlots(8, 86);
 
-        //add slots for mixing cauldron
-        if(tileEntity != null) {
-            tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(h -> {
-                addSlot(new SlotItemHandler(h, 0, 80, 5));
-                addSlot(new SlotItemHandler(h, 1, 102, 14));
-                addSlot(new SlotItemHandler(h, 2, 58, 14));
-            });
-
+        if(tileEntity instanceof DryingRackTile dryingRack) {
+            net.neoforged.neoforge.items.IItemHandler handler = new net.neoforged.neoforge.items.wrapper.InvWrapper(dryingRack);
+            addSlot(new SlotItemHandler(handler, 0, 80, 5));
+            addSlot(new SlotItemHandler(handler, 1, 102, 14));
+            addSlot(new SlotItemHandler(handler, 7, 58, 14));
         }
 
+    }
+
+    public DryingRackContainer(int windowId, Inventory playerInventory, RegistryFriendlyByteBuf byteBuf) {
+        this(windowId, playerInventory.player.level(), byteBuf.readBlockPos(), playerInventory, playerInventory.player);
     }
 
     @Override

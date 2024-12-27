@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class EmotionPacket extends AbstractPacket {
 
-public class EmotionPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, EmotionPacket> CODEC  = StreamCodec.ofMember(EmotionPacket::encode, EmotionPacket::new);
+    public static final CustomPacketPayload.Type<EmotionPacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("owl_emotion"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int packedEmotionScales;
 
@@ -19,42 +28,26 @@ public class EmotionPacket {
         this.packedEmotionScales = packedEmotionScales;
 
     }
-    public EmotionPacket(FriendlyByteBuf buf) {
+    public EmotionPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.packedEmotionScales = buf.readInt();
     }
 
-    public static void encode(EmotionPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.packedEmotionScales);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(packedEmotionScales);
     }
 
-    public static EmotionPacket decode(FriendlyByteBuf buffer) {
-        return new EmotionPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(EmotionPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
+        if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+            int packedEmotionScales = this.packedEmotionScales;
+            int happiness = (packedEmotionScales >> 16) & 0xFF;
+            int distressed = (packedEmotionScales >> 8) & 0xFF;
+            int anger = packedEmotionScales & 0xFF;
 
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                    int packedEmotionScales = packet.packedEmotionScales;
-                    int happiness = (packedEmotionScales >> 16) & 0xFF;
-                    int distressed = (packedEmotionScales >> 8) & 0xFF;
-                    int anger = packedEmotionScales & 0xFF;
-
-                    owl.emotions = new OwlEntity.Emotions(anger, distressed, happiness);
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+            owl.emotions = new OwlEntity.Emotions(anger, distressed, happiness);
+        }
     }
 }

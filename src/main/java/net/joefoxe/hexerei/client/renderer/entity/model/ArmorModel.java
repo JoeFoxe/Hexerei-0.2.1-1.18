@@ -7,9 +7,8 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
-public class ArmorModel extends HumanoidModel<LivingEntity> implements IClientItemExtensions {
+public class ArmorModel extends HumanoidModel<LivingEntity> {
 
     public EquipmentSlot slot;
     public LivingEntity entity;
@@ -114,11 +113,10 @@ public class ArmorModel extends HumanoidModel<LivingEntity> implements IClientIt
 //    }
 
 
-
     @Override
-    public void renderToBuffer(PoseStack ms, VertexConsumer buffer, int light, int overlay, float r, float g, float b, float a) {
+    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
         setPartVisibility(slot);
-        super.renderToBuffer(ms, buffer, light, overlay, r, g, b, a);
+        super.renderToBuffer(poseStack, buffer, packedLight, packedOverlay, color);
     }
 
     private void setPartVisibility(EquipmentSlot slot) {

@@ -33,14 +33,12 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
-import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.util.NonNullLazy;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.neoforged.neoforge.client.event.TextureAtlasStitchedEvent;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,15 +50,15 @@ import java.util.function.Supplier;
 
 import static net.joefoxe.hexerei.block.connected.StitchedSprite.ALL;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(value = Dist.CLIENT, modid = Hexerei.MOD_ID)
 public class ClientProxy implements SidedProxy {
     public static KeyMapping[] keys = null;
 
-    public static final ModelLayerLocation CANDLE_HERB_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_herb_layer"), "main");
-    public static final ModelLayerLocation WITCH_ARMOR_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "witch_armor"), "main");
-    public static final ModelLayerLocation MUSHROOM_WITCH_ARMOR_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "mushroom_witch_armor"), "main");
+    public static final ModelLayerLocation CANDLE_HERB_LAYER = new ModelLayerLocation(HexereiUtil.getResource("candle_herb_layer"), "main");
+    public static final ModelLayerLocation WITCH_ARMOR_LAYER = new ModelLayerLocation(HexereiUtil.getResource("witch_armor"), "main");
+    public static final ModelLayerLocation MUSHROOM_WITCH_ARMOR_LAYER = new ModelLayerLocation(HexereiUtil.getResource("mushroom_witch_armor"), "main");
 
-    public static final ModelLayerLocation READING_GLASSES_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "reading_glasses"), "main");
+    public static final ModelLayerLocation READING_GLASSES_LAYER = new ModelLayerLocation(HexereiUtil.getResource("reading_glasses"), "main");
 
     public static final BlockConnectivity BLOCK_CONNECTIVITY = new BlockConnectivity();
     public static final ModelSwapper MODEL_SWAPPER = new ModelSwapper();
@@ -90,18 +88,18 @@ public class ClientProxy implements SidedProxy {
     }
 
 
-    public static void registerISTER(Consumer<IClientItemExtensions> consumer, BiFunction<BlockEntityRenderDispatcher, EntityModelSet, BlockEntityWithoutLevelRenderer> factory) {
-        consumer.accept(new IClientItemExtensions() {
-            final NonNullLazy<BlockEntityWithoutLevelRenderer> renderer = NonNullLazy.of(
-                    () -> factory.apply(Minecraft.getInstance().getBlockEntityRenderDispatcher(),
-                            Minecraft.getInstance().getEntityModels()));
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                return renderer.get();
-            }
-        });
-    }
+//    public static void registerISTER(Consumer<IClientItemExtensions> consumer, BiFunction<BlockEntityRenderDispatcher, EntityModelSet, BlockEntityWithoutLevelRenderer> factory) {
+//        consumer.accept(new IClientItemExtensions() {
+//            final NonNullLazy<BlockEntityWithoutLevelRenderer> renderer = NonNullLazy.of(
+//                    () -> factory.apply(Minecraft.getInstance().getBlockEntityRenderDispatcher(),
+//                            Minecraft.getInstance().getEntityModels()));
+//
+//            @Override
+//            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+//                return renderer.get();
+//            }
+//        });
+//    }
 
     @SubscribeEvent
     public static void registerClientTooltip(RegisterClientTooltipComponentFactoriesEvent event) {
@@ -171,21 +169,21 @@ public class ClientProxy implements SidedProxy {
         event.registerLayerDefinition(CandleModel.CANDLE_HERB_LAYER, CandleModel::createBodyLayerHerb);
         event.registerLayerDefinition(CandleModel.CANDLE_GLOW_LAYER, CandleModel::createBodyLayerGlow);
         event.registerLayerDefinition(CandleModel.CANDLE_SWIRL_LAYER, CandleModel::createBodyLayerSwirl);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/willow"), "main"), BoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_willow"), "main"), BoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/witch_hazel"), "main"), BoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_witch_hazel"), "main"), BoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/mahogany"), "main"), BoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "boat/polished_mahogany"), "main"), BoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/willow"), "main"), ChestBoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_willow"), "main"), ChestBoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/witch_hazel"), "main"), ChestBoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_witch_hazel"), "main"), ChestBoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/mahogany"), "main"), ChestBoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest_boat/polished_mahogany"), "main"), ChestBoatModel::createBodyModel);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany"), "main"), ModChestRenderer::createSingleBodyLayer);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany_right"), "main"), ModChestRenderer::createDoubleBodyRightLayer);
-        event.registerLayerDefinition(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany_left"), "main"), ModChestRenderer::createDoubleBodyLeftLayer);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("boat/willow"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("boat/polished_willow"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("boat/witch_hazel"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("boat/polished_witch_hazel"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("boat/mahogany"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("boat/polished_mahogany"), "main"), BoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest_boat/willow"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest_boat/polished_willow"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest_boat/witch_hazel"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest_boat/polished_witch_hazel"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest_boat/mahogany"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest_boat/polished_mahogany"), "main"), ChestBoatModel::createBodyModel);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest/mahogany"), "main"), ModChestRenderer::createSingleBodyLayer);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest/mahogany_right"), "main"), ModChestRenderer::createDoubleBodyRightLayer);
+        event.registerLayerDefinition(new ModelLayerLocation(HexereiUtil.getResource("chest/mahogany_left"), "main"), ModChestRenderer::createDoubleBodyLeftLayer);
 
 
         initArmors(event::registerLayerDefinition);
@@ -222,8 +220,9 @@ public class ClientProxy implements SidedProxy {
 //            }
 //        }
 //    }
+
     @SubscribeEvent
-    public static void onTextureStitch(TextureStitchEvent.Post event) {
+    public static void onTextureStitch(TextureAtlasStitchedEvent event) {
         TextureAtlas atlas = event.getAtlas();
         ResourceLocation atlasLocation = atlas.location();
 
@@ -239,104 +238,104 @@ public class ClientProxy implements SidedProxy {
     public static void registerTextLocations(){
 //        registerTextWidthLocations();
 ////        for(char i = 'A'; i < 'A' + 23; i++)
-//        TEXT.put(' ',new ResourceLocation(Hexerei.MOD_ID, "book/space"));
-//        TEXT.put('1',new ResourceLocation(Hexerei.MOD_ID, "book/1"));
-//        TEXT.put('2',new ResourceLocation(Hexerei.MOD_ID, "book/2"));
-//        TEXT.put('3',new ResourceLocation(Hexerei.MOD_ID, "book/3"));
-//        TEXT.put('4',new ResourceLocation(Hexerei.MOD_ID, "book/4"));
-//        TEXT.put('5',new ResourceLocation(Hexerei.MOD_ID, "book/5"));
-//        TEXT.put('6',new ResourceLocation(Hexerei.MOD_ID, "book/6"));
-//        TEXT.put('7',new ResourceLocation(Hexerei.MOD_ID, "book/7"));
-//        TEXT.put('8',new ResourceLocation(Hexerei.MOD_ID, "book/8"));
-//        TEXT.put('9',new ResourceLocation(Hexerei.MOD_ID, "book/9"));
-//        TEXT.put('0',new ResourceLocation(Hexerei.MOD_ID, "book/0"));
-//        TEXT.put('(',new ResourceLocation(Hexerei.MOD_ID, "book/left_parentheses"));
-//        TEXT.put(')',new ResourceLocation(Hexerei.MOD_ID, "book/right_parentheses"));
-//        TEXT.put('.',new ResourceLocation(Hexerei.MOD_ID, "book/period"));
-//        TEXT.put(',',new ResourceLocation(Hexerei.MOD_ID, "book/comma"));
-//        TEXT.put('!',new ResourceLocation(Hexerei.MOD_ID, "book/exclamation_point"));
-//        TEXT.put('?',new ResourceLocation(Hexerei.MOD_ID, "book/question_mark"));
-//        TEXT.put('`',new ResourceLocation(Hexerei.MOD_ID, "book/grave"));
-//        TEXT.put('~',new ResourceLocation(Hexerei.MOD_ID, "book/tilde"));
-//        TEXT.put('@',new ResourceLocation(Hexerei.MOD_ID, "book/at"));
-//        TEXT.put('#',new ResourceLocation(Hexerei.MOD_ID, "book/pound"));
-//        TEXT.put('$',new ResourceLocation(Hexerei.MOD_ID, "book/dollar"));
-//        TEXT.put('%',new ResourceLocation(Hexerei.MOD_ID, "book/percent"));
-//        TEXT.put('^',new ResourceLocation(Hexerei.MOD_ID, "book/caret"));
-//        TEXT.put('&',new ResourceLocation(Hexerei.MOD_ID, "book/ampersand"));
-//        TEXT.put('*',new ResourceLocation(Hexerei.MOD_ID, "book/star"));
-//        TEXT.put('-',new ResourceLocation(Hexerei.MOD_ID, "book/dash"));
-//        TEXT.put('_',new ResourceLocation(Hexerei.MOD_ID, "book/underscore"));
-//        TEXT.put('=',new ResourceLocation(Hexerei.MOD_ID, "book/equals"));
-//        TEXT.put('+',new ResourceLocation(Hexerei.MOD_ID, "book/plus"));
-//        TEXT.put(':',new ResourceLocation(Hexerei.MOD_ID, "book/colon"));
-//        TEXT.put(';',new ResourceLocation(Hexerei.MOD_ID, "book/semi_colon"));
-//        TEXT.put('|',new ResourceLocation(Hexerei.MOD_ID, "book/vertical_bar"));
-//        TEXT.put('/',new ResourceLocation(Hexerei.MOD_ID, "book/slash"));
-//        TEXT.put('\\',new ResourceLocation(Hexerei.MOD_ID, "book/backslash"));
-//        TEXT.put('[',new ResourceLocation(Hexerei.MOD_ID, "book/right_bracket"));
-//        TEXT.put(']',new ResourceLocation(Hexerei.MOD_ID, "book/left_bracket"));
-//        TEXT.put('{',new ResourceLocation(Hexerei.MOD_ID, "book/right_brace"));
-//        TEXT.put('}',new ResourceLocation(Hexerei.MOD_ID, "book/left_brace"));
-//        TEXT.put('<',new ResourceLocation(Hexerei.MOD_ID, "book/less_than"));
-//        TEXT.put('>',new ResourceLocation(Hexerei.MOD_ID, "book/greater_than"));
-//        TEXT.put('\'',new ResourceLocation(Hexerei.MOD_ID, "book/apostrophe"));
-//        TEXT.put('"',new ResourceLocation(Hexerei.MOD_ID, "book/quote"));
+//        TEXT.put(' ',HexereiUtil.getResource("book/space"));
+//        TEXT.put('1',HexereiUtil.getResource("book/1"));
+//        TEXT.put('2',HexereiUtil.getResource("book/2"));
+//        TEXT.put('3',HexereiUtil.getResource("book/3"));
+//        TEXT.put('4',HexereiUtil.getResource("book/4"));
+//        TEXT.put('5',HexereiUtil.getResource("book/5"));
+//        TEXT.put('6',HexereiUtil.getResource("book/6"));
+//        TEXT.put('7',HexereiUtil.getResource("book/7"));
+//        TEXT.put('8',HexereiUtil.getResource("book/8"));
+//        TEXT.put('9',HexereiUtil.getResource("book/9"));
+//        TEXT.put('0',HexereiUtil.getResource("book/0"));
+//        TEXT.put('(',HexereiUtil.getResource("book/left_parentheses"));
+//        TEXT.put(')',HexereiUtil.getResource("book/right_parentheses"));
+//        TEXT.put('.',HexereiUtil.getResource("book/period"));
+//        TEXT.put(',',HexereiUtil.getResource("book/comma"));
+//        TEXT.put('!',HexereiUtil.getResource("book/exclamation_point"));
+//        TEXT.put('?',HexereiUtil.getResource("book/question_mark"));
+//        TEXT.put('`',HexereiUtil.getResource("book/grave"));
+//        TEXT.put('~',HexereiUtil.getResource("book/tilde"));
+//        TEXT.put('@',HexereiUtil.getResource("book/at"));
+//        TEXT.put('#',HexereiUtil.getResource("book/pound"));
+//        TEXT.put('$',HexereiUtil.getResource("book/dollar"));
+//        TEXT.put('%',HexereiUtil.getResource("book/percent"));
+//        TEXT.put('^',HexereiUtil.getResource("book/caret"));
+//        TEXT.put('&',HexereiUtil.getResource("book/ampersand"));
+//        TEXT.put('*',HexereiUtil.getResource("book/star"));
+//        TEXT.put('-',HexereiUtil.getResource("book/dash"));
+//        TEXT.put('_',HexereiUtil.getResource("book/underscore"));
+//        TEXT.put('=',HexereiUtil.getResource("book/equals"));
+//        TEXT.put('+',HexereiUtil.getResource("book/plus"));
+//        TEXT.put(':',HexereiUtil.getResource("book/colon"));
+//        TEXT.put(';',HexereiUtil.getResource("book/semi_colon"));
+//        TEXT.put('|',HexereiUtil.getResource("book/vertical_bar"));
+//        TEXT.put('/',HexereiUtil.getResource("book/slash"));
+//        TEXT.put('\\',HexereiUtil.getResource("book/backslash"));
+//        TEXT.put('[',HexereiUtil.getResource("book/right_bracket"));
+//        TEXT.put(']',HexereiUtil.getResource("book/left_bracket"));
+//        TEXT.put('{',HexereiUtil.getResource("book/right_brace"));
+//        TEXT.put('}',HexereiUtil.getResource("book/left_brace"));
+//        TEXT.put('<',HexereiUtil.getResource("book/less_than"));
+//        TEXT.put('>',HexereiUtil.getResource("book/greater_than"));
+//        TEXT.put('\'',HexereiUtil.getResource("book/apostrophe"));
+//        TEXT.put('"',HexereiUtil.getResource("book/quote"));
 //
 //
-//        TEXT.put('A',new ResourceLocation(Hexerei.MOD_ID, "book/a_upper"));
-//        TEXT.put('B',new ResourceLocation(Hexerei.MOD_ID, "book/b_upper"));
-//        TEXT.put('C',new ResourceLocation(Hexerei.MOD_ID, "book/c_upper"));
-//        TEXT.put('D',new ResourceLocation(Hexerei.MOD_ID, "book/d_upper"));
-//        TEXT.put('E',new ResourceLocation(Hexerei.MOD_ID, "book/e_upper"));
-//        TEXT.put('F',new ResourceLocation(Hexerei.MOD_ID, "book/f_upper"));
-//        TEXT.put('G',new ResourceLocation(Hexerei.MOD_ID, "book/g_upper"));
-//        TEXT.put('H',new ResourceLocation(Hexerei.MOD_ID, "book/h_upper"));
-//        TEXT.put('I',new ResourceLocation(Hexerei.MOD_ID, "book/i_upper"));
-//        TEXT.put('J',new ResourceLocation(Hexerei.MOD_ID, "book/j_upper"));
-//        TEXT.put('K',new ResourceLocation(Hexerei.MOD_ID, "book/k_upper"));
-//        TEXT.put('L',new ResourceLocation(Hexerei.MOD_ID, "book/l_upper"));
-//        TEXT.put('M',new ResourceLocation(Hexerei.MOD_ID, "book/m_upper"));
-//        TEXT.put('N',new ResourceLocation(Hexerei.MOD_ID, "book/n_upper"));
-//        TEXT.put('O',new ResourceLocation(Hexerei.MOD_ID, "book/o_upper"));
-//        TEXT.put('P',new ResourceLocation(Hexerei.MOD_ID, "book/p_upper"));
-//        TEXT.put('Q',new ResourceLocation(Hexerei.MOD_ID, "book/q_upper"));
-//        TEXT.put('R',new ResourceLocation(Hexerei.MOD_ID, "book/r_upper"));
-//        TEXT.put('S',new ResourceLocation(Hexerei.MOD_ID, "book/s_upper"));
-//        TEXT.put('T',new ResourceLocation(Hexerei.MOD_ID, "book/t_upper"));
-//        TEXT.put('U',new ResourceLocation(Hexerei.MOD_ID, "book/u_upper"));
-//        TEXT.put('V',new ResourceLocation(Hexerei.MOD_ID, "book/v_upper"));
-//        TEXT.put('W',new ResourceLocation(Hexerei.MOD_ID, "book/w_upper"));
-//        TEXT.put('X',new ResourceLocation(Hexerei.MOD_ID, "book/x_upper"));
-//        TEXT.put('Y',new ResourceLocation(Hexerei.MOD_ID, "book/y_upper"));
-//        TEXT.put('Z',new ResourceLocation(Hexerei.MOD_ID, "book/z_upper"));
+//        TEXT.put('A',HexereiUtil.getResource("book/a_upper"));
+//        TEXT.put('B',HexereiUtil.getResource("book/b_upper"));
+//        TEXT.put('C',HexereiUtil.getResource("book/c_upper"));
+//        TEXT.put('D',HexereiUtil.getResource("book/d_upper"));
+//        TEXT.put('E',HexereiUtil.getResource("book/e_upper"));
+//        TEXT.put('F',HexereiUtil.getResource("book/f_upper"));
+//        TEXT.put('G',HexereiUtil.getResource("book/g_upper"));
+//        TEXT.put('H',HexereiUtil.getResource("book/h_upper"));
+//        TEXT.put('I',HexereiUtil.getResource("book/i_upper"));
+//        TEXT.put('J',HexereiUtil.getResource("book/j_upper"));
+//        TEXT.put('K',HexereiUtil.getResource("book/k_upper"));
+//        TEXT.put('L',HexereiUtil.getResource("book/l_upper"));
+//        TEXT.put('M',HexereiUtil.getResource("book/m_upper"));
+//        TEXT.put('N',HexereiUtil.getResource("book/n_upper"));
+//        TEXT.put('O',HexereiUtil.getResource("book/o_upper"));
+//        TEXT.put('P',HexereiUtil.getResource("book/p_upper"));
+//        TEXT.put('Q',HexereiUtil.getResource("book/q_upper"));
+//        TEXT.put('R',HexereiUtil.getResource("book/r_upper"));
+//        TEXT.put('S',HexereiUtil.getResource("book/s_upper"));
+//        TEXT.put('T',HexereiUtil.getResource("book/t_upper"));
+//        TEXT.put('U',HexereiUtil.getResource("book/u_upper"));
+//        TEXT.put('V',HexereiUtil.getResource("book/v_upper"));
+//        TEXT.put('W',HexereiUtil.getResource("book/w_upper"));
+//        TEXT.put('X',HexereiUtil.getResource("book/x_upper"));
+//        TEXT.put('Y',HexereiUtil.getResource("book/y_upper"));
+//        TEXT.put('Z',HexereiUtil.getResource("book/z_upper"));
 //
-//        TEXT.put('a',new ResourceLocation(Hexerei.MOD_ID, "book/a_lower"));
-//        TEXT.put('b',new ResourceLocation(Hexerei.MOD_ID, "book/b_lower"));
-//        TEXT.put('c',new ResourceLocation(Hexerei.MOD_ID, "book/c_lower"));
-//        TEXT.put('d',new ResourceLocation(Hexerei.MOD_ID, "book/d_lower"));
-//        TEXT.put('e',new ResourceLocation(Hexerei.MOD_ID, "book/e_lower"));
-//        TEXT.put('f',new ResourceLocation(Hexerei.MOD_ID, "book/f_lower"));
-//        TEXT.put('g',new ResourceLocation(Hexerei.MOD_ID, "book/g_lower"));
-//        TEXT.put('h',new ResourceLocation(Hexerei.MOD_ID, "book/h_lower"));
-//        TEXT.put('i',new ResourceLocation(Hexerei.MOD_ID, "book/i_lower"));
-//        TEXT.put('j',new ResourceLocation(Hexerei.MOD_ID, "book/j_lower"));
-//        TEXT.put('k',new ResourceLocation(Hexerei.MOD_ID, "book/k_lower"));
-//        TEXT.put('l',new ResourceLocation(Hexerei.MOD_ID, "book/l_lower"));
-//        TEXT.put('m',new ResourceLocation(Hexerei.MOD_ID, "book/m_lower"));
-//        TEXT.put('n',new ResourceLocation(Hexerei.MOD_ID, "book/n_lower"));
-//        TEXT.put('o',new ResourceLocation(Hexerei.MOD_ID, "book/o_lower"));
-//        TEXT.put('p',new ResourceLocation(Hexerei.MOD_ID, "book/p_lower"));
-//        TEXT.put('q',new ResourceLocation(Hexerei.MOD_ID, "book/q_lower"));
-//        TEXT.put('r',new ResourceLocation(Hexerei.MOD_ID, "book/r_lower"));
-//        TEXT.put('s',new ResourceLocation(Hexerei.MOD_ID, "book/s_lower"));
-//        TEXT.put('t',new ResourceLocation(Hexerei.MOD_ID, "book/t_lower"));
-//        TEXT.put('u',new ResourceLocation(Hexerei.MOD_ID, "book/u_lower"));
-//        TEXT.put('v',new ResourceLocation(Hexerei.MOD_ID, "book/v_lower"));
-//        TEXT.put('w',new ResourceLocation(Hexerei.MOD_ID, "book/w_lower"));
-//        TEXT.put('x',new ResourceLocation(Hexerei.MOD_ID, "book/x_lower"));
-//        TEXT.put('y',new ResourceLocation(Hexerei.MOD_ID, "book/y_lower"));
-//        TEXT.put('z',new ResourceLocation(Hexerei.MOD_ID, "book/z_lower"));
+//        TEXT.put('a',HexereiUtil.getResource("book/a_lower"));
+//        TEXT.put('b',HexereiUtil.getResource("book/b_lower"));
+//        TEXT.put('c',HexereiUtil.getResource("book/c_lower"));
+//        TEXT.put('d',HexereiUtil.getResource("book/d_lower"));
+//        TEXT.put('e',HexereiUtil.getResource("book/e_lower"));
+//        TEXT.put('f',HexereiUtil.getResource("book/f_lower"));
+//        TEXT.put('g',HexereiUtil.getResource("book/g_lower"));
+//        TEXT.put('h',HexereiUtil.getResource("book/h_lower"));
+//        TEXT.put('i',HexereiUtil.getResource("book/i_lower"));
+//        TEXT.put('j',HexereiUtil.getResource("book/j_lower"));
+//        TEXT.put('k',HexereiUtil.getResource("book/k_lower"));
+//        TEXT.put('l',HexereiUtil.getResource("book/l_lower"));
+//        TEXT.put('m',HexereiUtil.getResource("book/m_lower"));
+//        TEXT.put('n',HexereiUtil.getResource("book/n_lower"));
+//        TEXT.put('o',HexereiUtil.getResource("book/o_lower"));
+//        TEXT.put('p',HexereiUtil.getResource("book/p_lower"));
+//        TEXT.put('q',HexereiUtil.getResource("book/q_lower"));
+//        TEXT.put('r',HexereiUtil.getResource("book/r_lower"));
+//        TEXT.put('s',HexereiUtil.getResource("book/s_lower"));
+//        TEXT.put('t',HexereiUtil.getResource("book/t_lower"));
+//        TEXT.put('u',HexereiUtil.getResource("book/u_lower"));
+//        TEXT.put('v',HexereiUtil.getResource("book/v_lower"));
+//        TEXT.put('w',HexereiUtil.getResource("book/w_lower"));
+//        TEXT.put('x',HexereiUtil.getResource("book/x_lower"));
+//        TEXT.put('y',HexereiUtil.getResource("book/y_lower"));
+//        TEXT.put('z',HexereiUtil.getResource("book/z_lower"));
     }
 //    public static void registerTextWidthLocations(){
 //        TEXT_WIDTH.put(' ',0.026f);

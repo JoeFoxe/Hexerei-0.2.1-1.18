@@ -1,6 +1,5 @@
 package net.joefoxe.hexerei.item.custom;
 
-import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -10,20 +9,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.CrossCollisionBlock;
-import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -32,7 +29,7 @@ import static net.joefoxe.hexerei.block.custom.ConnectingCarpetStairs.COLOR;
 import static net.joefoxe.hexerei.item.custom.WaxBlendItem.WAX_OFF_BY_BLOCK;
 
 public class CleaningClothItem extends Item {
-    public static final ToolAction CLOTH_WAX_OFF = ToolAction.get("cloth_wax_off");
+    public static final ItemAbility CLOTH_WAX_OFF = ItemAbility.get("cloth_wax_off");
 
     public CleaningClothItem(Properties pProperties) {
         super(pProperties);
@@ -58,9 +55,7 @@ public class CleaningClothItem extends Item {
             level.setBlockAndUpdate(blockpos, cleanedState);
             level.gameEvent(GameEvent.BLOCK_CHANGE, blockpos, GameEvent.Context.of(player, cleanedState));
             if (player != null) {
-                itemstack.hurtAndBreak(1, player, (p_150686_) -> {
-                    p_150686_.broadcastBreakEvent(pContext.getHand());
-                });
+                itemstack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(pContext.getHand()));
             }
 
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -106,9 +101,9 @@ public class CleaningClothItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-        tooltip.add(Component.translatable("tooltip.hexerei.cloth").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-
-        super.appendHoverText(stack, world, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable("tooltip.hexerei.cloth").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
+
 }

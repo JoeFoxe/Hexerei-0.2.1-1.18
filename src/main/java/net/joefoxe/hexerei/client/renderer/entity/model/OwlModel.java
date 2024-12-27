@@ -22,7 +22,7 @@ import java.util.Map;
 public class OwlModel<T extends OwlEntity> extends ColorableAgeableListModel<T> {
     public final ModelPart owl;
     public final ModelPart head;
-    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "owl"), "main");
+    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(HexereiUtil.getResource("owl"), "main");
 
     public OwlModel(ModelPart root) {
         this.owl = root.getChild("owl");
@@ -444,9 +444,8 @@ public class OwlModel<T extends OwlEntity> extends ColorableAgeableListModel<T> 
     }
 
     @Override
-    public void renderToBuffer(PoseStack matrixStack, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-
-        owl.render(matrixStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+        owl.render(poseStack, buffer, packedLight, packedOverlay, color);
     }
 
     @Override

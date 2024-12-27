@@ -6,6 +6,7 @@ import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.TreeCutter;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
@@ -21,20 +22,15 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AirBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +112,7 @@ public class CuttingCrystalTile extends BlockEntity {
             Vec3 vec3_2 = HexereiUtil.getCenterOf(pos);
             Vec3 vec3_3 = vec3_2.subtract(vec3_1).normalize();
             Vec3 vec3_4 = vec3_1.subtract(vec3_2).normalize();
-            BlockHitResult result = level.clip(new ClipContext(vec3_1.add(vec3_3), HexereiUtil.getCenterOf(pos).subtract(vec3_4), net.minecraft.world.level.ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, null));
+            BlockHitResult result = level.clip(new ClipContext(vec3_1.add(vec3_3), HexereiUtil.getCenterOf(pos).subtract(vec3_4), net.minecraft.world.level.ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, CollisionContext.empty()));
             if(result.getType() == HitResult.Type.BLOCK && !posEquals(result.getBlockPos(), pos) && !posEquals(result.getBlockPos(), thisPos)){
                 breakingPos = result.getBlockPos();
                 level.addParticle(ModParticleTypes.EXTINGUISH.get(), thisPos.getX() + 0.5f, thisPos.getY() + 0.5f, thisPos.getZ() + 0.5f, (pos.getX() - thisPos.getX()) / 50f, (pos.getY() - thisPos.getY()) / 50f, (pos.getZ() - thisPos.getZ()) / 50f);
@@ -208,84 +204,82 @@ public class CuttingCrystalTile extends BlockEntity {
         super.setChanged();
     }
 
-    public void sync() {
-        setChanged();
-
-        if(level != null){
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
-
-            if (this.level != null)
-                this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
-                        Block.UPDATE_CLIENTS);
-        }
-    }
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
-
-        return super.getCapability(cap);
-    }
+//    public void sync() {
+//        setChanged();
+//
+//        if(level != null){
+//            if (!level.isClientSide)
+//                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+//
+//            if (this.level != null)
+//                this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
+//                        Block.UPDATE_CLIENTS);
+//        }
+//    }
 
     public CuttingCrystalTile(BlockPos blockPos, BlockState blockState) {
         this(ModTileEntities.CUTTING_CRYSTAL_TILE.get(),blockPos, blockState);
     }
 
-    @Override
-    public void load(CompoundTag pTag) {
-        super.load(pTag);
-        if(pTag.contains("boundPos")) {
-            int size = pTag.getInt("size");
-            List<BlockPos> newList = new ArrayList<>();
-            CompoundTag boundList = pTag.getCompound("boundPos");
-
-            for(int i = 0; i < size; i++){
-                newList.add(NbtUtils.readBlockPos(boundList.getCompound("boundPos" + i)));
-            }
-
-            this.boundPos = newList;
-        }
-    }
-
-    public void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
-        int size = boundPos.size();
-        compound.putInt("size", size);
-        CompoundTag boundList = new CompoundTag();
-        for(int i = 0; i < size; i++){
-            boundList.put("boundPos" + i, NbtUtils.writeBlockPos(this.boundPos.get(i)));
-        }
-        if(!boundList.isEmpty())
-            compound.put("boundPos", boundList);
-    }
-
-
 //    @Override
-    public CompoundTag save(CompoundTag compound) {
-        super.saveAdditional(compound);
-        int size = boundPos.size();
-        compound.putInt("size", size);
-        CompoundTag boundList = new CompoundTag();
-        for(int i = 0; i < size; i++){
-            boundList.put("boundPos" + i, NbtUtils.writeBlockPos(this.boundPos.get(i)));
-        }
-        if(!boundList.isEmpty())
-            compound.put("boundPos", boundList);
+//    public void load(CompoundTag pTag) {
+//        super.load(pTag);
+//        if(pTag.contains("boundPos")) {
+//            int size = pTag.getInt("size");
+//            List<BlockPos> newList = new ArrayList<>();
+//            CompoundTag boundList = pTag.getCompound("boundPos");
+//
+//            for(int i = 0; i < size; i++){
+//                newList.add(NbtUtils.readBlockPos(boundList.getCompound("boundPos" + i)));
+//            }
+//
+//            this.boundPos = newList;
+//        }
+//    }
+//
+//    public void saveAdditional(CompoundTag compound) {
+//        super.saveAdditional(compound);
+//        int size = boundPos.size();
+//        compound.putInt("size", size);
+//        CompoundTag boundList = new CompoundTag();
+//        for(int i = 0; i < size; i++){
+//            boundList.put("boundPos" + i, NbtUtils.writeBlockPos(this.boundPos.get(i)));
+//        }
+//        if(!boundList.isEmpty())
+//            compound.put("boundPos", boundList);
+//    }
+//
+//
 
-        return compound;
-    }
+
+    ////    @Override
+//    public CompoundTag save(CompoundTag compound) {
+//        super.saveAdditional(compound);
+//        int size = boundPos.size();
+//        compound.putInt("size", size);
+//        CompoundTag boundList = new CompoundTag();
+//        for(int i = 0; i < size; i++){
+//            boundList.put("boundPos" + i, NbtUtils.writeBlockPos(this.boundPos.get(i)));
+//        }
+//        if(!boundList.isEmpty())
+//            compound.put("boundPos", boundList);
+//
+//        return compound;
+//    }
+
+
 
     @Override
-    public CompoundTag getUpdateTag()
-    {
-        return this.save(new CompoundTag());
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return super.getUpdateTag(registries);
+//        return this.save(new CompoundTag());
     }
+
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
 
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
     public static double getDistanceToEntity(Entity entity, BlockPos pos) {
@@ -308,11 +302,6 @@ public class CuttingCrystalTile extends BlockEntity {
 //    public double getMaxRenderDistanceSquared() {
 //        return 4096D;
 //    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
-    }
 
     public float getAngle(Vec3 pos) {
         float angle = (float) Math.toDegrees(Math.atan2(pos.z() - this.getBlockPos().getZ() - 0.5f, pos.x() - this.getBlockPos().getX() - 0.5f));

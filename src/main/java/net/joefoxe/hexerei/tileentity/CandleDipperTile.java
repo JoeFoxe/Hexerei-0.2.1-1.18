@@ -2,17 +2,22 @@ package net.joefoxe.hexerei.tileentity;
 
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.recipes.DipperRecipe;
+import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.EmitParticlesPacket;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -21,29 +26,27 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.*;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.SidedInvWrapper;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
+import net.neoforged.neoforge.fluids.FluidStack;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -112,7 +115,7 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             return this.state == DipperState.NON;
         }
 
-        public CompoundTag save() {
+        public CompoundTag save(HolderLookup.Provider registries) {
             CompoundTag tag = new CompoundTag();
             tag.putInt("state", this.state.ordinal());
             tag.putInt("dippingTicks", this.dippingTicks);
@@ -122,12 +125,12 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             tag.putInt("timesDipped", this.timesDipped);
             tag.putInt("timesDippedMax", this.timesDippedMax);
             tag.putInt("fluidConsumptionAmount", this.fluidConsumptionAmount);
-            tag.put("output", this.output.save(new CompoundTag()));
+            tag.put("output", this.output.save(registries));
 
             return tag;
         }
 
-        public void load(CompoundTag tag) {
+        public void load(CompoundTag tag, HolderLookup.Provider registries) {
             this.state = DipperState.byId(tag.getInt("state"));
             this.dippingTicks = tag.getInt("dippingTicks");
             this.dippingTicksMax = tag.getInt("dippingTicksMax");
@@ -136,7 +139,7 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             this.timesDipped = tag.getInt("timesDipped");
             this.timesDippedMax = tag.getInt("timesDippedMax");
             this.fluidConsumptionAmount = tag.getInt("fluidConsumptionAmount");
-            this.output = ItemStack.of(tag.getCompound("output"));
+            this.output = ItemStack.parse(registries, tag.getCompound("output")).orElse(ItemStack.EMPTY);
         }
     }
 
@@ -206,8 +209,11 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
     public void sync() {
 
         if (level != null) {
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+            if (!level.isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
+            }
 
             if (this.level != null)
                 this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
@@ -215,45 +221,29 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         }
     }
 
-    LazyOptional<? extends IItemHandler>[] handlers =
-            SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
-
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
-        if (facing != null && capability == ForgeCapabilities.ITEM_HANDLER) {
-            if (facing == Direction.UP)
-                return handlers[0].cast();
-            else if (facing == Direction.DOWN)
-                return handlers[1].cast();
-            else
-                return handlers[2].cast();
-        }
-
-        return super.getCapability(capability, facing);
-    }
-
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
-
-        return super.getCapability(cap);
-    }
-
-
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        super.deserializeNBT(nbt);
-    }
-
-    @Override
-    public CompoundTag serializeNBT() {
-        return super.serializeNBT();
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
-    }
+//    LazyOptional<? extends IItemHandler>[] handlers =
+//            SidedInvWrapper.create(this, Direction.UP, Direction.DOWN, Direction.NORTH);
+//
+//    @Override
+//    public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
+//        if (facing != null && capability == ForgeCapabilities.ITEM_HANDLER) {
+//            if (facing == Direction.UP)
+//                return handlers[0].cast();
+//            else if (facing == Direction.DOWN)
+//                return handlers[1].cast();
+//            else
+//                return handlers[2].cast();
+//        }
+//
+//        return super.getCapability(capability, facing);
+//    }
+//
+//    @Nonnull
+//    @Override
+//    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap) {
+//
+//        return super.getCapability(cap);
+//    }
 
     @Override
     public void onLoad() {
@@ -292,11 +282,23 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         return itemstack;
     }
 
-    public void craft() {
-        SimpleContainer inv = new SimpleContainer(3);
-        for (int i = 0; i < 3; i++)
-            inv.setItem(i, this.items.get(i));
+    private static CraftingContainer makeContainer(int width, int height, NonNullList<ItemStack> items) {
+        return new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
 
+            public @NotNull ItemStack quickMoveStack(@NotNull Player p_218264_, int p_218265_) {
+                return ItemStack.EMPTY;
+            }
+
+
+            public boolean stillValid(@NotNull Player p_29888_) {
+                return false;
+            }
+        }, width, height, items);
+    }
+
+    public void craft() {
+
+        CraftingContainer container = makeContainer(3, 1, this.items);
         BlockEntity blockEntity = level.getBlockEntity(this.worldPosition.below());
         AtomicBoolean[] matchesRecipe = new AtomicBoolean[3];
         for (int i = 0; i < matchesRecipe.length; i++)
@@ -304,45 +306,39 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
 
         if (blockEntity instanceof MixingCauldronTile mixingCauldronTile) {
 
-            List<DipperRecipe> recipes = level.getRecipeManager().getRecipesFor(DipperRecipe.Type.INSTANCE, inv, level).stream().filter((dipperRecipe) -> {
+            List<DipperRecipe> recipes = level.getRecipeManager().getRecipesFor(ModRecipeTypes.DIPPER_TYPE.get(), container.asCraftInput(), level).stream().filter((dipperRecipe) -> {
                 FluidStack tileFluid = mixingCauldronTile.getFluidStack();
-                FluidStack recipeFluid = dipperRecipe.getLiquid();
+                FluidStack recipeFluid = dipperRecipe.value().getLiquid();
 
-                CompoundTag tag = tileFluid.hasTag() ? tileFluid.getOrCreateTag() : new CompoundTag();
-                CompoundTag tag2 = recipeFluid.hasTag() ? recipeFluid.getOrCreateTag() : new CompoundTag();
+                return FluidStack.isSameFluidSameComponents(tileFluid, recipeFluid);
 
-                return NbtUtils.compareNbt(tag2, tag, true);
-            }).toList();
+            }).map(RecipeHolder::value).toList();
 
             recipes.forEach((iRecipe -> {
 
                 ItemStack output = iRecipe.getResultItem(this.level.registryAccess());
-                ItemStack input = iRecipe.getIngredients().get(0).getItems()[0];
-                boolean matchesFluid = iRecipe.getLiquid().getFluid().isSame(mixingCauldronTile.getFluidStack().getFluid()) && iRecipe.getFluidLevelsConsumed() <= mixingCauldronTile.getFluidStack().getAmount();
-                boolean hasFluidTag = iRecipe.getLiquid().hasTag();
-                if (hasFluidTag && !mixingCauldronTile.getFluidStack().isEmpty() && !mixingCauldronTile.getFluidStack().getOrCreateTag().equals(iRecipe.getLiquid().getOrCreateTag()))
-                    matchesFluid = false;
+                ItemStack input = iRecipe.getIngredients().getFirst().getItems()[0];
 
-                ResourceLocation fl2 = ForgeRegistries.FLUIDS.getKey(mixingCauldronTile.getFluidStack().getFluid());
-                CompoundTag fluidTag = mixingCauldronTile.getFluidStack().isEmpty() ? new CompoundTag() : mixingCauldronTile.getFluidStack().copy().getOrCreateTag();
+                boolean matchesFluid = FluidStack.isSameFluidSameComponents(iRecipe.getLiquid(), mixingCauldronTile.getFluidStack()) && iRecipe.getFluidLevelsConsumed() <= mixingCauldronTile.getFluidStack().getAmount();
 
-                ResourceLocation fl1 = ForgeRegistries.FLUIDS.getKey(iRecipe.getLiquid().getFluid());
-                if (!matchesFluid && fl1 != null && fl2 != null && fl1.getPath().equals(fl2.getPath())) {
-                    boolean flag = NbtUtils.compareNbt(iRecipe.getLiquid().copy().getOrCreateTag(), fluidTag, true);
-                    if (flag) {
-                        matchesFluid = true;
-                    }
-                }
+//                ResourceLocation fl2 = BuiltInRegistries.FLUID.getKey(mixingCauldronTile.getFluidStack().getFluid());
+//                CompoundTag fluidTag = mixingCauldronTile.getFluidStack().isEmpty() ? new CompoundTag() : mixingCauldronTile.getFluidStack().copy().getOrCreateTag();
+//
+//                ResourceLocation fl1 = BuiltInRegistries.FLUID.getKey(iRecipe.getLiquid().getFluid());
+//                if (!matchesFluid && fl1 != null && fl2 != null && fl1.getPath().equals(fl2.getPath())) {
+//                    boolean flag = NbtUtils.compareNbt(iRecipe.getLiquid().copy().getOrCreateTag(), fluidTag, true);
+//                    if (flag) {
+//                        matchesFluid = true;
+//                    }
+//                }
 
                 boolean useInputItemAsOutput = iRecipe.getUseInputItemAsOutput();
-                CompoundTag tag = input.getOrCreateTag();
 
 
                 for (int i = 0; i < matchesRecipe.length; i++) {
-                    CompoundTag tag2 = this.items.get(i).getOrCreateTag();
-                    boolean compare = NbtUtils.compareNbt(tag, tag2, true);
+                    boolean same = ItemStack.isSameItemSameComponents(input, this.items.get(i));
                     DipperSlot dipperSlot = dipperSlots.get(i);
-                    if (input.getItem() == this.items.get(i).getItem() && compare && !matchesRecipe[i].get()) {
+                    if (same && !matchesRecipe[i].get()) {
 
                         if (matchesFluid) {
 
@@ -354,7 +350,9 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
                                 dipperSlot.output = output.copy();
                                 if (useInputItemAsOutput) {
                                     ItemStack stack = this.items.get(i).copy();
-                                    stack.getOrCreateTag().merge(output.getOrCreateTag());
+
+                                    DataComponentMap map = DataComponentMap.composite(stack.getComponents(), output.getComponents());
+                                    stack.applyComponents(map);
                                     dipperSlot.output = stack;
                                 }
                                 dipperSlot.fluidConsumptionAmount = iRecipe.getFluidLevelsConsumed();
@@ -432,21 +430,19 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
 
     }
 
-
     @Override
-    public void load(CompoundTag nbt) {
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        if (!this.tryLoadLootTable(nbt))
-            ContainerHelper.loadAllItems(nbt, this.items);
+        if (!this.tryLoadLootTable(tag))
+            ContainerHelper.loadAllItems(tag, this.items, registries);
 
-        if (nbt.contains("slot0"))
-            dipperSlots.get(0).load(nbt.getCompound("slot0"));
-        if (nbt.contains("slot1"))
-            dipperSlots.get(1).load(nbt.getCompound("slot1"));
-        if (nbt.contains("slot2"))
-            dipperSlots.get(2).load(nbt.getCompound("slot2"));
-        super.load(nbt);
-
+        if (tag.contains("slot0"))
+            dipperSlots.get(0).load(tag.getCompound("slot0"), registries);
+        if (tag.contains("slot1"))
+            dipperSlots.get(1).load(tag.getCompound("slot1"), registries);
+        if (tag.contains("slot2"))
+            dipperSlots.get(2).load(tag.getCompound("slot2"), registries);
+        super.loadAdditional(tag, registries);
     }
 
     @Override
@@ -459,47 +455,30 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         return null;
     }
 
-    public void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
-        ContainerHelper.saveAllItems(compound, this.items);
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        ContainerHelper.saveAllItems(tag, this.items, registries);
 
-        compound.put("slot0", dipperSlots.get(0).save());
-        compound.put("slot1", dipperSlots.get(1).save());
-        compound.put("slot2", dipperSlots.get(2).save());
+        tag.put("slot0", dipperSlots.get(0).save(registries));
+        tag.put("slot1", dipperSlots.get(1).save(registries));
+        tag.put("slot2", dipperSlots.get(2).save(registries));
     }
 
-
-    public CompoundTag save(CompoundTag compound) {
-        super.saveAdditional(compound);
-        ContainerHelper.saveAllItems(compound, this.items);
-
-        compound.put("slot0", dipperSlots.get(0).save());
-        compound.put("slot1", dipperSlots.get(1).save());
-        compound.put("slot2", dipperSlots.get(2).save());
-
-        return compound;
-    }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.save(new CompoundTag());
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        this.saveAdditional(tag, registries);
+        return tag;
     }
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
 
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
-    @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt) {
-        this.deserializeNBT(pkt.getTag());
-    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
-    }
 
     public float getAngle(Vec3 pos) {
         float angle = (float) Math.toDegrees(Math.atan2(pos.z() - this.getBlockPos().getZ() - 0.5f, pos.x() - this.getBlockPos().getX() - 0.5f));
@@ -533,14 +512,36 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
             return 1;
         }
 
-        if (!ItemStack.isSameItemSameTags(stack, this.items.get(slot)))
+        if (!ItemStack.isSameItemSameComponents(stack, this.items.get(slot)))
             return 0;
 
         return 1;
     }
 
-    public int interactDipper(Player player, BlockHitResult hit) {
-        if (level == null) return 0;
+    public InteractionResult interactWithoutItem(Player player) {
+        if (player.isShiftKeyDown()) {
+            boolean flag = false;
+            for (int i = 0; i < 3; i++) {
+                DipperSlot dipperSlot = dipperSlots.get(i);
+                if (!this.items.get(i).isEmpty() && !dipperSlot.isCrafting()) {
+                    dipperSlot.timesDipped = 0;
+                    dipperSlot.dippingTicks = dipperSlot.dippingTicksMax;
+                    dipperSlot.state = DipperState.NON;
+                    dipperSlot.dryingTicks = dipperSlot.dryingTicksMax;
+                    player.getInventory().placeItemBackInInventory(this.items.get(i).copy());
+                    level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
+                    this.items.set(i, ItemStack.EMPTY);
+                    dipperSlot.output = ItemStack.EMPTY;
+                    flag = true;
+                }
+            }
+            if (flag)
+                return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
+
+    public ItemInteractionResult interactWithItem(Player player) {
         if (!player.isShiftKeyDown()) {
             if (!player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
                 Random rand = new Random();
@@ -550,11 +551,12 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
                         putItems(i, player.getItemInHand(InteractionHand.MAIN_HAND));
                         dipperSlots.get(i).dryingTicks = DRYING_START_TICKS;
                         level.playSound(null, worldPosition, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, rand.nextFloat() * 0.4F + 1.0F);
-                        return 1;
+                        return ItemInteractionResult.SUCCESS;
                     }
                 }
             }
 
+            boolean flag = false;
             for(int i = 0; i < 3; i++){
                 DipperSlot dipperSlot = dipperSlots.get(i);
                 if (dipperSlot.isFinished()) {
@@ -562,29 +564,17 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
                     dipperSlot.dippingTicks = dipperSlot.dippingTicksMax;
                     dipperSlot.state = DipperState.NON;
                     dipperSlot.dryingTicks = dipperSlot.dryingTicksMax;
-                    player.inventory.placeItemBackInInventory(this.items.get(i).copy());
+                    player.getInventory().placeItemBackInInventory(this.items.get(i).copy());
                     level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
                     this.items.set(i, ItemStack.EMPTY);
                     dipperSlot.output = ItemStack.EMPTY;
+                    flag = true;
                 }
             }
-        } else {
-            for(int i = 0; i < 3; i++){
-                DipperSlot dipperSlot = dipperSlots.get(i);
-                if (!this.items.get(i).isEmpty() && !dipperSlot.isCrafting()) {
-                    dipperSlot.timesDipped = 0;
-                    dipperSlot.dippingTicks = dipperSlot.dippingTicksMax;
-                    dipperSlot.state = DipperState.NON;
-                    dipperSlot.dryingTicks = dipperSlot.dryingTicksMax;
-                    player.inventory.placeItemBackInInventory(this.items.get(i).copy());
-                    level.playSound(null, worldPosition, SoundEvents.ITEM_FRAME_REMOVE_ITEM, SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.4F + 1.0F);
-                    this.items.set(i, ItemStack.EMPTY);
-                    dipperSlot.output = ItemStack.EMPTY;
-                }
-            }
+            return flag ? ItemInteractionResult.SUCCESS : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        return 0;
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     public void tick() {
@@ -656,7 +646,7 @@ public class CandleDipperTile extends RandomizableContainerBlockEntity implement
         if (level.getBlockEntity(this.worldPosition.below()) instanceof MixingCauldronTile cauldronTile && !level.isClientSide()) {
             cauldronTile.getFluidStack().shrink(amount);
             cauldronTile.setChanged();
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new EmitParticlesPacket(worldPosition.below(), 10, false));
+            HexereiPacketHandler.sendToNearbyClient(level, cauldronTile.getPos(), new EmitParticlesPacket(cauldronTile.getPos(), 10, false));
         }
     }
 

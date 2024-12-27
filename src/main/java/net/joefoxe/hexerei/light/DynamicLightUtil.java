@@ -1,12 +1,12 @@
 package net.joefoxe.hexerei.light;
 
 import net.joefoxe.hexerei.config.HexConfig;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
 
 public class DynamicLightUtil {
 
@@ -60,11 +60,11 @@ public class DynamicLightUtil {
     }
 
     public static ResourceLocation keyFor(Entity entity){
-        return ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
     }
 
     public static ResourceLocation keyFor(ItemLike itemLike){
-        return ForgeRegistries.ITEMS.getKey(itemLike.asItem());
+        return BuiltInRegistries.ITEM.getKey(itemLike.asItem());
     }
 
 }

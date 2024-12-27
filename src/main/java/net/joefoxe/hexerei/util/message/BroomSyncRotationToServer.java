@@ -1,51 +1,45 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class BroomSyncRotationToServer extends AbstractPacket {
 
-public class BroomSyncRotationToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BroomSyncRotationToServer> CODEC  = StreamCodec.ofMember(BroomSyncRotationToServer::encode, BroomSyncRotationToServer::new);
+    public static final CustomPacketPayload.Type<BroomSyncRotationToServer> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("broom_sync_rot_server"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     float rotation;
 
-    public BroomSyncRotationToServer(Entity entity, float tag, Entity player) {
-        this.sourceId = entity.getId();
-        this.rotation = tag;
-    }
-    public BroomSyncRotationToServer(FriendlyByteBuf buf) {
-        this.sourceId = buf.readInt();
-        this.rotation = buf.readFloat();
-
+    public BroomSyncRotationToServer(int id, float rotation) {
+        this.sourceId = id;
+        this.rotation = rotation;
     }
 
-    public static void encode(BroomSyncRotationToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeFloat(object.rotation);
+    public BroomSyncRotationToServer(RegistryFriendlyByteBuf buffer) {
+        this(buffer.readInt(), buffer.readFloat());
     }
 
-    public static BroomSyncRotationToServer decode(FriendlyByteBuf buffer) {
-        return new BroomSyncRotationToServer(buffer);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeFloat(rotation);
     }
 
-    public static void consume(BroomSyncRotationToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BroomEntity)world.getEntity(packet.sourceId)).setRotation(packet.rotation);
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(player.level().getEntity(sourceId) instanceof BroomEntity broom) {
+            broom.setRotation(rotation);
+        }
     }
 }

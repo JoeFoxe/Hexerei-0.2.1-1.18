@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.world.processor;
 
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -9,11 +9,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -24,7 +21,6 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 /**
  * Dynamically generates support legs.
@@ -32,8 +28,7 @@ import java.util.List;
  */
 @MethodsReturnNonnullByDefault
 public class NatureCovenLegProcessor extends StructureProcessor {
-    public static final NatureCovenLegProcessor INSTANCE = new NatureCovenLegProcessor();
-    public static final Codec<NatureCovenLegProcessor> CODEC = Codec.unit(() -> INSTANCE);
+    public static final MapCodec<NatureCovenLegProcessor> CODEC = MapCodec.unit(NatureCovenLegProcessor::new);
 
     @ParametersAreNonnullByDefault
     @Override

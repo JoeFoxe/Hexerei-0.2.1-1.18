@@ -9,7 +9,6 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.WoodcutterRecipe;
 import net.joefoxe.hexerei.util.HexereiUtil;
@@ -25,9 +24,9 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 
 public class WoodcutterRecipeCategory implements IRecipeCategory<WoodcutterRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "woodcutter");
+    public final static ResourceLocation UID = HexereiUtil.getResource("woodcutter");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/drying_rack_jei.png");
+            HexereiUtil.getResource("textures/gui/drying_rack_jei.png");
     private final IDrawable background;
     private final IDrawable icon;
 
@@ -47,10 +46,10 @@ public class WoodcutterRecipeCategory implements IRecipeCategory<WoodcutterRecip
         return Component.translatable("hexerei.container.woodcutter");
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {

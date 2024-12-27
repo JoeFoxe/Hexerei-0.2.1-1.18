@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.owl.ClientOwlCourierDepotData;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class ClientboundOwlCourierDepotDataInventoryPacket extends AbstractPacket {
 
-public class ClientboundOwlCourierDepotDataInventoryPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundOwlCourierDepotDataInventoryPacket> CODEC  = StreamCodec.ofMember(ClientboundOwlCourierDepotDataInventoryPacket::encode, ClientboundOwlCourierDepotDataInventoryPacket::new);
+    public static final CustomPacketPayload.Type<ClientboundOwlCourierDepotDataInventoryPacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("owl_courier_depot_inv_clientbound"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     CompoundTag tag;
 
     public CompoundTag getTag() {
@@ -21,28 +30,16 @@ public class ClientboundOwlCourierDepotDataInventoryPacket {
         this.tag = tag;
     }
 
-    public static void encode(ClientboundOwlCourierDepotDataInventoryPacket object, FriendlyByteBuf buffer) {
-        buffer.writeNbt(object.tag);
+    public ClientboundOwlCourierDepotDataInventoryPacket(RegistryFriendlyByteBuf buf) {
+        this.tag = buf.readNbt();
     }
 
-    public static ClientboundOwlCourierDepotDataInventoryPacket decode(FriendlyByteBuf buffer) {
-        return new ClientboundOwlCourierDepotDataInventoryPacket(buffer.readNbt());
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeNbt(tag);
     }
 
-    public static void consume(ClientboundOwlCourierDepotDataInventoryPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ClientOwlCourierDepotData.update(packet);
-
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        ClientOwlCourierDepotData.update(this);
     }
 }

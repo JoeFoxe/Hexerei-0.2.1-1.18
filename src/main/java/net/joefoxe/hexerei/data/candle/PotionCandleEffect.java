@@ -7,18 +7,16 @@ import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.CandleEffectParticlePacket;
 import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -59,7 +57,7 @@ public class PotionCandleEffect extends AbstractCandleEffect{
 
                 String resourceLocation = candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size()));
                 try {
-                    particle = ParticleArgument.readParticle(new StringReader(resourceLocation), BuiltInRegistries.PARTICLE_TYPE.asLookup());
+                    particle = ParticleArgument.readParticle(new StringReader(resourceLocation), level.registryAccess());
                 } catch (CommandSyntaxException e) {
                     e.printStackTrace();
                 }
@@ -77,16 +75,15 @@ public class PotionCandleEffect extends AbstractCandleEffect{
             AABB aabb = (new AABB(pPos)).inflate(size).expandTowards(0.0D, (size * 4) < 4 ? 4 : size * 4 , 0.0D);
             List<LivingEntity> list = pLevel.getEntitiesOfClass(LivingEntity.class, aabb);
 
-            PacketDistributor.TargetPoint point = new PacketDistributor.TargetPoint(pPos.getX(), pPos.getY(), pPos.getZ(), 500, pLevel.dimension());
             for(LivingEntity living : list) {
                 if(!pLevel.isClientSide) {
-                    living.addEffect(new MobEffectInstance(pPrimary, duration, amplifier, true, false, true));
-                    if(particle != null && particle.size() > 0)
-                        HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new CandleEffectParticlePacket(pPos, particle, living.getId(), 0));
+                    living.addEffect(new MobEffectInstance(Holder.direct(pPrimary), duration, amplifier, true, false, true));
+                    if(particle != null && !particle.isEmpty())
+                        HexereiPacketHandler.sendToNearbyClient(pLevel, pPos, new CandleEffectParticlePacket(pPos, particle, living.getId(), 0));
                 }
             }
-            if(particle != null && particle.size() > 0)
-                HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new CandleEffectParticlePacket(pPos, particle, 0, 1));
+            if(particle != null && !particle.isEmpty())
+                HexereiPacketHandler.sendToNearbyClient(pLevel, pPos, new CandleEffectParticlePacket(pPos, particle, 0, 1));
 
         }
     }
@@ -98,7 +95,7 @@ public class PotionCandleEffect extends AbstractCandleEffect{
             Vec3 offset = new Vec3(random.nextDouble() * 2 * Math.cos(rotation), 0, random.nextDouble() * 2 * Math.sin(rotation));
             if (particle != null) {
                 try {
-                    pLevel.addParticle(ParticleArgument.readParticle(new StringReader(particle.get(random.nextInt(particle.size()))), BuiltInRegistries.PARTICLE_TYPE.asLookup()),
+                    pLevel.addParticle(ParticleArgument.readParticle(new StringReader(particle.get(random.nextInt(particle.size()))), pLevel.registryAccess()),
                             living.getX(), living.getY() + heightOffset, living.getZ(), offset.x / 32f, (random.nextDouble() + 0.5d) * 0.015d, offset.z / 32f);
                 } catch (CommandSyntaxException e) {
                     e.printStackTrace();
@@ -114,7 +111,7 @@ public class PotionCandleEffect extends AbstractCandleEffect{
 
     @Override
     public String getLocationName() {
-        ResourceLocation loc = this.effect == null? null : ForgeRegistries.MOB_EFFECTS.getKey(this.effect);
+        ResourceLocation loc = this.effect == null? null : BuiltInRegistries.MOB_EFFECT.getKey(this.effect);
         return loc != null ? loc.toString() : this.effect.getDescriptionId();
     }
 }

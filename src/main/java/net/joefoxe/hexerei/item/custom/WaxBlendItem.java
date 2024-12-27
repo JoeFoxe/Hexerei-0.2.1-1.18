@@ -3,6 +3,7 @@ package net.joefoxe.hexerei.item.custom;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -23,46 +24,42 @@ import net.minecraft.world.level.block.CrossCollisionBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class WaxBlendItem extends Item {
-    public static final Supplier<BiMap<Block, Block>> WAXABLES = Suppliers.memoize(() -> {
-        return ImmutableBiMap.<Block, Block>builder()
-                .put(ModBlocks.POLISHED_WILLOW_CONNECTED.get(), ModBlocks.WAXED_POLISHED_WILLOW_CONNECTED.get())
-                .put(ModBlocks.POLISHED_WILLOW_PILLAR.get(), ModBlocks.WAXED_POLISHED_WILLOW_PILLAR.get())
-                .put(ModBlocks.POLISHED_WILLOW_LAYERED.get(), ModBlocks.WAXED_POLISHED_WILLOW_LAYERED.get())
-                .put(ModBlocks.WILLOW_CONNECTED.get(), ModBlocks.WAXED_WILLOW_CONNECTED.get())
-                .put(ModBlocks.POLISHED_WITCH_HAZEL_CONNECTED.get(), ModBlocks.WAXED_POLISHED_WITCH_HAZEL_CONNECTED.get())
-                .put(ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get(), ModBlocks.WAXED_POLISHED_WITCH_HAZEL_PILLAR.get())
-                .put(ModBlocks.POLISHED_WITCH_HAZEL_LAYERED.get(), ModBlocks.WAXED_POLISHED_WITCH_HAZEL_LAYERED.get())
-                .put(ModBlocks.WITCH_HAZEL_CONNECTED.get(), ModBlocks.WAXED_WITCH_HAZEL_CONNECTED.get())
-                .put(ModBlocks.POLISHED_MAHOGANY_CONNECTED.get(), ModBlocks.WAXED_POLISHED_MAHOGANY_CONNECTED.get())
-                .put(ModBlocks.POLISHED_MAHOGANY_PILLAR.get(), ModBlocks.WAXED_POLISHED_MAHOGANY_PILLAR.get())
-                .put(ModBlocks.POLISHED_MAHOGANY_LAYERED.get(), ModBlocks.WAXED_POLISHED_MAHOGANY_LAYERED.get())
-                .put(ModBlocks.MAHOGANY_CONNECTED.get(), ModBlocks.WAXED_MAHOGANY_CONNECTED.get())
-                .put(ModBlocks.MAHOGANY_WINDOW_PANE.get(), ModBlocks.WAXED_MAHOGANY_WINDOW_PANE.get())
-                .put(ModBlocks.WILLOW_WINDOW_PANE.get(), ModBlocks.WAXED_WILLOW_WINDOW_PANE.get())
-                .put(ModBlocks.WITCH_HAZEL_WINDOW_PANE.get(), ModBlocks.WAXED_WITCH_HAZEL_WINDOW_PANE.get())
-                .put(ModBlocks.MAHOGANY_WINDOW.get(), ModBlocks.WAXED_MAHOGANY_WINDOW.get())
-                .put(ModBlocks.WILLOW_WINDOW.get(), ModBlocks.WAXED_WILLOW_WINDOW.get())
-                .put(ModBlocks.WITCH_HAZEL_WINDOW.get(), ModBlocks.WAXED_WITCH_HAZEL_WINDOW.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_SLAB.get())
-                .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get())
-                .put(ModBlocks.STONE_WINDOW.get(), ModBlocks.WAXED_STONE_WINDOW.get())
-                .put(ModBlocks.STONE_WINDOW_PANE.get(), ModBlocks.WAXED_STONE_WINDOW_PANE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_ORNATE.get())
-                .put(ModBlocks.INFUSED_FABRIC_BLOCK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get()).build();
-    });
-    public static final Supplier<BiMap<Block, Block>> WAX_OFF_BY_BLOCK = Suppliers.memoize(() -> {
-        return WAXABLES.get().inverse();
-    });
+    public static final BiMap<Block, Block> WAXABLES = new ImmutableBiMap.Builder<Block, Block>()
+            .put(ModBlocks.WILLOW_PLANKS.get(), ModBlocks.POLISHED_WILLOW_PLANKS.get()).build();
+//            .put(ModBlocks.POLISHED_WILLOW_CONNECTED.get(), ModBlocks.WAXED_POLISHED_WILLOW_CONNECTED.get())
+//            .put(ModBlocks.POLISHED_WILLOW_PILLAR.get(), ModBlocks.WAXED_POLISHED_WILLOW_PILLAR.get())
+//            .put(ModBlocks.POLISHED_WILLOW_LAYERED.get(), ModBlocks.WAXED_POLISHED_WILLOW_LAYERED.get())
+//            .put(ModBlocks.WILLOW_CONNECTED.get(), ModBlocks.WAXED_WILLOW_CONNECTED.get())
+//            .put(ModBlocks.POLISHED_WITCH_HAZEL_CONNECTED.get(), ModBlocks.WAXED_POLISHED_WITCH_HAZEL_CONNECTED.get())
+//            .put(ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get(), ModBlocks.WAXED_POLISHED_WITCH_HAZEL_PILLAR.get())
+//            .put(ModBlocks.POLISHED_WITCH_HAZEL_LAYERED.get(), ModBlocks.WAXED_POLISHED_WITCH_HAZEL_LAYERED.get())
+//            .put(ModBlocks.WITCH_HAZEL_CONNECTED.get(), ModBlocks.WAXED_WITCH_HAZEL_CONNECTED.get())
+//            .put(ModBlocks.POLISHED_MAHOGANY_CONNECTED.get(), ModBlocks.WAXED_POLISHED_MAHOGANY_CONNECTED.get())
+//            .put(ModBlocks.POLISHED_MAHOGANY_PILLAR.get(), ModBlocks.WAXED_POLISHED_MAHOGANY_PILLAR.get())
+//            .put(ModBlocks.POLISHED_MAHOGANY_LAYERED.get(), ModBlocks.WAXED_POLISHED_MAHOGANY_LAYERED.get())
+//            .put(ModBlocks.MAHOGANY_CONNECTED.get(), ModBlocks.WAXED_MAHOGANY_CONNECTED.get())
+//            .put(ModBlocks.MAHOGANY_WINDOW_PANE.get(), ModBlocks.WAXED_MAHOGANY_WINDOW_PANE.get())
+//            .put(ModBlocks.WILLOW_WINDOW_PANE.get(), ModBlocks.WAXED_WILLOW_WINDOW_PANE.get())
+//            .put(ModBlocks.WITCH_HAZEL_WINDOW_PANE.get(), ModBlocks.WAXED_WITCH_HAZEL_WINDOW_PANE.get())
+//            .put(ModBlocks.MAHOGANY_WINDOW.get(), ModBlocks.WAXED_MAHOGANY_WINDOW.get())
+//            .put(ModBlocks.WILLOW_WINDOW.get(), ModBlocks.WAXED_WILLOW_WINDOW.get())
+//            .put(ModBlocks.WITCH_HAZEL_WINDOW.get(), ModBlocks.WAXED_WITCH_HAZEL_WINDOW.get())
+//            .put(ModBlocks.INFUSED_FABRIC_CARPET.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET.get())
+//            .put(ModBlocks.INFUSED_FABRIC_CARPET_SLAB.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_SLAB.get())
+//            .put(ModBlocks.INFUSED_FABRIC_CARPET_STAIRS.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_STAIRS.get())
+//            .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE.get())
+//            .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_SLAB.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_SLAB.get())
+//            .put(ModBlocks.INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get(), ModBlocks.WAXED_INFUSED_FABRIC_CARPET_ORNATE_STAIRS.get())
+//            .put(ModBlocks.STONE_WINDOW.get(), ModBlocks.WAXED_STONE_WINDOW.get())
+//            .put(ModBlocks.STONE_WINDOW_PANE.get(), ModBlocks.WAXED_STONE_WINDOW_PANE.get())
+//            .put(ModBlocks.INFUSED_FABRIC_BLOCK_ORNATE.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK_ORNATE.get())
+//            .put(ModBlocks.INFUSED_FABRIC_BLOCK.get(), ModBlocks.WAXED_INFUSED_FABRIC_BLOCK.get()).build();
+    public static final Supplier<BiMap<Block, Block>> WAX_OFF_BY_BLOCK = Suppliers.memoize(WAXABLES::inverse);
 
     public WaxBlendItem(Item.Properties pProperties) {
         super(pProperties);
@@ -97,17 +94,15 @@ public class WaxBlendItem extends Item {
     }
 
     public static Optional<BlockState> getWaxed(BlockState pState) {
-        return Optional.ofNullable(WAXABLES.get().get(pState.getBlock())).map((p_150877_) -> {
+        return Optional.ofNullable(WAXABLES.get(pState.getBlock())).map((p_150877_) -> {
             return p_150877_.withPropertiesOf(pState);
         });
     }
 
-
-
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-        tooltip.add(Component.translatable("tooltip.hexerei.wax_blend").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable("tooltip.hexerei.wax_blend").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 }

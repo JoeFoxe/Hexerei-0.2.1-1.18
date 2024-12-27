@@ -1,22 +1,29 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class HeadShakePacket extends AbstractPacket {
 
-public class HeadShakePacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, HeadShakePacket> CODEC  = StreamCodec.ofMember(HeadShakePacket::encode, HeadShakePacket::new);
+    public static final Type<HeadShakePacket> TYPE = new Type<>(HexereiUtil.getResource("head_shake"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int duration;
-    public HeadShakePacket(Entity entity) {
-        this.sourceId = entity.getId();
-        this.duration = 15;
-    }
+
     public HeadShakePacket(Entity entity, int duration) {
         this.sourceId = entity.getId();
         this.duration = duration;
@@ -26,33 +33,19 @@ public class HeadShakePacket {
         this.duration = buf.readInt();
     }
 
-    public static void encode(HeadShakePacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.duration);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(duration);
     }
 
-    public static HeadShakePacket decode(FriendlyByteBuf buffer) {
-        return new HeadShakePacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(HeadShakePacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if(player.level().getEntity(sourceId) != null) {
+            if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+                owl.headShakeAnimation.start();
+                owl.headShakeAnimation.activeTimer = duration;
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                   owl.headShakeAnimation.start();
-                   owl.headShakeAnimation.activeTimer = packet.duration;
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

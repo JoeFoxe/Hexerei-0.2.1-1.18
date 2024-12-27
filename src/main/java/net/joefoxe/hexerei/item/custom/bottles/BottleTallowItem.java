@@ -7,7 +7,7 @@ import net.minecraft.world.food.FoodProperties;
 
 public class BottleTallowItem extends HexBottleItem {
 
-    public static FoodProperties FOOD = new FoodProperties.Builder().saturationMod(1).nutrition(1).alwaysEat().build();
+    public static FoodProperties FOOD = new FoodProperties.Builder().saturationModifier(1).nutrition(1).alwaysEdible().build();
 
     public BottleTallowItem(Properties properties) {
         super(properties.food(FOOD));

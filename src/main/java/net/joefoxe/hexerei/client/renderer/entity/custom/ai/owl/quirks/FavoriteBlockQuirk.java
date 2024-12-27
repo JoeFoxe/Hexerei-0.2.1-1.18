@@ -7,12 +7,11 @@ import net.joefoxe.hexerei.client.renderer.entity.custom.ai.owl.QuirkController;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.BrowAnimPacket;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,8 +67,7 @@ public class FavoriteBlockQuirk implements Quirk {
                 owl.emotions.setDistress(owl.emotions.getDistress() - 5);
                 owl.emotions.setHappiness(owl.emotions.getHappiness() + 15);
                 owl.emotionChanged();
-
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> owl.level().getChunkAt(owl.blockPosition())), new BrowAnimPacket(owl, OwlEntity.BrowAnim.BOTH, 5 + owl.getRandom().nextInt(10), true));
+                HexereiPacketHandler.sendToNearbyClient(owl.level(), owl, new BrowAnimPacket(owl, OwlEntity.BrowAnim.BOTH, 5 + owl.getRandom().nextInt(10), true));
                 flag = true;
             }
 
@@ -85,7 +83,7 @@ public class FavoriteBlockQuirk implements Quirk {
                     owl.emotions.setHappiness(owl.emotions.getHappiness() + 15);
                     owl.emotionChanged();
 
-                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> owl.level().getChunkAt(owl.blockPosition())), new BrowAnimPacket(owl, OwlEntity.BrowAnim.BOTH, 5 + owl.getRandom().nextInt(10), true));
+                    HexereiPacketHandler.sendToNearbyClient(owl.level(), owl, new BrowAnimPacket(owl, OwlEntity.BrowAnim.BOTH, 5 + owl.getRandom().nextInt(10), true));
                 }
             }
         }
@@ -98,7 +96,7 @@ public class FavoriteBlockQuirk implements Quirk {
 
     @Override
     public void write(CompoundTag compound) {
-        String blockRegistryName = ForgeRegistries.BLOCKS.getKey(this.favoriteBlock).toString();
+        String blockRegistryName = BuiltInRegistries.BLOCK.getKey(this.favoriteBlock).toString();
         compound.putString("favoriteBlock", blockRegistryName);
         compound.putInt("ticks", this.ticks);
         compound.putInt("offset", this.offset);
@@ -107,7 +105,7 @@ public class FavoriteBlockQuirk implements Quirk {
     @Override
     public void read(CompoundTag compound) {
         String blockRegistryName = compound.getString("favoriteBlock");
-        this.favoriteBlock = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(blockRegistryName));
+        this.favoriteBlock = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(blockRegistryName));
         this.ticks = compound.getInt("ticks");
         this.offset = compound.getInt("offset");
     }

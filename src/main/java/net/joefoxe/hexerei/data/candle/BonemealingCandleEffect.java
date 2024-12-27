@@ -4,6 +4,7 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.CandleTile;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -15,7 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -48,8 +48,8 @@ public class BonemealingCandleEffect extends AbstractCandleEffect{
                 candleData.cooldown = 0;
             }
             try {
-                if (candleData.effectParticle != null && level.isClientSide() && candleData.effectParticle != null && candleData.effectParticle.size() > 0)
-                    particle = ParticleArgument.readParticle(new StringReader(candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size()))), BuiltInRegistries.PARTICLE_TYPE.asLookup());
+                if (candleData.effectParticle != null && level.isClientSide() && candleData.effectParticle != null && !candleData.effectParticle.isEmpty())
+                    particle = ParticleArgument.readParticle(new StringReader(candleData.effectParticle.get(new Random().nextInt(candleData.effectParticle.size()))), Hexerei.proxy.getLevel().registryAccess());
             } catch (CommandSyntaxException e) {
                 // shrug
             }
@@ -65,7 +65,7 @@ public class BonemealingCandleEffect extends AbstractCandleEffect{
             BlockPos relativePos = jarPos.offset(pos);
             BlockState state = level.getBlockState(relativePos);
             if (!state.isAir() && state.getBlock() instanceof CropBlock cropBlock) {
-                if (cropBlock.isValidBonemealTarget(level, pos, state, level.isClientSide))
+                if (cropBlock.isValidBonemealTarget(level, pos, state))
                     crops.add(relativePos);
             }
         }
@@ -82,7 +82,7 @@ public class BonemealingCandleEffect extends AbstractCandleEffect{
 
     @Override
     public String getLocationName() {
-        return new ResourceLocation(Hexerei.MOD_ID, "growth_effect").toString();
+        return HexereiUtil.getResource("growth_effect").toString();
     }
 
     @Override

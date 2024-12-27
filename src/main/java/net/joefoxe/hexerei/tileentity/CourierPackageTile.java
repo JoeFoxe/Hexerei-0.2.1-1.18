@@ -8,6 +8,7 @@ import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -24,7 +25,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,8 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -146,75 +145,39 @@ public class CourierPackageTile extends RandomizableContainerBlockEntity impleme
         this.itemStacks = NonNullList.withSize(this.itemStacks.size(), ItemStack.EMPTY);
     }
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
-    }
-
-    @Override
-    public void requestModelDataUpdate() {
-        super.requestModelDataUpdate();
-    }
-
-    @NotNull
-    @Override
-    public ModelData getModelData() {
-        return super.getModelData();
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-    }
-
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        super.deserializeNBT(nbt);
-    }
-
-    @Override
-    public CompoundTag serializeNBT() {
-        return super.serializeNBT();
-    }
-
 //    @Override
-    public CompoundTag save(CompoundTag pTag) {
-        saveAdditional(pTag);
+    public CompoundTag save(CompoundTag pTag, HolderLookup.Provider registries) {
+        saveAdditional(pTag, registries);
 
         return pTag;
     }
 
-    public CompoundTag saveData(CompoundTag pTag) {
+    public CompoundTag saveData(CompoundTag pTag, HolderLookup.Provider registries) {
         if (!this.isEmpty()) {
-            return save(pTag);
+            return save(pTag, registries);
         }
         return pTag;
     }
 
-
-    public void load(CompoundTag pTag) {
-        super.load(pTag);
-        this.loadFromTag(pTag);
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        this.loadFromTag(tag, registries);
     }
 
-    protected void saveAdditional(CompoundTag pTag) {
-        super.saveAdditional(pTag);
+    protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider registries) {
+        super.saveAdditional(pTag, registries);
         if (!this.trySaveLootTable(pTag)) {
-            ContainerHelper.saveAllItems(pTag, this.itemStacks, false);
+            ContainerHelper.saveAllItems(pTag, this.itemStacks, false, registries);
         }
         pTag.putBoolean("Sealed", this.sealed);
 
     }
 
-    public void loadFromTag(CompoundTag pTag) {
+    public void loadFromTag(CompoundTag pTag, HolderLookup.Provider registries) {
         this.itemStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         if (!this.tryLoadLootTable(pTag) && pTag.contains("Items", Tag.TAG_LIST)) {
-            ContainerHelper.loadAllItems(pTag, this.itemStacks);
+            ContainerHelper.loadAllItems(pTag, this.itemStacks, registries);
         }
         if (pTag.contains("Sealed"))
             this.sealed = pTag.getBoolean("Sealed");
@@ -222,31 +185,27 @@ public class CourierPackageTile extends RandomizableContainerBlockEntity impleme
     }
 
 
-
     @Override
-    public CompoundTag getUpdateTag()
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries)
     {
-        return this.save(new CompoundTag());
+        return this.save(new CompoundTag(), registries);
     }
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
 
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
-    }
-
-    @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt)
-    {
-        this.deserializeNBT(pkt.getTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
     public void sync() {
         setChanged();
 
         if(level != null){
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+            if (!level.isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
+            }
 
             if (this.level != null)
                 this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),

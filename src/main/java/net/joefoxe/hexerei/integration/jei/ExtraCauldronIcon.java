@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -30,11 +29,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.Tags;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.common.Tags;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -118,7 +117,7 @@ public class ExtraCauldronIcon implements IDrawable {
         RenderSystem.enableDepthTest();
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(xOffset, yOffset, 0);
-        guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+        guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(2, -13, 0);

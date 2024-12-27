@@ -2,7 +2,6 @@ package net.joefoxe.hexerei.mixin;
 
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.joefoxe.hexerei.fluid.PotionFluidType;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.Util;
@@ -13,6 +12,8 @@ import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.CubicSampler;
@@ -20,6 +21,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
@@ -27,13 +29,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ViewportEvent;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.ViewportEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -61,7 +62,7 @@ public abstract class FogRendererMixin {
     private static void setupColor(Camera pCamera, float pPartialTicks, ClientLevel pLevel, int pRenderDistanceChunks, float pBossColorModifier, CallbackInfo ci) {
 
         BlockPos cameraPos = pCamera.getBlockPosition();
-        BlockGetter level = pCamera.level;
+        BlockGetter level = pCamera.getEntity().level();
 
         BlockEntity be = level.getBlockEntity(cameraPos);
         if(be instanceof MixingCauldronTile tile){
@@ -232,7 +233,7 @@ public abstract class FogRendererMixin {
     private static void setupFog(Camera pCamera, FogRenderer.FogMode pFogMode, float pFarPlaneDistance, boolean p_234176_, float p_234177_, CallbackInfo ci) {
 
         BlockPos cameraPos = pCamera.getBlockPosition();
-        BlockGetter level = pCamera.level;
+        BlockGetter level = pCamera.getEntity().level();
 
         BlockEntity be = level.getBlockEntity(cameraPos);
         if(be instanceof MixingCauldronTile tile){
@@ -279,7 +280,7 @@ public abstract class FogRendererMixin {
     private static float getWaterVision(LocalPlayer localPlayer) {
         float f = 600.0F;
         float f1 = 100.0F;
-        if ((float)localPlayer.waterVisionTime >= 600.0F) {
+        if ((float)localPlayer.getWaterVision() >= 600.0F) {
             return 1.0F;
         } else {
             float f2 = Mth.clamp((float)localPlayer.waterVisionTime / 100.0F, 0.0F, 1.0F);
@@ -305,13 +306,13 @@ public abstract class FogRendererMixin {
         Vector3f in = new Vector3f(fogRed, fogGreen, fogBlue);
         Vector3f fluidFogColor = IClientFluidTypeExtensions.of(fluid.getFluid()).modifyFogColor(camera, partialTick, level, renderDistance, darkenWorldAmount, in);
 
-        if(fluidFogColor.equals(in) && ForgeRegistries.FLUIDS.getKey(fluid.getFluid()).getPath().equals("potion")){
+        if(fluidFogColor.equals(in) && BuiltInRegistries.FLUID.getKey(fluid.getFluid()).getPath().equals("potion")){
 
-            float[] f = HexereiUtil.rgbIntToFloatArray(PotionFluidType.getTintColor(fluid));
+            float[] f = HexereiUtil.rgbIntToFloatArray(fluid.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).getColor());
             fluidFogColor = new Vector3f(f[0],f[1],f[2]);
         }
         ViewportEvent.ComputeFogColor event = new ViewportEvent.ComputeFogColor(camera, partialTick, fluidFogColor.x(), fluidFogColor.y(), fluidFogColor.z());
-        MinecraftForge.EVENT_BUS.post(event);
+        NeoForge.EVENT_BUS.post(event);
 
         fluidFogColor.set(event.getRed(), event.getGreen(), event.getBlue());
         return fluidFogColor;
@@ -323,7 +324,7 @@ public abstract class FogRendererMixin {
         IClientFluidTypeExtensions.of(fluid).modifyFogRender(camera, mode, renderDistance, partialTick, nearDistance, farDistance, shape);
 
         ViewportEvent.RenderFog event = new ViewportEvent.RenderFog(mode, type, camera, partialTick, nearDistance, farDistance, shape);
-        if (MinecraftForge.EVENT_BUS.post(event))
+        if (NeoForge.EVENT_BUS.post(event) != null)
         {
             RenderSystem.setShaderFogStart(event.getNearPlaneDistance());
             RenderSystem.setShaderFogEnd(event.getFarPlaneDistance());

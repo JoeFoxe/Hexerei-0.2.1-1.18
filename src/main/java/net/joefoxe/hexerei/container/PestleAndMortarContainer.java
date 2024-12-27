@@ -1,7 +1,10 @@
 package net.joefoxe.hexerei.container;
 
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
+import net.joefoxe.hexerei.tileentity.PestleAndMortarTile;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -10,10 +13,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 
 public class PestleAndMortarContainer extends AbstractContainerMenu {
@@ -24,24 +26,25 @@ public class PestleAndMortarContainer extends AbstractContainerMenu {
     public PestleAndMortarContainer(int windowId, Level world, BlockPos pos, Inventory playerInventory, Player player) {
         super(ModContainers.PESTLE_AND_MORTAR_CONTAINER.get(), windowId);
         this.tileEntity = world.getBlockEntity(pos);
-        playerEntity = player;
+        playerEntity = playerInventory.player;
         this.playerInventory = new InvWrapper(playerInventory);
 
         layoutPlayerInventorySlots(8, 86);
 
-        //add slots for mixing cauldron
-        if(tileEntity != null) {
-            tileEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(h -> {
-                addSlot(new SlotItemHandler(h, 0, 58, 14));
-                addSlot(new SlotItemHandler(h, 1, 58, 14));
-                addSlot(new SlotItemHandler(h, 2, 58, 14));
-                addSlot(new SlotItemHandler(h, 3, 58, 14));
-                addSlot(new SlotItemHandler(h, 4, 58, 14));
-                addSlot(new SlotItemHandler(h, 5, 58, 14));
-            });
-
+        if(tileEntity instanceof PestleAndMortarTile tile) {
+            IItemHandler handler = new InvWrapper(tile);
+            addSlot(new SlotItemHandler(handler, 0, 58, 14));
+            addSlot(new SlotItemHandler(handler, 1, 58, 14));
+            addSlot(new SlotItemHandler(handler, 2, 58, 14));
+            addSlot(new SlotItemHandler(handler, 3, 58, 14));
+            addSlot(new SlotItemHandler(handler, 4, 58, 14));
+            addSlot(new SlotItemHandler(handler, 5, 58, 14));
         }
 
+    }
+
+    public PestleAndMortarContainer(int windowId, Inventory playerInventory, RegistryFriendlyByteBuf byteBuf) {
+        this(windowId, playerInventory.player.level(), byteBuf.readBlockPos(), playerInventory, playerInventory.player);
     }
 
     @Override

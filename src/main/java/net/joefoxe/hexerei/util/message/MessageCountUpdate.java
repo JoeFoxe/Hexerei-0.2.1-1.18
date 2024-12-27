@@ -1,30 +1,36 @@
 package net.joefoxe.hexerei.util.message;
 
-import io.netty.buffer.ByteBuf;
 import net.joefoxe.hexerei.tileentity.HerbJarTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public class MessageCountUpdate
+public class MessageCountUpdate extends AbstractPacket
 {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageCountUpdate> CODEC  = StreamCodec.ofMember(MessageCountUpdate::encode, MessageCountUpdate::new);
+    public static final Type<MessageCountUpdate> TYPE = new Type<>(HexereiUtil.getResource("message_count_update"));
+
     private int x;
     private int y;
     private int z;
     private int slot;
     private int count;
-
     private boolean failed;
 
-    public MessageCountUpdate (BlockPos pos, int slot, int count) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public MessageCountUpdate(BlockPos pos, int slot, int count) {
         this.x = pos.getX();
         this.y = pos.getY();
         this.z = pos.getZ();
@@ -33,48 +39,29 @@ public class MessageCountUpdate
         this.failed = false;
     }
 
-    private MessageCountUpdate (boolean failed) {
-        this.failed = failed;
+    public MessageCountUpdate(RegistryFriendlyByteBuf buf) {
+        this(new BlockPos(buf.readInt(), buf.readShort(), buf.readInt()), buf.readByte(), buf.readInt());
     }
 
-    public static MessageCountUpdate decode (ByteBuf buf) {
-        try {
-            int x = buf.readInt();
-            int y = buf.readShort();
-            int z = buf.readInt();
-            int slot = buf.readByte();
-            int count = buf.readInt();
-            return new MessageCountUpdate(new BlockPos(x, y, z), slot, count);
-        }
-        catch (IndexOutOfBoundsException e) {
-            return new MessageCountUpdate(true);
-        }
+    public void encode(RegistryFriendlyByteBuf buf) {
+        buf.writeInt(x);
+        buf.writeShort(y);
+        buf.writeInt(z);
+        buf.writeByte(slot);
+        buf.writeInt(count);
     }
 
-    public static void encode (MessageCountUpdate msg, FriendlyByteBuf buf) {
-        buf.writeInt(msg.x);
-        buf.writeShort(msg.y);
-        buf.writeInt(msg.z);
-        buf.writeByte(msg.slot);
-        buf.writeInt(msg.count);
-    }
-
-    public static void handle(MessageCountUpdate msg, Supplier<NetworkEvent.Context> ctx) {
-        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> handleClient(msg, ctx.get()));
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private static void handleClient(MessageCountUpdate msg, NetworkEvent.Context ctx) {
-        if (!msg.failed) {
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if (!failed) {
             Level world = Minecraft.getInstance().level;
             if (world != null) {
-                BlockPos pos = new BlockPos(msg.x, msg.y, msg.z);
+                BlockPos pos = new BlockPos(x, y, z);
                 BlockEntity tileEntity = world.getBlockEntity(pos);
                 if (tileEntity instanceof HerbJarTile) {
-                    ((HerbJarTile) tileEntity).clientUpdateCount(msg.slot, msg.count);
+                    ((HerbJarTile) tileEntity).clientUpdateCount(slot, count);
                 }
             }
         }
-        ctx.setPacketHandled(true);
     }
 }

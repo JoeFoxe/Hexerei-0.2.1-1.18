@@ -1,33 +1,34 @@
 package net.joefoxe.hexerei.data.owl;
 
+import com.hollingsworth.arsnouveau.common.world.saved_data.RedstoneSavedData;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.ClientboundOwlCourierDepotDataInventoryPacket;
 import net.joefoxe.hexerei.util.message.ClientboundOwlCourierDepotDataPacket;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
-@Mod.EventBusSubscriber(modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID)
 public class OwlCourierDepotSavedData extends SavedData {
     protected static final String DATA_NAME = Hexerei.MOD_ID + "_owl_courier_depot";
 
     Map<GlobalPos, OwlCourierDepotData> depots = new HashMap<>();
+
+    public OwlCourierDepotSavedData() {
+
+    }
 
     public OwlCourierDepotSavedData addOwlCourierDepot(String name, GlobalPos pos) {
         for (Map.Entry<GlobalPos, OwlCourierDepotData> entry : depots.entrySet()) {
@@ -52,11 +53,15 @@ public class OwlCourierDepotSavedData extends SavedData {
     }
 
     public void syncToClient() {
-        HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new ClientboundOwlCourierDepotDataPacket(save(new CompoundTag())));
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null)
+            HexereiPacketHandler.sendToAllPlayers(new ClientboundOwlCourierDepotDataPacket(save(new CompoundTag(), server.registryAccess())), server);
     }
 
     public void syncInvToClient(GlobalPos pos) {
-        HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new ClientboundOwlCourierDepotDataInventoryPacket(invNbt(pos, new CompoundTag())));
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null)
+            HexereiPacketHandler.sendToAllPlayers(new ClientboundOwlCourierDepotDataInventoryPacket(invNbt(pos, new CompoundTag())), server);
     }
 
     public void clearOwlCourierDepot(GlobalPos pos) {
@@ -77,19 +82,19 @@ public class OwlCourierDepotSavedData extends SavedData {
     }
 
 
-    @SubscribeEvent
-    public static void serverTickEvent(TickEvent.ServerTickEvent event) {
-//        if (event.phase == TickEvent.Phase.START)
-//            OwlCourierDepotSavedData.get(event.getServer().overworld()).tick(event.getServer().overworld());
-    }
+//    @SubscribeEvent
+//    public static void serverTickEvent(ServerTickEvent event) {
+////        if (event.phase == TickEvent.Phase.START)
+////            OwlCourierDepotSavedData.get(event.getServer().overworld()).tick(event.getServer().overworld());
+//    }
 
-    private static OwlCourierDepotSavedData create(CompoundTag tag) {
+    private static OwlCourierDepotSavedData create(CompoundTag tag, HolderLookup.Provider registries) {
         OwlCourierDepotSavedData data = new OwlCourierDepotSavedData();
-        data.load(tag);
+        data.load(tag, registries);
         return data;
     }
 
-    public void load(CompoundTag pCompoundTag) {
+    public void load(CompoundTag pCompoundTag, HolderLookup.Provider registries) {
 
         if (pCompoundTag.contains("depots")) {
             ListTag depotList = pCompoundTag.getList("depots", Tag.TAG_COMPOUND);
@@ -101,7 +106,7 @@ public class OwlCourierDepotSavedData extends SavedData {
                 Optional<GlobalPos> pos = GlobalPos.CODEC.parse(NbtOps.INSTANCE, depotTag.get("Pos")).result();
 
                 OwlCourierDepotData depotData = new OwlCourierDepotData(depotName);
-                ContainerHelper.loadAllItems(depotTag, depotData.items);
+                ContainerHelper.loadAllItems(depotTag, depotData.items, registries);
 
                 pos.ifPresent(globalPos -> depots.put(globalPos, depotData));
             }
@@ -109,7 +114,7 @@ public class OwlCourierDepotSavedData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag pCompoundTag) {
+    public CompoundTag save(CompoundTag pCompoundTag, HolderLookup.Provider registries) {
 
         ListTag depotList = new ListTag();
 
@@ -121,7 +126,7 @@ public class OwlCourierDepotSavedData extends SavedData {
             tag.ifPresent(value -> depotTag.put("Pos", value));
 
 
-            ContainerHelper.saveAllItems(depotTag, entry.getValue().items);
+            ContainerHelper.saveAllItems(depotTag, entry.getValue().items, registries);
             depotList.add(depotTag);
         }
 
@@ -134,17 +139,22 @@ public class OwlCourierDepotSavedData extends SavedData {
         Optional<Tag> tag = GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).result();
         tag.ifPresent(value -> pCompoundTag.put("Pos", value));
 
-        ContainerHelper.saveAllItems(pCompoundTag, depots.get(pos).items);
+        ContainerHelper.saveAllItems(pCompoundTag, depots.get(pos).items, Hexerei.proxy.getLevel().registryAccess());
 
         return pCompoundTag;
     }
 
+
+    public static SavedData.Factory<OwlCourierDepotSavedData> factory() {
+        return new SavedData.Factory<>(OwlCourierDepotSavedData::new, OwlCourierDepotSavedData::create, null);
+    }
+
     public static OwlCourierDepotSavedData get(ServerLevel world) {
         return world.getServer().overworld()
-                .getDataStorage().computeIfAbsent(OwlCourierDepotSavedData::create, OwlCourierDepotSavedData::new, DATA_NAME);
+                .getDataStorage().computeIfAbsent(factory(), DATA_NAME);
     }
     public static OwlCourierDepotSavedData get() {
         return ServerLifecycleHooks.getCurrentServer().overworld()
-                .getDataStorage().computeIfAbsent(OwlCourierDepotSavedData::create, OwlCourierDepotSavedData::new, DATA_NAME);
+                .getDataStorage().computeIfAbsent(factory(), DATA_NAME);
     }
 }

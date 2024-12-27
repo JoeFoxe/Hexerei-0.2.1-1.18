@@ -1,12 +1,14 @@
 package net.joefoxe.hexerei.world.biome;
 
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.world.gen.ModConfiguredFeatures;
 import net.joefoxe.hexerei.world.gen.ModPlacedFeatures;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.AquaticPlacements;
 import net.minecraft.data.worldgen.placement.CavePlacements;
 import net.minecraft.data.worldgen.placement.VegetationPlacements;
@@ -18,20 +20,17 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.*;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 
 public class ModBiomes {
-	public static final ResourceKey<Biome> WILLOW_SWAMP = ResourceKey.create(ForgeRegistries.Keys.BIOMES, new ResourceLocation(Hexerei.MOD_ID, "willow_swamp"));
+	public static final ResourceKey<Biome> WILLOW_SWAMP = ResourceKey.create(Registries.BIOME, HexereiUtil.getResource("willow_swamp"));
 
-	public static void bootstrap(BootstapContext<Biome> context) {
+	public static void bootstrap(BootstrapContext<Biome> context) {
 //		context.register(WILLOW_SWAMP, makeWillowSwampBiome(context));
 	}
 
-	private static Biome makeWillowSwampBiome(BootstapContext<Biome> context) {
+	private static Biome makeWillowSwampBiome(BootstrapContext<Biome> context) {
 		MobSpawnSettings.Builder mobSpawnSettingsBuilder = new MobSpawnSettings.Builder();
 		HolderGetter<PlacedFeature> placedFeature = context.lookup(Registries.PLACED_FEATURE);
 

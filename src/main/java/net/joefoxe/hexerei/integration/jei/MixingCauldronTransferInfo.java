@@ -78,7 +78,7 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
                 }
             }
             for(int i = 0; i < 36; i++){
-                if (ingredient.test(pPlayer.inventory.items.get(i))) {
+                if (ingredient.test(pPlayer.getInventory().items.get(i))) {
                     // if the slot is not taken up
                     if (!itemMatchesSlot.get(j)) {
                         //mark the slot as taken up
@@ -196,7 +196,7 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
 
         boolean matchesAtleastOne = false;
 
-        for(ItemStack stack : player.inventory.items){
+        for(ItemStack stack : player.getInventory().items){
 
             for(int i = 0; i < 7; i++){
                 if(itemMatchesSlot.get(i))
@@ -243,7 +243,7 @@ public class MixingCauldronTransferInfo implements IRecipeTransferHandler<Mixing
         }
         boolean matchesItems = false;
         NonNullList<ItemStack> inv = blockEntity.items;
-        for(ItemStack stack : player.inventory.items){
+        for(ItemStack stack : player.getInventory().items){
 
             if(matchesItems)
                 break;

@@ -18,11 +18,11 @@ public class HexereiTags {
 		public static final TagKey<Block> CROW_BLOCK_HARVESTABLE = createTag("crow_block_harvestable");
 
 		private static TagKey<Block> createTag(String name) {
-			return BlockTags.create(new ResourceLocation(Hexerei.MOD_ID, name));
+			return BlockTags.create(HexereiUtil.getResource(name));
 		}
 
 		private static TagKey<Block> createForgeTag(String name) {
-			return BlockTags.create(new ResourceLocation("forge", name));
+			return BlockTags.create(ResourceLocation.fromNamespaceAndPath("forge", name));
 		}
 	}
 
@@ -49,11 +49,11 @@ public class HexereiTags {
 		public static final TagKey<Item> OWL_BREEDING_FOOD = createTag("owl_breeding_food");
 
 		private static TagKey<Item> createTag(String name) {
-			return ItemTags.create(new ResourceLocation(Hexerei.MOD_ID, name));
+			return ItemTags.create(HexereiUtil.getResource(name));
 		}
 
 		private static TagKey<Item> createForgeTag(String name) {
-			return ItemTags.create(new ResourceLocation("forge", name));
+			return ItemTags.create(ResourceLocation.fromNamespaceAndPath("forge", name));
 		}
 	}
 }

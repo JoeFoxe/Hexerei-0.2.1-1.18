@@ -1,10 +1,8 @@
 package net.joefoxe.hexerei.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.container.MixingCauldronContainer;
-import net.joefoxe.hexerei.fluid.PotionFluidHandler;
 import net.joefoxe.hexerei.integration.HexereiModNameTooltipCompat;
 import net.joefoxe.hexerei.screen.renderer.FluidStackRenderer;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
@@ -16,6 +14,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -23,16 +22,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
 public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldronContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/mixing_cauldron_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
     private final FluidStackRenderer renderer;
@@ -141,7 +141,7 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
@@ -151,7 +151,8 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
         int y = (height - imageHeight) / 2;
         if(isMouseAboveArea(mouseX, mouseY, x, y, 42, 56)) {
             ArrayList<Component> tooltip = new ArrayList<>(renderer.getTooltip(menu.getRenderedFluid() != null ? menu.getRenderedFluid() : menu.getFluid(), TooltipFlag.Default.NORMAL));
-            PotionFluidHandler.addPotionTooltip(menu.getFluid(), tooltip, 1);
+//            PotionFluidHandler.addPotionTooltip(menu.getFluid(), tooltip, 1);
+            menu.getFluid().getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).addPotionTooltip(tooltip::add, 1.0f, 20f);
 
             FluidStack fluidStack = menu.getFluid();
 
@@ -201,7 +202,7 @@ public class MixingCauldronScreen extends AbstractContainerScreen<MixingCauldron
             clickedDump = true;
             if(mixingCauldron != null){
                 if (mixingCauldron.getLevel() != null && mixingCauldron.getLevel().isClientSide)
-                    HexereiPacketHandler.sendToServer(new DrainCauldronToServer(this.mixingCauldron));
+                    HexereiPacketHandler.sendToServer(new DrainCauldronToServer(this.mixingCauldron.getPos()));
             }
 
         }

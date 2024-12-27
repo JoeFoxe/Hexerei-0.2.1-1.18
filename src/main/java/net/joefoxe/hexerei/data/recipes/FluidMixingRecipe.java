@@ -1,98 +1,51 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.joefoxe.hexerei.Hexerei;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.fluid.FluidIngredient;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class FluidMixingRecipe implements Recipe<SimpleContainer> {
+public class FluidMixingRecipe implements Recipe<CraftingInput> {
 
-    private final ResourceLocation id;
     private final NonNullList<Ingredient> recipeItems;
     private final FluidStack liquid;
     private final FluidStack liquidOutput;
-    protected static final List<Boolean> itemMatchesSlot = new ArrayList<>();
-
     private final HeatCondition heatCondition;
+
 
     @Override
     public boolean isSpecial() {
         return true;
     }
 
-    public FluidMixingRecipe(ResourceLocation id, NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput) {
-        this.id = id;
-//        NonNullList<Ingredient> recipeItemsTemp = NonNullList.withSize(recipeItems.length, Ingredient.EMPTY);
-//
-//        for(int i = 0; i < recipeItems.length; i++){
-//            recipeItemsTemp.set(i, Ingredient.of(recipeItems));
-//        }
-        this.recipeItems = recipeItems;
-        this.liquid = liquid;
-        this.liquidOutput = liquidOutput;
-        this.heatCondition = HeatCondition.NONE;
-
-        for(int i = 0; i < 8; i++) {
-            itemMatchesSlot.add(false);
-        }
-
+    public FluidMixingRecipe(NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput) {
+        this(recipeItems, liquid, liquidOutput, HeatCondition.NONE);
     }
-    public FluidMixingRecipe(ResourceLocation id, NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput, HeatCondition heatCondition) {
-        this.id = id;
-//        NonNullList<Ingredient> recipeItemsTemp = NonNullList.withSize(recipeItems.length, Ingredient.EMPTY);
-//
-//        for(int i = 0; i < recipeItems.length; i++){
-//            recipeItemsTemp.set(i, Ingredient.of(recipeItems));
-//        }
+    public FluidMixingRecipe(NonNullList<Ingredient> recipeItems, FluidStack liquid, FluidStack liquidOutput, HeatCondition heatCondition) {
         this.recipeItems = recipeItems;
         this.liquid = liquid;
         this.liquidOutput = liquidOutput;
         this.heatCondition = heatCondition;
-
-        for(int i = 0; i < 8; i++) {
-            itemMatchesSlot.add(false);
-        }
-
-    }
-
-    public List<FluidIngredient> getFluidIngredients(){
-        return new ArrayList<>(List.of(FluidIngredient.fromFluidStack(this.liquid)));
-    }
-    public FluidIngredient getFluidIngredient(){
-        return FluidIngredient.fromFluidStack(this.liquid);
     }
 
 
     @Override
-    public boolean matches(SimpleContainer inv, Level worldIn) {
+    public boolean matches(CraftingInput input, Level worldIn) {
 
-        for(int i = 0; i < 8; i++)
-            itemMatchesSlot.set(i, false);
+        List<Boolean> itemMatchesSlot = Stream.generate(() -> false).limit(8).collect(Collectors.toList());
 
         // the flag is to break out early in case nothing matches for that slot
         boolean flag = false;
@@ -102,7 +55,7 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
             //cycle through each slot for each recipe slot
             for (int i = 0; i < 8; i++) {
                 //if the recipe matches a slot
-                if (recipeItem.test(inv.getItem(i))) {
+                if (recipeItem.test(input.getItem(i))) {
                     // if the slot is not taken up
                     if (!itemMatchesSlot.get(i)) {
                         //mark the slot as taken up
@@ -150,7 +103,7 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
 
 
     @Override
-    public ItemStack assemble(SimpleContainer p_44001_, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
         return ItemStack.EMPTY;
     }
 
@@ -159,9 +112,9 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
         return true;
     }
 
-    @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
 
+    @Override
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return ItemStack.EMPTY;
     }
 
@@ -174,10 +127,6 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
         return new ItemStack(ModBlocks.MIXING_CAULDRON.get());
     }
 
-    @Override
-    public ResourceLocation getId() {
-        return id;
-    }
 
     @Override
     public RecipeSerializer<?> getSerializer() {
@@ -192,97 +141,56 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
     public static class Type implements RecipeType<FluidMixingRecipe> {
         private Type() { }
         public static final Type INSTANCE = new Type();
-        public static final String ID = "fluid_mixing";
     }
 
-    // for Serializing the recipe into/from a json
     public static class Serializer implements RecipeSerializer<FluidMixingRecipe> {
-            public static final Serializer INSTANCE = new Serializer();
-            public static final ResourceLocation ID =
-                    new ResourceLocation(Hexerei.MOD_ID,"fluid_mixing");
+        public static final Serializer INSTANCE = new Serializer();
+        private static final MapCodec<FluidMixingRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                NonNullList.codecOf(Ingredient.CODEC).fieldOf("input").forGetter(recipe -> recipe.recipeItems),
+                                FluidStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.liquidOutput),
+                                FluidStack.CODEC.fieldOf("fluid").forGetter(recipe -> recipe.liquid),
+                                HeatCondition.CODEC.fieldOf("heatRequirement").forGetter(recipe -> recipe.heatCondition)
+                        )
+                        .apply(instance, FluidMixingRecipe::new)
+        );
+        //        public FluidMixingRecipe(NonNullList<Ingredient> inputs, ItemStack output, FluidStack liquid, int fluidLevelsConsumed, int dippingTime, int dryingTime, int numberOfDips, boolean useInputItemAsOutput) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, FluidMixingRecipe> STREAM_CODEC = StreamCodec.of(
+                FluidMixingRecipe.Serializer::toNetwork, FluidMixingRecipe.Serializer::fromNetwork
+        );
 
         @Override
-        public FluidMixingRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-//            HexereiUtil.readEnum(GsonHelper.getas, "Bottle", PotionFluid.BottleType.class);
-            FluidStack liquid = deserializeFluidStack(GsonHelper.getAsJsonObject(json, "input"));
-            FluidStack liquidOutput = deserializeFluidStack(GsonHelper.getAsJsonObject(json, "output"));
-
-            String heatRequirement = GsonHelper.getAsString(json, "heatRequirement", "none");
-            HeatCondition heatCondition = HeatCondition.getHeated(heatRequirement);
-
-            JsonArray ingredients = GsonHelper.getAsJsonArray(json, "ingredients");
-            NonNullList<Ingredient> inputs = NonNullList.withSize(8, Ingredient.EMPTY);
-
-            for (int i = 0; i < ingredients.size(); i++) {
-                inputs.set(i, Ingredient.fromJson(ingredients.get(i)));
-            }
-
-            return new FluidMixingRecipe(recipeId,
-                    inputs, liquid, liquidOutput, heatCondition);
+        public MapCodec<FluidMixingRecipe> codec() {
+            return CODEC;
         }
 
-        @Nullable
         @Override
-        public FluidMixingRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
+        public StreamCodec<RegistryFriendlyByteBuf, FluidMixingRecipe> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        private static FluidMixingRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
+            inputs.replaceAll(ignored -> Ingredient.CONTENTS_STREAM_CODEC.decode(buffer));
+            FluidStack inputFluid = FluidStack.STREAM_CODEC.decode(buffer);
+            FluidStack outputFluid = FluidStack.STREAM_CODEC.decode(buffer);
+            HeatCondition heatCondition = NeoForgeStreamCodecs.enumCodec(HeatCondition.class).decode(buffer);
 
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromNetwork(buffer));
-            }
-
-            FluidStack inputFluid = buffer.readFluidStack();
-            FluidStack outputFluid = buffer.readFluidStack();
-            HeatCondition heated = buffer.readEnum(HeatCondition.class);
-
-
-            return new FluidMixingRecipe(
-                    recipeId,
-                    inputs,
-                    inputFluid,
-                    outputFluid,
-                    heated);
+            return new FluidMixingRecipe(inputs, inputFluid, outputFluid, heatCondition);
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, FluidMixingRecipe recipe) {
-
-            buffer.writeInt(recipe.getIngredients().size());
-
-            //ingredients
-            for (Ingredient ing : recipe.getIngredients()) {
-                ing.toNetwork(buffer);
-            }
-            //input
-            buffer.writeFluidStack(recipe.getLiquid());
-            //output
-            buffer.writeFluidStack(recipe.getLiquidOutput());
-            //enum heatsource
-            buffer.writeEnum(recipe.heatCondition);
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, FluidMixingRecipe recipe) {
+            buffer.writeInt(recipe.recipeItems.size());
+            for (Ingredient ingredient : recipe.recipeItems)
+                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, ingredient);
+            FluidStack.STREAM_CODEC.encode(buffer, recipe.liquid);
+            FluidStack.STREAM_CODEC.encode(buffer, recipe.liquidOutput);
+            NeoForgeStreamCodecs.enumCodec(HeatCondition.class).encode(buffer, recipe.heatCondition);
         }
-
-        public static FluidStack deserializeFluidStack(JsonObject json) {
-            ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(json, "fluid"));
-            Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-            if (fluid == null)
-                throw new JsonSyntaxException("Unknown fluid '" + id + "'");
-            FluidStack stack = new FluidStack(fluid, 1);
-
-            if (!json.has("nbt"))
-                return stack;
-
-            try {
-                JsonElement element = json.get("nbt");
-                stack.setTag(TagParser.parseTag(
-                        element.isJsonObject() ? Hexerei.GSON.toJson(element) : GsonHelper.convertToString(element, "nbt")));
-
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
-            return stack;
-        }
-
     }
+
+
+
 
     public enum HeatCondition implements StringRepresentable {
 
@@ -292,6 +200,8 @@ public class FluidMixingRecipe implements Recipe<SimpleContainer> {
         public String toString() {
             return this.getSerializedName();
         }
+
+        public static final StringRepresentable.EnumCodec<HeatCondition> CODEC = StringRepresentable.fromEnum(HeatCondition::values);
 
         public static HeatCondition getHeated(String str) {
             return switch (str){

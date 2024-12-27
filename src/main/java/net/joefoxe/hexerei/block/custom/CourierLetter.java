@@ -1,17 +1,20 @@
 package net.joefoxe.hexerei.block.custom;
 
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.block.ITileEntity;
 import net.joefoxe.hexerei.tileentity.CourierLetterTile;
 import net.joefoxe.hexerei.tileentity.CourierPackageTile;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
@@ -38,6 +41,8 @@ public class CourierLetter extends BaseEntityBlock implements ITileEntity<Courie
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final BooleanProperty SEALED = BooleanProperty.create("sealed");
 
+    public static final MapCodec<CourierLetter> CODEC = simpleCodec(CourierLetter::new);
+
     VoxelShape shape_turned = Stream.of(
             Block.box(4.5, 0, 2, 11.5, 1, 14)
     ).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
@@ -53,6 +58,11 @@ public class CourierLetter extends BaseEntityBlock implements ITileEntity<Courie
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH)
                 .setValue(SEALED, true)
         );
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -74,8 +84,9 @@ public class CourierLetter extends BaseEntityBlock implements ITileEntity<Courie
         FluidState fluidstate = context.getLevel().getFluidState(context.getClickedPos());
         boolean sealed = false;
         ItemStack stack = context.getItemInHand();
-        CompoundTag tag = BlockItem.getBlockEntityData(stack);
-        if (tag != null && tag.contains("Sealed") && tag.getBoolean("Sealed"))
+        CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+
+        if (data != null && data.contains("Sealed") && data.copyTag().getBoolean("Sealed"))
                 sealed = true;
         return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection()).setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER).setValue(SEALED, sealed);
     }
@@ -85,11 +96,6 @@ public class CourierLetter extends BaseEntityBlock implements ITileEntity<Courie
         return RenderShape.MODEL;
     }
 
-
-    @Override
-    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
-        return true;
-    }
 
     @SuppressWarnings("deprecation")
     @Override
@@ -116,19 +122,6 @@ public class CourierLetter extends BaseEntityBlock implements ITileEntity<Courie
     @Override
     public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
         return !state.getValue(WATERLOGGED);
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
-
-//        if(Screen.hasShiftDown()) {
-//            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//            tooltip.add(Component.translatable("tooltip.hexerei.altar_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//        } else {
-//            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//
-//        }
-        super.appendHoverText(stack, world, tooltip, flagIn);
     }
 
     @Override

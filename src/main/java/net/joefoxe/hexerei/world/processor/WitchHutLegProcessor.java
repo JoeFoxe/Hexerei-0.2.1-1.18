@@ -1,7 +1,7 @@
 package net.joefoxe.hexerei.world.processor;
 
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -29,8 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @MethodsReturnNonnullByDefault
 public class WitchHutLegProcessor extends StructureProcessor {
-    public static final WitchHutLegProcessor INSTANCE = new WitchHutLegProcessor();
-    public static final Codec<WitchHutLegProcessor> CODEC = Codec.unit(() -> INSTANCE);
+    public static final MapCodec<WitchHutLegProcessor> CODEC = MapCodec.unit(WitchHutLegProcessor::new);
 
     @ParametersAreNonnullByDefault
     @Override

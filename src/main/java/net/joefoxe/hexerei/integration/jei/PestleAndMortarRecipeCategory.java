@@ -12,6 +12,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.PestleAndMortarRecipe;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,9 +22,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class PestleAndMortarRecipeCategory implements IRecipeCategory<PestleAndMortarRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "pestle_and_mortar");
+    public final static ResourceLocation UID = HexereiUtil.getResource("pestle_and_mortar");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/pestle_and_mortar_jei.png");
+            HexereiUtil.getResource("textures/gui/pestle_and_mortar_jei.png");
     private final IDrawable background;
     private final IDrawable icon;
 
@@ -41,11 +42,6 @@ public class PestleAndMortarRecipeCategory implements IRecipeCategory<PestleAndM
     @Override
     public Component getTitle() {
         return ModBlocks.PESTLE_AND_MORTAR.get().getName();
-    }
-
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
     }
 
     @Override
@@ -94,6 +90,8 @@ public class PestleAndMortarRecipeCategory implements IRecipeCategory<PestleAndM
 
     @Override
     public void draw(PestleAndMortarRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+
+        background.draw(guiGraphics);
 
         int grindingTime = recipe.getGrindingTime();
         Minecraft minecraft = Minecraft.getInstance();

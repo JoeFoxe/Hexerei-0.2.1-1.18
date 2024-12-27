@@ -1,54 +1,45 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.fluid.FluidIngredient;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.crafting.FluidIngredient;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DipperRecipe implements Recipe<SimpleContainer> {
+public class DipperRecipe implements Recipe<CraftingInput> {
 
-    private final ResourceLocation id;
+    private final Ingredient input;
     private final ItemStack output;
-    private final NonNullList<Ingredient> recipeItems;
     private final FluidStack liquid;
     private final int fluidLevelsConsumed;
     private final int dippingTime;
     private final int dryingTime;
     private final int numberOfDips;
     private final boolean useInputItemAsOutput;
-    protected static final List<Boolean> itemMatchesSlot = new ArrayList<>();
 
 
     @Override
     public boolean isSpecial() {
         return true;
     }
-    public DipperRecipe(ResourceLocation id, NonNullList<Ingredient> inputs,
-                        ItemStack output, FluidStack liquid, int fluidLevelsConsumed,
-                        int dippingTime, int dryingTime, int numberOfDips, boolean useInputItemAsOutput) {
-        this.id = id;
+    public DipperRecipe(Ingredient input, ItemStack output, FluidStack liquid, int fluidLevelsConsumed, int dippingTime, int dryingTime, int numberOfDips, boolean useInputItemAsOutput) {
+        this.input = input;
         this.output = output;
-        this.recipeItems = inputs;
         this.liquid = liquid;
         this.fluidLevelsConsumed = fluidLevelsConsumed;
         this.dippingTime = dippingTime;
@@ -56,39 +47,32 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
         this.numberOfDips = numberOfDips;
         this.useInputItemAsOutput = useInputItemAsOutput;
 
-        for(int i = 0; i < 8; i++) {
-            itemMatchesSlot.add(false);
-        }
-
     }
 
 
     public List<FluidIngredient> getFluidIngredients(){
-        return new ArrayList<>(List.of(FluidIngredient.fromFluidStack(this.liquid)));
+        return new ArrayList<>(List.of(FluidIngredient.of(this.liquid)));
     }
     public FluidIngredient getFluidIngredient(){
-        return FluidIngredient.fromFluidStack(this.liquid);
+        return FluidIngredient.of(this.liquid);
     }
 
     @Override
-    public boolean matches(SimpleContainer inv, Level worldIn) {
-        if(recipeItems.get(0).test(inv.getItem(0) )||
-                recipeItems.get(0).test(inv.getItem(1)) ||
-                        recipeItems.get(0).test(inv.getItem(2)))
-            return true;
-
-        return false;
+    public boolean matches(CraftingInput inv, Level level) {
+        return input.test(inv.getItem(0)) ||
+                input.test(inv.getItem(1)) ||
+                input.test(inv.getItem(2));
 
 
     }
 
     @Override
     public NonNullList<Ingredient> getIngredients() {
-        return recipeItems;
+        return NonNullList.of(input);
     }
 
     @Override
-    public ItemStack assemble(SimpleContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
         return output;
     }
 
@@ -98,8 +82,7 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
-
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return getOutput();
     }
 
@@ -124,11 +107,6 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ResourceLocation getId() {
-        return id;
-    }
-
-    @Override
     public RecipeSerializer<?> getSerializer() {
         return ModRecipeTypes.DIPPER_SERIALIZER.get();
     }
@@ -144,83 +122,66 @@ public class DipperRecipe implements Recipe<SimpleContainer> {
         public static final String ID = "dipper";
     }
 
-
     // for Serializing the recipe into/from a json
     public static class Serializer implements RecipeSerializer<DipperRecipe> {
         public static final DipperRecipe.Serializer INSTANCE = new DipperRecipe.Serializer();
         public static final ResourceLocation ID =
-                new ResourceLocation(Hexerei.MOD_ID,"dipper");
+                ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"dipper");
+
+        private static final MapCodec<DipperRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                Ingredient.CODEC.fieldOf("input").forGetter(recipe -> recipe.input),
+                                ItemStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.output),
+                                FluidStack.CODEC.fieldOf("fluid").forGetter(recipe -> recipe.liquid),
+                                Codec.INT.fieldOf("fluidLevelsConsumed").forGetter(recipe -> recipe.fluidLevelsConsumed),
+                                Codec.INT.fieldOf("dippingTime").forGetter(recipe -> recipe.dippingTime),
+                                Codec.INT.fieldOf("dryingTime").forGetter(recipe -> recipe.dryingTime),
+                                Codec.INT.fieldOf("numberOfDips").forGetter(recipe -> recipe.numberOfDips),
+                                Codec.BOOL.fieldOf("useInputItemAsOutput").forGetter(recipe -> recipe.useInputItemAsOutput)
+                        )
+                        .apply(instance, DipperRecipe::new)
+        );
+//        public DipperRecipe(NonNullList<Ingredient> inputs, ItemStack output, FluidStack liquid, int fluidLevelsConsumed, int dippingTime, int dryingTime, int numberOfDips, boolean useInputItemAsOutput) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, DipperRecipe> STREAM_CODEC = StreamCodec.of(
+                DipperRecipe.Serializer::toNetwork, DipperRecipe.Serializer::fromNetwork
+        );
 
         @Override
-        public DipperRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-//            JsonArray ingredients = GsonHelper.getAsJsonArray(json, "ingredients");
-            NonNullList<Ingredient> inputs = NonNullList.withSize(1, Ingredient.EMPTY);
-            ItemStack input = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "input"));
-            ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-            FluidStack liquid = deserializeFluidStack(GsonHelper.getAsJsonObject(json, "liquid"));
-            boolean useInputItemAsOutput = GsonHelper.getAsBoolean(json, "useInputItemAsOutput", false);
-            int fluidLevelsConsumed = GsonHelper.getAsInt(json, "fluidLevelsConsumed");
-            int dippingTime = GsonHelper.getAsInt(json, "dippingTimeInTicks");
-            int dryingTime = GsonHelper.getAsInt(json, "dryingTimeInTicks");
-            int numberOfDips = GsonHelper.getAsInt(json, "numberOfDips");
-
-            inputs.set(0, Ingredient.of(input));
-
-            return new DipperRecipe(recipeId, inputs,
-                    output, liquid, fluidLevelsConsumed, dippingTime, dryingTime, numberOfDips, useInputItemAsOutput);
-        }
-
-        @Nullable
-        @Override
-        public DipperRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
-//            inputs.add(Ingredient.fromNetwork(buffer));
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromNetwork(buffer));
-            }
-
-            ItemStack output = buffer.readItem();
-            return new DipperRecipe(recipeId, inputs, output,
-                    buffer.readFluidStack(), buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readBoolean());
+        public MapCodec<DipperRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public void toNetwork(FriendlyByteBuf buffer, DipperRecipe recipe) {
-            buffer.writeInt(recipe.getIngredients().size());
-            for (Ingredient ing : recipe.getIngredients())
-                ing.toNetwork(buffer);
-            buffer.writeItem(recipe.output);
-
-            buffer.writeFluidStack(recipe.getLiquid());
-
-            buffer.writeInt(recipe.getFluidLevelsConsumed());
-            buffer.writeInt(recipe.getDippingTime());
-            buffer.writeInt(recipe.getDryingTime());
-            buffer.writeInt(recipe.getNumberOfDips());
-            buffer.writeBoolean(recipe.getUseInputItemAsOutput());
+        public StreamCodec<RegistryFriendlyByteBuf, DipperRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
 
-        public static FluidStack deserializeFluidStack(JsonObject json) {
-            ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(json, "fluid"));
-            Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-            if (fluid == null)
-                throw new JsonSyntaxException("Unknown fluid '" + id + "'");
-            FluidStack stack = new FluidStack(fluid, 1);
 
-            if (!json.has("nbt"))
-                return stack;
-
-            try {
-                JsonElement element = json.get("nbt");
-                stack.setTag(TagParser.parseTag(
-                        element.isJsonObject() ? Hexerei.GSON.toJson(element) : GsonHelper.convertToString(element, "nbt")));
-
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
-            return stack;
+        static <B extends ByteBuf> StreamCodec.CodecOperation<B, Ingredient, NonNullList<Ingredient>> list() {
+            return p_320272_ -> ByteBufCodecs.collection((s) -> NonNullList.withSize(s, Ingredient.EMPTY), p_320272_);
         }
 
+        private static DipperRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            Ingredient input = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
+            ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
+            FluidStack fluid = FluidStack.STREAM_CODEC.decode(buffer);
+            int fluidLevelsConsumed = ByteBufCodecs.INT.decode(buffer);
+            int dippingTime = ByteBufCodecs.INT.decode(buffer);
+            int dryingTime = ByteBufCodecs.INT.decode(buffer);
+            int numberOfDips = ByteBufCodecs.INT.decode(buffer);
+            boolean useInputItemAsOutput = ByteBufCodecs.BOOL.decode(buffer);
+            return new DipperRecipe(input, output, fluid, fluidLevelsConsumed, dippingTime, dryingTime, numberOfDips, useInputItemAsOutput);
+        }
+
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, DipperRecipe recipe) {
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.input);
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.output);
+            FluidStack.STREAM_CODEC.encode(buffer, recipe.liquid);
+            ByteBufCodecs.INT.encode(buffer, recipe.fluidLevelsConsumed);
+            ByteBufCodecs.INT.encode(buffer, recipe.dippingTime);
+            ByteBufCodecs.INT.encode(buffer, recipe.dryingTime);
+            ByteBufCodecs.INT.encode(buffer, recipe.numberOfDips);
+            ByteBufCodecs.BOOL.encode(buffer, recipe.useInputItemAsOutput);
+        }
     }
 }

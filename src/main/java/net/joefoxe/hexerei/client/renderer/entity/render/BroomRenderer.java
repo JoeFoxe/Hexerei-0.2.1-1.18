@@ -10,6 +10,7 @@ import net.joefoxe.hexerei.client.renderer.entity.model.ArmorModels;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.*;
 import net.joefoxe.hexerei.util.HexereiTags;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,6 +20,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
@@ -26,20 +28,17 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
-
-@OnlyIn(Dist.CLIENT)
 
 
 public class BroomRenderer extends EntityRenderer<BroomEntity>
 {
     protected static final ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/entity/broom.png");
-    private static final ResourceLocation POWER_LOCATION = new ResourceLocation(Hexerei.MOD_ID, "textures/entity/power_layer_light.png");
+            HexereiUtil.getResource("textures/entity/broom.png");
+    private static final ResourceLocation POWER_LOCATION = HexereiUtil.getResource("textures/entity/power_layer_light.png");
 
     public BroomRenderer(EntityRendererProvider.Context context)
     {
@@ -99,17 +98,17 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
             if(broomItem.model != null) {
                 VertexConsumer ivertexbuilderStick = bufferIn.getBuffer(broomItem.model.renderType(broomItem.texture));
-                broomItem.model.renderToBuffer(matrixStackIn, ivertexbuilderStick, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                broomItem.model.renderToBuffer(matrixStackIn, ivertexbuilderStick, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
             }
             if(BroomEntity.getDyeColorNamed(entityIn) != null) {
                 if (broomItem.outter_model != null) {
                     DyeColor dyeColor = BroomEntity.getDyeColorNamed(entityIn);
                     float[] afloat = new float[]{1, 1, 1};
                     if (dyeColor != null)
-                        afloat = dyeColor.getTextureDiffuseColors();
+                        afloat = HexereiUtil.rgbIntToFloatArray(dyeColor.getTextureDiffuseColor());
                     float offset = Hexerei.getClientTicks() + partialTicks;
                     VertexConsumer ivertexbuilderStick = bufferIn.getBuffer(RenderType.energySwirl(POWER_LOCATION, (offset * 0.01F) % 1.0F, offset * 0.01F % 1.0F));
-                    broomItem.outter_model.renderToBuffer(matrixStackIn, ivertexbuilderStick, packedLightIn, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+                    broomItem.outter_model.renderToBuffer(matrixStackIn, ivertexbuilderStick, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(afloat[0], afloat[1], afloat[2], 1.0F));
                 }
             }
         }
@@ -134,17 +133,17 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
                 }
                 Model broomBrushModel = brushItem.model;
                 VertexConsumer brushVertexConsumer = bufferIn.getBuffer(broomBrushModel.renderType(brushItem.texture));
-                broomBrushModel.renderToBuffer(matrixStackIn, brushVertexConsumer, light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                broomBrushModel.renderToBuffer(matrixStackIn, brushVertexConsumer, light, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
                 if (entityIn.hasCustomName() && BroomEntity.getDyeColorNamed(entityIn) != null) {
 
                     DyeColor dyeColor = BroomEntity.getDyeColorNamed(entityIn);
                     float[] afloat = new float[]{1, 1, 1};
                     if (dyeColor != null)
-                        afloat = dyeColor.getTextureDiffuseColors();
+                        afloat = HexereiUtil.rgbIntToFloatArray(dyeColor.getTextureDiffuseColor());
                     float offset = Hexerei.getClientTicks() + partialTicks;
                     VertexConsumer vertexconsumer = bufferIn.getBuffer(RenderType.energySwirl(POWER_LOCATION, (offset * 0.01F) % 1.0F, offset * 0.01F % 1.0F));
-                    broomBrushModel.renderToBuffer(matrixStackIn, vertexconsumer, light, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+                    broomBrushModel.renderToBuffer(matrixStackIn, vertexconsumer, light, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(afloat[0], afloat[1], afloat[2], 1.0F));
                 }
             }
             matrixStackIn.popPose();
@@ -164,21 +163,21 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
                 Model satchelModel = satchelItem.model;
                 VertexConsumer vertexConsumer = bufferIn.getBuffer(satchelModel.renderType(satchelItem.texture));
-                satchelModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                satchelModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
                 if(satchelItem.dye_texture != null){
                     if (SatchelItem.getDyeColorNamed(satchelStack) != null) {
-                        float[] afloat = SatchelItem.getDyeColorNamed(satchelStack).getTextureDiffuseColors();
+                        float[] afloat = HexereiUtil.rgbIntToFloatArray(SatchelItem.getDyeColorNamed(satchelStack).getTextureDiffuseColor());
                         VertexConsumer vertexConsumerDye = ItemRenderer.getFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(satchelItem.dye_texture), false, false);
-                        satchelModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+                        satchelModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(afloat[0], afloat[1], afloat[2], 1.0F));
                     } else {
-                        int col = SatchelItem.getColorStatic(satchelStack);
+                        int col = SatchelItem.getColorValue(SatchelItem.getDyeColorNamed(satchelStack), satchelStack);
                         int i = (col & 16711680) >> 16;
                         int j = (col & '\uff00') >> 8;
                         int k = (col & 255);
                         float[] afloat = new float[]{(float) i / 255.0F, (float) j / 255.0F, (float) k / 255.0F};
                         VertexConsumer vertexConsumerDye = ItemRenderer.getFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(satchelItem.dye_texture), false, false);
-                        satchelModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+                        satchelModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(afloat[0], afloat[1], afloat[2], 1.0F));
                     }
                 }
             }
@@ -199,7 +198,7 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
                 Model broomKeychainModel = keychainItem.model;
                 VertexConsumer ivertexbuilderRings = bufferIn.getBuffer(broomKeychainModel.renderType(keychainItem.texture));
-                broomKeychainModel.renderToBuffer(matrixStackIn, ivertexbuilderRings, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                broomKeychainModel.renderToBuffer(matrixStackIn, ivertexbuilderRings, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
                 matrixStackIn.translate(-19/16f, 0, -0.4f/16f);
 
@@ -212,7 +211,7 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
                 matrixStackIn.mulPose(Axis.ZP.rotationDegrees(-deltaMovementY * 20f));
                 matrixStackIn.mulPose(Axis.YP.rotationDegrees((float)(Math.atan2(deltaMovementZ, deltaMovementX)/(2*Math.PI)*360) - entityYaw));
 
-                if(entityIn.selfItem != null && entityIn.selfItem.hasTag() && Hexerei.proxy.getPlayer().getMainHandItem().hasTag() && Hexerei.proxy.getPlayer().getMainHandItem().getTag().equals(entityIn.selfItem.getTag()) && Minecraft.getInstance().options.getCameraType().isFirstPerson())
+                if(entityIn.selfItem != null && ItemStack.isSameItemSameComponents(entityIn.selfItem, Hexerei.proxy.getPlayer().getMainHandItem()) && Minecraft.getInstance().options.getCameraType().isFirstPerson())
                 {
 
                     matrixStackIn.mulPose(Axis.XP.rotationDegrees((Hexerei.proxy.getPlayer().yHeadRot - Hexerei.proxy.getPlayer().yHeadRotO) * 1.5f));
@@ -236,12 +235,12 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
                 Model broomKeychainChainModel = keychainItem.chain_resources.getSecond();
                 VertexConsumer ivertexbuilderChain = bufferIn.getBuffer(broomKeychainChainModel.renderType(keychainItem.chain_resources.getFirst()));
-                broomKeychainChainModel.renderToBuffer(matrixStackIn, ivertexbuilderRings, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                broomKeychainChainModel.renderToBuffer(matrixStackIn, ivertexbuilderRings, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
 
                 matrixStackIn.translate(0,  1+11.5/16f, 0);
                 matrixStackIn.mulPose(Axis.XP.rotationDegrees(180.0F));
-                if(entityIn.selfItem != null && entityIn.selfItem.hasTag() && Hexerei.proxy.getPlayer().getMainHandItem().hasTag() && Hexerei.proxy.getPlayer().getMainHandItem().getTag().equals(entityIn.selfItem.getTag()) && Minecraft.getInstance().options.getCameraType().isFirstPerson())
+                if(entityIn.selfItem != null && ItemStack.isSameItemSameComponents(entityIn.selfItem, Hexerei.proxy.getPlayer().getMainHandItem()) && Minecraft.getInstance().options.getCameraType().isFirstPerson())
                 {
                     matrixStackIn.mulPose(Axis.ZP.rotationDegrees((float)(Hexerei.proxy.getPlayer().getLookAngle().y * 20f)));
                     matrixStackIn.mulPose(Axis.ZP.rotationDegrees(Mth.clamp((float)Hexerei.proxy.getPlayer().getDeltaMovement().dot(Hexerei.proxy.getPlayer().getLookAngle()) * 50f, -20, 20)));
@@ -251,8 +250,9 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
 
                 NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
-                if(miscStack.hasTag())
-                    ContainerHelper.loadAllItems(miscStack.getTag(), items);
+
+                if(miscStack.has(DataComponents.CUSTOM_DATA))
+                    ContainerHelper.loadAllItems(miscStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(), items, entityIn.level().registryAccess());
                 if(items.get(0).getItem() instanceof BroomItem) {
                     matrixStackIn.scale(0.45f, 0.45f, 0.45f);
                 }
@@ -268,7 +268,7 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
                     Model miscModel = miscItem.model;
                     VertexConsumer vertexConsumer = bufferIn.getBuffer(miscModel.renderType(miscItem.texture));
-                    miscModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    miscModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
                     matrixStackIn.translate(-22 / 16f, 0, -0.4f / 16f);
 
@@ -289,7 +289,7 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
 
                     Model miscModel = miscItem.model;
                     VertexConsumer vertexConsumer = bufferIn.getBuffer(miscModel.renderType(miscItem.texture));
-                    miscModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    miscModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
                     matrixStackIn.translate(-22/16f, 0, -0.4f/16f);
 
@@ -309,21 +309,21 @@ public class BroomRenderer extends EntityRenderer<BroomEntity>
                 if(miscStack.getItem() instanceof BroomAttachmentItem miscItem && miscItem.model != null) {
                     Model miscModel = miscItem.model;
                     VertexConsumer vertexConsumer = bufferIn.getBuffer(miscModel.renderType(miscItem.texture));
-                    miscModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    miscModel.renderToBuffer(matrixStackIn, vertexConsumer, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
 
                     if(miscItem.dye_texture != null){
                         if (SatchelItem.getDyeColorNamed(satchelStack) != null) {
-                            float[] afloat = SatchelItem.getDyeColorNamed(satchelStack).getTextureDiffuseColors();
+                            float[] afloat = HexereiUtil.rgbIntToFloatArray(SatchelItem.getDyeColorNamed(satchelStack).getTextureDiffuseColor());
                             VertexConsumer vertexConsumerDye = ItemRenderer.getFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(miscItem.dye_texture), false, false);
-                            miscModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+                            miscModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(afloat[0], afloat[1], afloat[2], 1.0F));
                         } else {
-                            int col = SatchelItem.getColorStatic(satchelStack);
+                            int col = SatchelItem.getColorValue(SatchelItem.getDyeColorNamed(satchelStack), satchelStack);
                             int i = (col & 16711680) >> 16;
                             int j = (col & '\uff00') >> 8;
                             int k = (col & 255);
                             float[] afloat = new float[]{(float) i / 255.0F, (float) j / 255.0F, (float) k / 255.0F};
                             VertexConsumer vertexConsumerDye = ItemRenderer.getFoilBuffer(bufferIn, RenderType.entityCutoutNoCull(miscItem.dye_texture), false, false);
-                            miscModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, afloat[0], afloat[1], afloat[2], 1.0F);
+                            miscModel.renderToBuffer(matrixStackIn, vertexConsumerDye, packedLightIn, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(afloat[0], afloat[1], afloat[2], 1.0F));
                         }
                     }
                 }

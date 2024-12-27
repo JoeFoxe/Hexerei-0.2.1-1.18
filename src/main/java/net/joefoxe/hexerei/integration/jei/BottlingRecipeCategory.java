@@ -5,23 +5,21 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
-import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.block.custom.MixingCauldron;
 import net.joefoxe.hexerei.data.recipes.CauldronEmptyingRecipe;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.renderer.MixingCauldronRenderer;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -31,7 +29,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -40,18 +37,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix4f;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class BottlingRecipeCategory implements IRecipeCategory<CauldronEmptyingRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "bottling");
+    public final static ResourceLocation UID = HexereiUtil.getResource("bottling");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/bottling_gui_jei.png");
+            HexereiUtil.getResource("textures/gui/bottling_gui_jei.png");
     private IDrawable background;
     private final IDrawable icon;
     public BottlingRecipeCategory(IGuiHelper helper) {
@@ -69,10 +68,10 @@ public class BottlingRecipeCategory implements IRecipeCategory<CauldronEmptyingR
         return Component.translatable("gui.jei.category.bottling");
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -87,7 +86,7 @@ public class BottlingRecipeCategory implements IRecipeCategory<CauldronEmptyingR
         builder.addSlot(RecipeIngredientRole.INPUT,14, 24).addIngredients(recipe.getInput());
         builder.addSlot(RecipeIngredientRole.INPUT,62, 24)
             .setFluidRenderer(2000, true, 16, 16)
-            .addIngredients(ForgeTypes.FLUID_STACK, recipe.getFluid().getMatchingFluidStacks())
+            .addIngredients(NeoForgeTypes.FLUID_STACK, Arrays.stream(recipe.getFluid().ingredient().getStacks()).toList())
             .setOverlay(new IDrawable() {
                     @Override
                 public int getWidth() {
@@ -107,7 +106,7 @@ public class BottlingRecipeCategory implements IRecipeCategory<CauldronEmptyingR
                     guiGraphics.pose().pushPose();
 
                     guiGraphics.pose().translate(xOffset, yOffset, 0);
-                    guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+                    guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
                     guiGraphics.pose().translate(-3, -15, 0);
                     guiGraphics.pose().scale(17, 17, 17);
                     MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -132,7 +131,7 @@ public class BottlingRecipeCategory implements IRecipeCategory<CauldronEmptyingR
 
                     renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, blockState, 0xFF404040);
 
-                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, recipe.getFluid().getMatchingFluidStacks().get(0), 1, 1, OverlayTexture.NO_OVERLAY);
+                    MixingCauldronRenderer.renderFluidGUI(guiGraphics.pose(), buffer, Arrays.stream(recipe.getFluid().ingredient().getStacks()).toList().get(0), 1, 1, OverlayTexture.NO_OVERLAY);
 
                     guiGraphics.pose().popPose();
                 }

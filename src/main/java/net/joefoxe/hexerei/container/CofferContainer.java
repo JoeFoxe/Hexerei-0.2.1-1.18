@@ -5,6 +5,8 @@ import net.joefoxe.hexerei.block.custom.Coffer;
 import net.joefoxe.hexerei.tileentity.CofferTile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -16,12 +18,13 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 
 public class CofferContainer extends AbstractContainerMenu {
@@ -126,13 +129,12 @@ public class CofferContainer extends AbstractContainerMenu {
         //add slots for coffer
 
         if(this.tileEntity instanceof CofferTile te) {
-            te.readInventory(stack.getOrCreateTag()
-                    .getCompound("Inventory"));
+            CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            te.readInventory(player.level().registryAccess(), tag.getCompound("Inventory"));
 
             te.setDyeColor(Coffer.getColorStatic(stack));
 
-            te.buttonToggled = stack.getOrCreateTag()
-                    .getInt("ButtonToggled");
+            te.buttonToggled = tag.getInt("ButtonToggled");
             te.self = itemStack;
             te.setChanged();
         }
@@ -190,7 +192,7 @@ public class CofferContainer extends AbstractContainerMenu {
     }
 
     public void playSound() {
-        this.tileEntity.getLevel().playSound(null, this.tileEntity.getBlockPos(), SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.tileEntity.getLevel().playSound(null, this.tileEntity.getBlockPos(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public int getToggled() {

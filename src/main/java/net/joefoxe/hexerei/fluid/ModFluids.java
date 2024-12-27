@@ -1,27 +1,22 @@
 package net.joefoxe.hexerei.fluid;
 
-import com.tterrag.registrate.Registrate;
-import com.tterrag.registrate.util.entry.FluidEntry;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.item.ModItems;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.world.level.material.*;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ModFluids {
 
-	public static final Registrate REGISTRATE = Hexerei.registrate();
+//	public static final Registrate REGISTRATE = Hexerei.registrate();
 
 
 	// TODO implement potion fluid based on this, then run genData
@@ -30,14 +25,14 @@ public class ModFluids {
 //					.lang("Potion")
 //					.register();
 	// Better example form Ender IO since Create has their own extensions for virtual fluids
-	public static final FluidEntry<PotionFluid> POTION = REGISTRATE.fluid("potion", new ResourceLocation(Hexerei.MOD_ID, "block/potion_still"),
-					new ResourceLocation(Hexerei.MOD_ID, "block/potion_flow"), PotionFluidType::new, PotionFluid::new)
-					//.renderType(RenderType::translucent) //TODO it will crash servers if called here apparently
-            .source(PotionFluid::new)
-			.lang("Potion")
-            .noBlock()
-			.noBucket()
-			.register();
+//	public static final FluidEntry<PotionFluid> POTION = REGISTRATE.fluid("potion", ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/potion_still"),
+//					ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/potion_flow"), PotionFluidType::new, PotionFluid::new)
+//					//.renderType(RenderType::translucent) //TODO it will crash servers if called here apparently
+//            .source(PotionFluid::new)
+//			.lang("Potion")
+//            .noBlock()
+//			.noBucket()
+//			.register();
 
 
 //
@@ -48,48 +43,65 @@ public class ModFluids {
 //						Create.asResource("fluid/" + name + "_flow"), typeFactory, factory));
 //	}
 
-	private static ForgeFlowingFluid.Properties getBloodProperties() {
-		return new ForgeFlowingFluid.Properties(ModFluidTypes.BLOOD_FLUID_TYPE, BLOOD_FLUID, BLOOD_FLOWING)
-						.block(BLOOD_BLOCK)
-						.bucket(ModItems.BLOOD_BUCKET).slopeFindDistance(2).levelDecreasePerBlock(2);
-	}
+//	private static ForgeFlowingFluid.Properties getBloodProperties() {
+//		return new ForgeFlowingFluid.Properties(ModFluidTypes.BLOOD_FLUID_TYPE, BLOOD_FLUID, BLOOD_FLOWING)
+//						.block(BLOOD_BLOCK)
+//						.bucket(ModItems.BLOOD_BUCKET).slopeFindDistance(2).levelDecreasePerBlock(2);
+//	}
+//
+//
+//	private static ForgeFlowingFluid.Properties getQuicksilverProperties() {
+//		return new ForgeFlowingFluid.Properties(ModFluidTypes.QUICKSILVER_FLUID_TYPE, QUICKSILVER_FLUID, QUICKSILVER_FLOWING)
+//						.block(QUICKSILVER_BLOCK)
+//						.bucket(ModItems.QUICKSILVER_BUCKET).slopeFindDistance(2).levelDecreasePerBlock(2);
+//	}
+//
+//	private static ForgeFlowingFluid.Properties getTallowProperties() {
+//		return new ForgeFlowingFluid.Properties(ModFluidTypes.TALLOW_FLUID_TYPE, TALLOW_FLUID, TALLOW_FLOWING)
+//						.block(TALLOW_BLOCK)
+//						.bucket(ModItems.TALLOW_BUCKET).slopeFindDistance(2).levelDecreasePerBlock(3);
+//	}
 
-	private static ForgeFlowingFluid.Properties getQuicksilverProperties() {
-		return new ForgeFlowingFluid.Properties(ModFluidTypes.QUICKSILVER_FLUID_TYPE, QUICKSILVER_FLUID, QUICKSILVER_FLOWING)
-						.block(QUICKSILVER_BLOCK)
-						.bucket(ModItems.QUICKSILVER_BUCKET).slopeFindDistance(2).levelDecreasePerBlock(2);
-	}
 
-	private static ForgeFlowingFluid.Properties getTallowProperties() {
-		return new ForgeFlowingFluid.Properties(ModFluidTypes.TALLOW_FLUID_TYPE, TALLOW_FLUID, TALLOW_FLOWING)
-						.block(TALLOW_BLOCK)
-						.bucket(ModItems.TALLOW_BUCKET).slopeFindDistance(2).levelDecreasePerBlock(3);
-	}
-
-	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, Hexerei.MOD_ID);
+	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(BuiltInRegistries.FLUID, Hexerei.MOD_ID);
 
 
-	public static final RegistryObject<Fluid> BLOOD_FLOWING = FLUIDS.register("blood_flowing", () -> new BloodFluid.Flowing(getBloodProperties()));
 
-	public static final RegistryObject<BloodFluid.Source> BLOOD_FLUID = FLUIDS.register("blood_fluid", () -> new BloodFluid.Source(getBloodProperties()));
+	public static final DeferredHolder<Fluid, PotionFluid> POTION = FLUIDS.register("potion", PotionFluid::new);
 
-	public static final RegistryObject<LiquidBlock> BLOOD_BLOCK = ModBlocks.BLOCKS.register("blood", () -> new LiquidBlock(ModFluids.BLOOD_FLUID,
+
+	public static final DeferredHolder<Fluid, BloodFluid.Flowing> BLOOD_FLOWING = FLUIDS.register("blood_flowing", BloodFluid.Flowing::new);
+
+	public static final DeferredHolder<Fluid, BloodFluid.Source> BLOOD_FLUID = FLUIDS.register("blood_fluid", BloodFluid.Source::new);
+
+	public static final DeferredHolder<Block, LiquidBlock> BLOOD_BLOCK = ModBlocks.BLOCKS.register("blood", () -> new LiquidBlock(ModFluids.BLOOD_FLUID.value(),
 					BlockBehaviour.Properties.of().mapColor(MapColor.WATER).replaceable().noCollission().strength(100.0F).pushReaction(PushReaction.DESTROY).noLootTable().liquid().sound(SoundType.EMPTY)));
 
 
-	public static final RegistryObject<Fluid> QUICKSILVER_FLOWING = FLUIDS.register("quicksilver_flowing", () -> new ForgeFlowingFluid.Flowing(getQuicksilverProperties()));
+	//make quicksilver fluid eventually
+	public static final DeferredHolder<Fluid, LavaFluid> QUICKSILVER_FLOWING = FLUIDS.register("quicksilver_flowing", () -> new LavaFluid.Flowing(){
+		@Override
+		public FluidType getFluidType() {
+			return ModFluidTypes.QUICKSILVER_FLUID_TYPE.value();
+		}
+	});
 
-	public static final RegistryObject<ForgeFlowingFluid.Source> QUICKSILVER_FLUID = FLUIDS.register("quicksilver_fluid", () -> new ForgeFlowingFluid.Source(getQuicksilverProperties()));
+	public static final DeferredHolder<Fluid, LavaFluid.Source> QUICKSILVER_FLUID = FLUIDS.register("quicksilver_fluid", () -> new LavaFluid.Source(){
+		@Override
+		public FluidType getFluidType() {
+			return ModFluidTypes.QUICKSILVER_FLUID_TYPE.value();
+		}
+	});
 
-	public static final RegistryObject<LiquidBlock> QUICKSILVER_BLOCK = ModBlocks.BLOCKS.register("quicksilver", () -> new LiquidBlock(ModFluids.QUICKSILVER_FLUID,
-					BlockBehaviour.Properties.copy(Blocks.LAVA)));
+	public static final DeferredHolder<Block, LiquidBlock> QUICKSILVER_BLOCK = ModBlocks.BLOCKS.register("quicksilver", () -> new LiquidBlock(ModFluids.QUICKSILVER_FLUID.value(),
+					BlockBehaviour.Properties.ofFullCopy(Blocks.LAVA)));
 
 
-	public static final RegistryObject<Fluid> TALLOW_FLOWING = FLUIDS.register("tallow_flowing", () -> new TallowFluid.Flowing(getTallowProperties()));
+	public static final DeferredHolder<Fluid, TallowFluid.Flowing> TALLOW_FLOWING = FLUIDS.register("tallow_flowing", TallowFluid.Flowing::new);
 
-	public static final RegistryObject<TallowFluid.Source> TALLOW_FLUID = FLUIDS.register("tallow_fluid", () -> new TallowFluid.Source(getTallowProperties()));
+	public static final DeferredHolder<Fluid, TallowFluid.Source> TALLOW_FLUID = FLUIDS.register("tallow_fluid", TallowFluid.Source::new);
 
-	public static final RegistryObject<LiquidBlock> TALLOW_BLOCK = ModBlocks.BLOCKS.register("tallow", () -> new LiquidBlock(ModFluids.TALLOW_FLUID,
+	public static final DeferredHolder<Block, LiquidBlock> TALLOW_BLOCK = ModBlocks.BLOCKS.register("tallow", () -> new LiquidBlock(ModFluids.TALLOW_FLUID.value(),
 					BlockBehaviour.Properties.of().mapColor(MapColor.WATER).replaceable().noCollission().strength(100.0F).pushReaction(PushReaction.DESTROY).noLootTable().liquid().sound(SoundType.EMPTY)));
 
 

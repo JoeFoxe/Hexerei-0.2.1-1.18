@@ -1,48 +1,41 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class BroomDamageMiscToServer extends AbstractPacket {
 
-public class BroomDamageMiscToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BroomDamageMiscToServer> CODEC  = StreamCodec.ofMember(BroomDamageMiscToServer::encode, BroomDamageMiscToServer::new);
+    public static final CustomPacketPayload.Type<BroomDamageMiscToServer> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("broom_damage_misc"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
-    float rotation;
 
-    public BroomDamageMiscToServer(Entity entity) {
-        this.sourceId = entity.getId();
+    public BroomDamageMiscToServer(int id) {
+        this.sourceId = id;
     }
-    public BroomDamageMiscToServer(FriendlyByteBuf buf) {
+    public BroomDamageMiscToServer(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
-
     }
 
-    public static void encode(BroomDamageMiscToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
     }
 
-    public static BroomDamageMiscToServer decode(FriendlyByteBuf buffer) {
-        return new BroomDamageMiscToServer(buffer);
-    }
-
-    public static void consume(BroomDamageMiscToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BroomEntity)world.getEntity(packet.sourceId)).damageMisc();
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(player.level().getEntity(sourceId) instanceof BroomEntity broom) {
+            broom.damageMisc();
+        }
     }
 }

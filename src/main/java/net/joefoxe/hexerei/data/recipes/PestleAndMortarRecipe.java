@@ -1,65 +1,54 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import net.joefoxe.hexerei.Hexerei;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
+public class PestleAndMortarRecipe implements Recipe<CraftingInput> {
 
-    private final ResourceLocation id;
     private final ItemStack output;
     private final int grindingTime;
-    private final NonNullList<Ingredient> recipeItems;
-    protected static final List<Boolean> itemMatchesSlot = new ArrayList<>();
+    private final NonNullList<Ingredient> input;
 
 
     @Override
     public boolean isSpecial() {
         return true;
     }
-    public PestleAndMortarRecipe(ResourceLocation id, ItemStack output,
-                                 NonNullList<Ingredient> recipeItems, int grindingTime) {
-        this.id = id;
+    public PestleAndMortarRecipe(ItemStack output, NonNullList<Ingredient> input, int grindingTime) {
         this.output = output;
-        this.recipeItems = recipeItems;
+        this.input = input;
         this.grindingTime = grindingTime;
-
-        for(int i = 0; i < 5; i++) {
-            itemMatchesSlot.add(false);
-        }
 
     }
 
-
     @Override
-    public boolean matches(SimpleContainer inv, Level worldIn) {
+    public boolean matches(CraftingInput input, Level level) {
 
-        for(int i = 0; i < 5; i++)
-            itemMatchesSlot.set(i, false);
+        List<Boolean> itemMatchesSlot = Stream.generate(() -> false).limit(5).collect(Collectors.toList());
 
         // the flag is to break out early in case nothing matches for that slot
         boolean flag = false;
-        int numberOfEmpty = 5 - this.recipeItems.size();
+        int numberOfEmpty = 5 - this.input.size();
         // cycle through each recipe slot
-        for (Ingredient recipeItem : this.recipeItems) {
+        for (Ingredient recipeItem : this.input) {
             //cycle through each slot for each recipe slot
             for (int i = 0; i < 5; i++) {
                 //if the recipe matches a slot
-                if (recipeItem.test(inv.getItem(i))) {
+                if (recipeItem.test(input.getItem(i))) {
                     // if the slot is not taken up
                     if (!itemMatchesSlot.get(i)) {
                         //mark the slot as taken up
@@ -80,7 +69,7 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
             //cycle through each slot for each recipe slot
             for (int i = 0; i < 5; i++) {
                 //if the recipe matches a slot
-                if (inv.getItem(i).isEmpty()) {
+                if (input.getItem(i).isEmpty()) {
                     // if the slot is not taken up
                     if (!itemMatchesSlot.get(i)) {
                         //mark the slot as taken up
@@ -109,14 +98,14 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
 
 
 //        SHAPED CRAFTING - maybe bring this back as another config in the recipe to see if its shaped or shapeless
-//        if(recipeItems.get(0).test(inv.getItem(0)) &&
-//            recipeItems.get(1).test(inv.getItem(1)) &&
-//            recipeItems.get(2).test(inv.getItem(2)) &&
-//            recipeItems.get(3).test(inv.getItem(3)) &&
-//            recipeItems.get(4).test(inv.getItem(4)) &&
-//            recipeItems.get(5).test(inv.getItem(5)) &&
-//            recipeItems.get(6).test(inv.getItem(6)) &&
-//            recipeItems.get(7).test(inv.getItem(7)))
+//        if(input.get(0).test(inv.getItem(0)) &&
+//            input.get(1).test(inv.getItem(1)) &&
+//            input.get(2).test(inv.getItem(2)) &&
+//            input.get(3).test(inv.getItem(3)) &&
+//            input.get(4).test(inv.getItem(4)) &&
+//            input.get(5).test(inv.getItem(5)) &&
+//            input.get(6).test(inv.getItem(6)) &&
+//            input.get(7).test(inv.getItem(7)))
 //        {
 //            return true;
 //        }
@@ -125,13 +114,13 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack assemble(SimpleContainer pContainer, RegistryAccess pRegistryAccess) {
+    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
         return output;
     }
 
     @Override
     public NonNullList<Ingredient> getIngredients() {
-        return recipeItems;
+        return input;
     }
 
     @Override
@@ -140,8 +129,7 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess pRegistryAccess) {
-
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return getOutput();
     }
 
@@ -154,11 +142,6 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
     }
 
     public int getGrindingTime() { return this.grindingTime; }
-
-    @Override
-    public ResourceLocation getId() {
-        return id;
-    }
 
     @Override
     public RecipeSerializer<?> getSerializer() {
@@ -178,50 +161,45 @@ public class PestleAndMortarRecipe implements Recipe<SimpleContainer> {
     }
 
 
-    // for Serializing the recipe into/from a json
     public static class Serializer implements RecipeSerializer<PestleAndMortarRecipe> {
-        public static final PestleAndMortarRecipe.Serializer INSTANCE = new PestleAndMortarRecipe.Serializer();
-        public static final ResourceLocation ID =
-                new ResourceLocation(Hexerei.MOD_ID,"pestle_and_mortar");
+        public static final Serializer INSTANCE = new Serializer();
+        private static final MapCodec<PestleAndMortarRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                ItemStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.output),
+                                NonNullList.codecOf(Ingredient.CODEC).fieldOf("ingredients").forGetter(recipe -> recipe.input),
+                                Codec.INT.fieldOf("grindingTime").forGetter(recipe -> recipe.grindingTime)
+                        )
+                        .apply(instance, PestleAndMortarRecipe::new)
+        );
+        public static final StreamCodec<RegistryFriendlyByteBuf, PestleAndMortarRecipe> STREAM_CODEC = StreamCodec.of(
+                PestleAndMortarRecipe.Serializer::toNetwork, PestleAndMortarRecipe.Serializer::fromNetwork
+        );
 
         @Override
-        public PestleAndMortarRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-
-            JsonArray ingredients = GsonHelper.getAsJsonArray(json, "ingredients");
-            NonNullList<Ingredient> inputs = NonNullList.withSize(ingredients.size(), Ingredient.EMPTY);
-            int grindingTime = GsonHelper.getAsInt(json, "grindingTime");
-
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromJson(ingredients.get(i)));
-            }
-
-            return new PestleAndMortarRecipe(recipeId, output,
-                    inputs, grindingTime);
+        public MapCodec<PestleAndMortarRecipe> codec() {
+            return CODEC;
         }
 
-        @Nullable
         @Override
-        public PestleAndMortarRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
+        public StreamCodec<RegistryFriendlyByteBuf, PestleAndMortarRecipe> streamCodec() {
+            return STREAM_CODEC;
+        }
+
+        private static PestleAndMortarRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
             NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
+            inputs.replaceAll(ignored -> Ingredient.CONTENTS_STREAM_CODEC.decode(buffer));
+            int grindingTime = ByteBufCodecs.INT.decode(buffer);
 
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromNetwork(buffer));
-            }
-
-            return new PestleAndMortarRecipe(recipeId, buffer.readItem(),
-                    inputs, buffer.readInt());
+            return new PestleAndMortarRecipe(output, inputs, grindingTime);
         }
 
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, PestleAndMortarRecipe recipe) {
-            buffer.writeInt(recipe.getIngredients().size());
-            for (Ingredient ing : recipe.getIngredients()) {
-                ing.toNetwork(buffer);
-            }
-            buffer.writeItem(recipe.output);
-            buffer.writeInt(recipe.getGrindingTime());
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, PestleAndMortarRecipe recipe) {
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.output);
+            buffer.writeInt(recipe.input.size());
+            for (Ingredient ingredient : recipe.input)
+                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, ingredient);
+            ByteBufCodecs.INT.encode(buffer, recipe.grindingTime);
         }
-
     }
 }

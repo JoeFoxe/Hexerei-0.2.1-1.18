@@ -15,7 +15,7 @@ import java.util.List;
 
 public class SeedMixtureItem extends Item {
 
-    public static FoodProperties FOOD = new FoodProperties.Builder().saturationMod(1).nutrition(2).build();
+    public static FoodProperties FOOD = new FoodProperties.Builder().saturationModifier(1).nutrition(2).build();
 
     public SeedMixtureItem(Properties properties) {
         super(properties.food(FOOD));
@@ -41,12 +41,11 @@ public class SeedMixtureItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 
-        tooltip.add(Component.translatable("tooltip.hexerei.seed_mixture_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+        tooltipComponents.add(Component.translatable("tooltip.hexerei.seed_mixture_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 
-
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
 }

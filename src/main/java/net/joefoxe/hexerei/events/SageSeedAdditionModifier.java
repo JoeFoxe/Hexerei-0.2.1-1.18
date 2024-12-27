@@ -2,45 +2,55 @@ package net.joefoxe.hexerei.events;
 
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.joefoxe.hexerei.Hexerei;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.common.loot.LootModifier;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+import net.neoforged.neoforge.common.loot.LootModifier;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 public class SageSeedAdditionModifier extends LootModifier {
     private final Item addition;
     private final int count;
 
-    private static final DeferredRegister<Codec<? extends IGlobalLootModifier>> REGISTER = DeferredRegister.create(
-            ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, Hexerei.MOD_ID);
-    private static final RegistryObject<Codec<SageSeedAdditionModifier>> GRASS_DROPS = REGISTER.register(
-            "sage_seeds_from_grass", () -> RecordCodecBuilder.create(instance -> instance.group(
-                    LOOT_CONDITIONS_CODEC.fieldOf("conditions").forGetter(lm -> lm.conditions),
-                    Codec.STRING.fieldOf("addition").forGetter(d -> String.valueOf(d.addition)),
-                    Codec.INT.fieldOf("count").forGetter(d -> d.count)
-            ).apply(instance, SageSeedAdditionModifier::new))
+
+
+    public static final MapCodec<SageSeedAdditionModifier> CODEC = RecordCodecBuilder.mapCodec(instance ->
+            codecStart(instance)
+                    .and(
+                            instance.group(
+                                    Codec.STRING.optionalFieldOf("addition", "").forGetter(d -> BuiltInRegistries.ITEM.getKey(d.addition).toString()),
+                                    Codec.INT.optionalFieldOf("count", 1).forGetter(d -> d.count)
+                            )
+                    )
+                    .apply(instance, SageSeedAdditionModifier::new));
+
+    private static final DeferredRegister<MapCodec<? extends IGlobalLootModifier>> REGISTER = DeferredRegister.create(
+            NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, Hexerei.MOD_ID);
+    private static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>, MapCodec<SageSeedAdditionModifier>> GRASS_DROPS = REGISTER.register(
+            "animal_fat_drops", () -> CODEC
     );
 
     public SageSeedAdditionModifier(LootItemCondition[] lootItemConditions, String addition, Integer count) {
         super(lootItemConditions);
-        this.addition = ForgeRegistries.ITEMS.getValue(new ResourceLocation(addition));
+        this.addition = BuiltInRegistries.ITEM.get(ResourceLocation.parse(addition));
         this.count = count;
     }
 
-    public static void init()
+    public static void init(IEventBus eventBus)
     {
-        REGISTER.register(FMLJavaModLoadingContext.get().getModEventBus());
+        REGISTER.register(eventBus);
     }
 
     @Override
@@ -51,8 +61,8 @@ public class SageSeedAdditionModifier extends LootModifier {
     }
 
     @Override
-    public Codec<? extends IGlobalLootModifier> codec() {
-        return GRASS_DROPS.get();
+    public MapCodec<? extends IGlobalLootModifier> codec() {
+        return CODEC;
     }
 
 }

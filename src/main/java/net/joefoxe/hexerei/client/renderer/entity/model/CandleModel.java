@@ -8,6 +8,7 @@ package net.joefoxe.hexerei.client.renderer.entity.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -21,11 +22,11 @@ import java.util.Map;
 
 public class CandleModel<T extends Entity> extends EntityModel<T> {
     // This layer location should be baked with EntityRendererProvider.Context in the entity renderer and passed into this model's constructor
-    public static final ModelLayerLocation CANDLE_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_layer"), "main");
-    public static final ModelLayerLocation CANDLE_HERB_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_herb_layer"), "main");
-    public static final ModelLayerLocation CANDLE_BASE_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_base_layer"), "main");
-    public static final ModelLayerLocation CANDLE_GLOW_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_glow_layer"), "main");
-    public static final ModelLayerLocation CANDLE_SWIRL_LAYER = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "candle_swirl_layer"), "main");
+    public static final ModelLayerLocation CANDLE_LAYER = new ModelLayerLocation(HexereiUtil.getResource("candle_layer"), "main");
+    public static final ModelLayerLocation CANDLE_HERB_LAYER = new ModelLayerLocation(HexereiUtil.getResource("candle_herb_layer"), "main");
+    public static final ModelLayerLocation CANDLE_BASE_LAYER = new ModelLayerLocation(HexereiUtil.getResource("candle_base_layer"), "main");
+    public static final ModelLayerLocation CANDLE_GLOW_LAYER = new ModelLayerLocation(HexereiUtil.getResource("candle_glow_layer"), "main");
+    public static final ModelLayerLocation CANDLE_SWIRL_LAYER = new ModelLayerLocation(HexereiUtil.getResource("candle_swirl_layer"), "main");
     public final ModelPart wick;
     public final ModelPart wax1;
     public final ModelPart wax2;
@@ -120,10 +121,11 @@ public class CandleModel<T extends Entity> extends EntityModel<T> {
 
     }
 
+
     @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        wick.render(poseStack, vertexConsumer, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f, alpha);
-        wax7.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
-        base.render(poseStack, vertexConsumer, packedLight, packedOverlay, 1.0f, 1.0f, 1.0f, alpha);
+    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+        wick.render(poseStack, buffer, packedLight, packedOverlay, color);
+        wax7.render(poseStack, buffer, packedLight, packedOverlay, color);
+        base.render(poseStack, buffer, packedLight, packedOverlay, color);
     }
 }

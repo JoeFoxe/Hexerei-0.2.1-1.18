@@ -1,10 +1,6 @@
 package net.joefoxe.hexerei.util;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.shaders.FogShape;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.netty.buffer.Unpooled;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.CofferTile;
@@ -14,30 +10,27 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
+import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Vec3i;
-import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.TagParser;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -51,16 +44,11 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.forgespi.language.IModInfo;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforgespi.language.IModInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -77,26 +65,17 @@ public class HexereiUtil {
     public static final Vec3 CENTER_OF_ORIGIN = new Vec3(.5, .5, .5);
 
     public static ResourceLocation getRegistryName(Item i) {
-        return ForgeRegistries.ITEMS.getKey(i);
+        return BuiltInRegistries.ITEM.getKey(i);
     }
     public static ResourceLocation getRegistryName(Fluid i) {
-        return ForgeRegistries.FLUIDS.getKey(i);
+        return BuiltInRegistries.FLUID.getKey(i);
     }
 
     public static ResourceLocation getRegistryName(Block b) {
-        return ForgeRegistries.BLOCKS.getKey(b);
-    }
-
-    public static ResourceLocation getRegistryName(EntityType<?> i) {
-        return ForgeRegistries.ENTITY_TYPES.getKey(i);
-    }
-
-    public static ResourceLocation getRegistryName(Enchantment e) {
-        return ForgeRegistries.ENCHANTMENTS.getKey(e);
+        return BuiltInRegistries.BLOCK.getKey(b);
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static class FogData {
         public final FogRenderer.FogMode mode;
         public float start;
@@ -148,13 +127,13 @@ public class HexereiUtil {
 
         if (player != null) {
             BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(world, pos, state, player);
-            MinecraftForge.EVENT_BUS.post(event);
+            NeoForge.EVENT_BUS.post(event);
             if (event.isCanceled())
                 return;
 
-            if (event.getExpToDrop() > 0 && world instanceof ServerLevel)
-                state.getBlock()
-                        .popExperience((ServerLevel) world, pos, event.getExpToDrop());
+//            if (event.getExpToDrop() > 0 && world instanceof ServerLevel)
+//                state.getBlock()
+//                        .popExperience((ServerLevel) world, pos, event.getExpToDrop());
 
             usedTool.mineBlock(world, state, pos, player);
             player.awardStat(Stats.BLOCK_MINED.get(state.getBlock()));
@@ -168,7 +147,7 @@ public class HexereiUtil {
 
             // Simulating IceBlock#playerDestroy. Not calling method directly as it would drop item
             // entities as a side-effect
-            if (state.getBlock() instanceof IceBlock && usedTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 0) {
+            if (state.getBlock() instanceof IceBlock && usedTool.getEnchantmentLevel(player.level().holderLookup(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH)) == 0) {
                 if (world.dimensionType()
                         .ultraWarm())
                     return;
@@ -185,36 +164,8 @@ public class HexereiUtil {
         world.setBlockAndUpdate(pos, fluidState.createLegacyBlock());
     }
 
-
-    public static <V> ResourceLocation getKeyOrThrow(Potion value) {
-        IForgeRegistry<Potion> registry = ForgeRegistries.POTIONS;
-        ResourceLocation key = registry.getKey(value);
-        if (key == null) {
-            throw new IllegalArgumentException("Could not get key for value " + value + "!");
-        }
-        return key;
-    }
-
-    public static <V> ResourceLocation getKeyOrThrow(Fluid value) {
-        IForgeRegistry<Fluid> registry = ForgeRegistries.FLUIDS;
-        ResourceLocation key = registry.getKey(value);
-        if (key == null) {
-            throw new IllegalArgumentException("Could not get key for value " + value + "!");
-        }
-        return key;
-    }
-
-    public static <V> ResourceLocation getKeyOrThrow(ParticleType<?> value) {
-        IForgeRegistry<ParticleType<?>> registry = ForgeRegistries.PARTICLE_TYPES;
-        ResourceLocation key = registry.getKey(value);
-        if (key == null) {
-            throw new IllegalArgumentException("Could not get key for value " + value + "!");
-        }
-        return key;
-    }
-
     public static <V> ResourceLocation getKeyOrThrow(Block value) {
-        IForgeRegistry<Block> registry = ForgeRegistries.BLOCKS;
+        DefaultedRegistry<Block> registry = BuiltInRegistries.BLOCK;
         ResourceLocation key = registry.getKey(value);
         if (key == null) {
             throw new IllegalArgumentException("Could not get key for value " + value + "!");
@@ -223,7 +174,7 @@ public class HexereiUtil {
     }
 
     public static <V> ResourceLocation getKeyOrThrow(Item value) {
-        IForgeRegistry<Item> registry = ForgeRegistries.ITEMS;
+        DefaultedRegistry<Item> registry = BuiltInRegistries.ITEM;
         ResourceLocation key = registry.getKey(value);
         if (key == null) {
             throw new IllegalArgumentException("Could not get key for value " + value + "!");
@@ -326,40 +277,6 @@ public class HexereiUtil {
         nbt.putString(key, enumConstant.name());
     }
 
-
-    public static FluidStack deserializeFluidStack(JsonObject json) {
-        ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(json, "fluid"));
-        Fluid fluid = ForgeRegistries.FLUIDS.getValue(id);
-        if (fluid == null)
-            throw new JsonSyntaxException("Unknown fluid '" + id + "'");
-        int amount = GsonHelper.getAsInt(json, "amount");
-        FluidStack stack = new FluidStack(fluid, amount);
-
-        if (!json.has("nbt"))
-            return stack;
-
-        try {
-            JsonElement element = json.get("nbt");
-            stack.setTag(TagParser.parseTag(
-                    element.isJsonObject() ? Hexerei.GSON.toJson(element) : GsonHelper.convertToString(element, "nbt")));
-
-        } catch (CommandSyntaxException e) {
-            e.printStackTrace();
-        }
-
-        return stack;
-    }
-
-    public static FluidStack copyStackWithAmount(FluidStack fs, int amount) {
-        if (amount <= 0)
-            return FluidStack.EMPTY;
-        if (fs.isEmpty())
-            return FluidStack.EMPTY;
-        FluidStack copy = fs.copy();
-        copy.setAmount(amount);
-        return copy;
-    }
-
     public static float getAngle(Vec3 pos2, Vec3 pos) {
         float angle = (float) Math.toDegrees(Math.atan2(pos.z() - pos2.z(), pos.x() - pos2.z()));
 
@@ -370,47 +287,15 @@ public class HexereiUtil {
         return angle;
     }
 
-    public static CompoundTag saveAllItemsWithName(CompoundTag p_18977_, NonNullList<ItemStack> p_18978_, boolean p_18979_, String name) {
-        ListTag listtag = new ListTag();
-
-        for (int i = 0; i < p_18978_.size(); ++i) {
-            ItemStack itemstack = p_18978_.get(i);
-            if (!itemstack.isEmpty()) {
-                CompoundTag compoundtag = new CompoundTag();
-                compoundtag.putByte("Slot", (byte) i);
-                itemstack.save(compoundtag);
-                listtag.add(compoundtag);
-            }
-        }
-
-        if (!listtag.isEmpty() || p_18979_) {
-            p_18977_.put(name, listtag);
-        }
-
-        return p_18977_;
-    }
-
-    public static void loadAllItemsWithName(CompoundTag p_18981_, NonNullList<ItemStack> p_18982_, String name) {
-        ListTag listtag = p_18981_.getList(name, 10);
-
-        for (int i = 0; i < listtag.size(); ++i) {
-            CompoundTag compoundtag = listtag.getCompound(i);
-            int j = compoundtag.getByte("Slot") & 255;
-            if (j >= 0 && j < p_18982_.size()) {
-                p_18982_.set(j, ItemStack.of(compoundtag));
-            }
-        }
-
-    }
-
     public static int getColorValue(DyeColor color) {
         if (color == null)
             return 0;
-        float[] colors = color.getTextureDiffuseColors();
-        int r = (int) (colors[0] * 255.0F);
-        int g = (int) (colors[1] * 255.0F);
-        int b = (int) (colors[2] * 255.0F);
-        return r << 16 | g << 8 | b;
+//        float[] colors = color.getTextureDiffuseColors();
+//        int r = (int) (colors[0] * 255.0F);
+//        int g = (int) (colors[1] * 255.0F);
+//        int b = (int) (colors[2] * 255.0F);
+//        return r << 16 | g << 8 | b;
+        return color.getTextureDiffuseColor();
     }
 
     public static int getColorValue(float r, float g, float b) {
@@ -430,9 +315,14 @@ public class HexereiUtil {
     }
 
 
-    public static int getColorStatic(ItemStack p_41122_) {
-        CompoundTag compoundtag = p_41122_.getTagElement("display");
-        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0x422F1E;
+    public static int getDyeColor(ItemStack stack, int fallback) {
+        DyedItemColor color = stack.get(DataComponents.DYED_COLOR);
+        return color != null ? color.rgb() : fallback;
+    }
+
+
+    public static int getDyeColor(ItemStack stack) {
+        return getDyeColor(stack, 0x422F1E);
     }
 
     public static DyeColor getDyeColorNamed(String name) {
@@ -505,12 +395,10 @@ public class HexereiUtil {
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static float getMaxHeadXRot(ModelPart head) {
         return Mth.clamp(head.xRot, -(float) Math.PI / 2.5F, (float) Math.PI / 3F);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static <T extends LivingEntity> void animateHands(HumanoidModel<T> model, T entity, boolean leftHand) {
 
         ModelPart mainHand = leftHand ? model.leftArm : model.rightArm;
@@ -672,7 +560,7 @@ public class HexereiUtil {
     }
 
     public static ResourceLocation getResource(String modId, String name) {
-        return new ResourceLocation(modId, name);
+        return ResourceLocation.fromNamespaceAndPath(modId, name);
     }
 
     public static String getResourcePath(String name) {
@@ -779,20 +667,20 @@ public class HexereiUtil {
         return hsl;
     }
 
-    public static float[] hslToRgb(float h, float s, float l) {
-        float r, g, b;
+    public static int hslToRgb(float h, float s, float l) {
+        int r, g, b;
 
         if (s == 0) {
-            r = g = b = l; // Achromatic
+            r = g = b = (int)(l * 255.0f); // Achromatic
         } else {
             float q = l < 0.5f ? l * (1.0f + s) : l + s - l * s;
             float p = 2.0f * l - q;
-            r = hueToRgb(p, q, h + 1.0f / 3.0f);
-            g = hueToRgb(p, q, h);
-            b = hueToRgb(p, q, h - 1.0f / 3.0f);
+            r = (int)(hueToRgb(p, q, h + 1.0f / 3.0f) * 255.0f);
+            g = (int)(hueToRgb(p, q, h) * 255.0f);
+            b = (int)(hueToRgb(p, q, h - 1.0f / 3.0f) * 255.0f);
         }
+        return r << 16 | g << 8 | b;
 
-        return new float[] { r, g, b };
     }
 
     public static float hueToRgb(float p, float q, float t) {

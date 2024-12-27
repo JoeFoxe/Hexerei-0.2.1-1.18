@@ -4,39 +4,35 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import mezz.jei.api.gui.ingredient.IRecipeSlotTooltipCallback;
 import mezz.jei.api.helpers.IPlatformFluidHelper;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.IIngredientTypeWithSubtypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.*;
 import mezz.jei.api.runtime.IJeiRuntime;
 import mezz.jei.api.runtime.IRecipesGui;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.container.BroomContainer;
 import net.joefoxe.hexerei.data.recipes.*;
 import net.joefoxe.hexerei.fluid.ModFluids;
 import net.joefoxe.hexerei.fluid.PotionFluid;
-import net.joefoxe.hexerei.fluid.PotionFluidHandler;
 import net.joefoxe.hexerei.fluid.PotionMixingRecipes;
 import net.joefoxe.hexerei.screen.*;
-import net.minecraft.ChatFormatting;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +50,7 @@ public class HexereiJei implements IModPlugin {
 
     @Override
     public ResourceLocation getPluginUid() {
-        return new ResourceLocation(Hexerei.MOD_ID, "jei_plugin");
+        return HexereiUtil.getResource("jei_plugin");
     }
 
     @Override
@@ -69,128 +65,8 @@ public class HexereiJei implements IModPlugin {
     public <T> void registerFluidSubtypes(ISubtypeRegistration registration, IPlatformFluidHelper<T> platformFluidHelper) {
         PotionFluidSubtypeInterpreter interpreter = new PotionFluidSubtypeInterpreter();
         PotionFluid potionFluid = ModFluids.POTION.get();
-        registration.registerSubtypeInterpreter(ForgeTypes.FLUID_STACK, potionFluid.getSource(), interpreter);
-        registration.registerSubtypeInterpreter(ForgeTypes.FLUID_STACK, potionFluid.getFlowing(), interpreter);
-    }
-
-
-    public static IRecipeSlotTooltipCallback addFluidTooltip() {
-        return addFluidTooltip(-1);
-    }
-
-    public static IRecipeSlotTooltipCallback addFluidTooltip(int mbAmount) {
-        return (view, tooltip) -> {
-            Optional<FluidStack> displayed = view.getDisplayedIngredient(ForgeTypes.FLUID_STACK);
-            if (displayed.isEmpty())
-                return;
-
-            FluidStack fluidStack = displayed.get();
-
-            if (fluidStack.getFluid().isSame(ModFluids.POTION.get())) {
-                Component name = fluidStack.getDisplayName();
-                if (tooltip.isEmpty())
-                    tooltip.add(0, name);
-                else
-                    tooltip.set(0, name);
-
-                ArrayList<Component> potionTooltip = new ArrayList<>();
-                PotionFluidHandler.addPotionTooltip(fluidStack, potionTooltip, 1);
-                tooltip.addAll(1, potionTooltip.stream().toList());
-            }
-
-            int amount = mbAmount == -1 ? fluidStack.getAmount() : mbAmount;
-            Component text = Component.literal(String.valueOf(amount)).append(Component.translatable("hexerei.generic.unit.millibuckets")).withStyle(ChatFormatting.GOLD);
-            if (tooltip.isEmpty())
-                tooltip.add(0, text);
-            else {
-                List<Component> siblings = tooltip.get(0).getSiblings();
-                siblings.add(Component.literal(" "));
-                siblings.add(text);
-            }
-        };
-    }
-    public static IRecipeSlotTooltipCallback addFluidTooltip(int mbAmount, Component component) {
-        return addFluidTooltip(mbAmount, List.of(component));
-    }
-
-    public static IRecipeSlotTooltipCallback addFluidTooltip(int mbAmount, List<Component> list) {
-        return (view, tooltip) -> {
-            Optional<FluidStack> displayed = view.getDisplayedIngredient(ForgeTypes.FLUID_STACK);
-            if (displayed.isEmpty())
-                return;
-
-            tooltip.addAll(list);
-
-            FluidStack fluidStack = displayed.get();
-
-            if (fluidStack.getFluid().isSame(ModFluids.POTION.get())) {
-                Component name = fluidStack.getDisplayName();
-                if (tooltip.isEmpty())
-                    tooltip.add(0, name);
-                else
-                    tooltip.set(0, name);
-
-                ArrayList<Component> potionTooltip = new ArrayList<>();
-                PotionFluidHandler.addPotionTooltip(fluidStack, potionTooltip, 1);
-                tooltip.addAll(1, potionTooltip.stream().toList());
-            }
-
-            int amount = mbAmount == -1 ? fluidStack.getAmount() : mbAmount;
-            Component text = Component.literal(String.valueOf(amount)).append(Component.translatable("hexerei.generic.unit.millibuckets")).withStyle(ChatFormatting.GOLD);
-            if (tooltip.isEmpty())
-                tooltip.add(0, text);
-            else {
-                List<Component> siblings = tooltip.get(0).getSiblings();
-                siblings.add(Component.literal(" "));
-                siblings.add(text);
-            }
-        };
-    }
-
-    public static IRecipeSlotTooltipCallback addFluidTooltipDipper(int mbAmount) {
-        return (view, tooltip) -> {
-            Optional<FluidStack> displayed = view.getDisplayedIngredient(ForgeTypes.FLUID_STACK);
-            if (displayed.isEmpty())
-                return;
-
-            List<Component> list = tooltip.get(tooltip.size() - 2).getSiblings();
-
-            list.add(Component.translatable(" - per dip action").withStyle(Style.EMPTY.withColor(11184810)));
-
-            FluidStack fluidStack = displayed.get();
-
-            if (fluidStack.getFluid().isSame(ModFluids.POTION.get())) {
-                Component name = fluidStack.getDisplayName();
-                if (tooltip.isEmpty())
-                    tooltip.add(0, name);
-                else
-                    tooltip.set(0, name);
-
-                ArrayList<Component> potionTooltip = new ArrayList<>();
-                PotionFluidHandler.addPotionTooltip(fluidStack, potionTooltip, 1);
-                tooltip.addAll(1, potionTooltip.stream().toList());
-            }
-
-            int amount = mbAmount == -1 ? fluidStack.getAmount() : mbAmount;
-            Component text = Component.literal(String.valueOf(amount)).append(Component.translatable("hexerei.generic.unit.millibuckets")).withStyle(ChatFormatting.GOLD);
-            if (tooltip.isEmpty())
-                tooltip.add(0, text);
-            else {
-                List<Component> siblings = tooltip.get(0).getSiblings();
-                siblings.add(Component.literal(" "));
-                siblings.add(text);
-            }
-        };
-    }
-
-
-    public static IRecipeSlotTooltipCallback addExtraTooltips(List<Component> list) {
-        return (view, tooltip) -> {
-            if (list.isEmpty())
-                return;
-
-            tooltip.addAll(list);
-        };
+        registration.registerSubtypeInterpreter(NeoForgeTypes.FLUID_STACK, potionFluid.getSource(), interpreter);
+        registration.registerSubtypeInterpreter(NeoForgeTypes.FLUID_STACK, potionFluid.getFlowing(), interpreter);
     }
 
     public static List<FluidStack> withImprovedVisibility(List<FluidStack> stacks) {
@@ -209,7 +85,7 @@ public class HexereiJei implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
 
         if(PotionMixingRecipes.ALL == null || PotionMixingRecipes.ALL.isEmpty())
-            PotionMixingRecipes.ALL = PotionMixingRecipes.createRecipes();
+            PotionMixingRecipes.ALL = PotionMixingRecipes.createRecipes(Minecraft.getInstance().level.potionBrewing());
 
 //        ForgeRegistries.
         registration.addRecipeCategories(
@@ -322,64 +198,48 @@ public class HexereiJei implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         RecipeManager rm = Objects.requireNonNull(Minecraft.getInstance().level).getRecipeManager();
         recipeManager = rm;
-        List<MixingCauldronRecipe> mixing_recipes = rm.getAllRecipesFor(MixingCauldronRecipe.Type.INSTANCE);
+        List<MixingCauldronRecipe> mixing_recipes = rm.getAllRecipesFor(MixingCauldronRecipe.Type.INSTANCE).stream().map(RecipeHolder::value).toList();
         registration.addRecipes(new RecipeType<>(MixingCauldronRecipeCategory.UID, MixingCauldronRecipe.class), mixing_recipes);
 
 
         if(Minecraft.getInstance().level != null) {
-            List<CraftingRecipe> add_to_candle_recipes = Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING);//rm.getAllRecipesFor(AddToCandleRecipe.Type.INSTANCE);
-            List<CraftingRecipe> flute_dye_recipes = new ArrayList<>(add_to_candle_recipes);
-            List<CraftingRecipe> book_recipe = new ArrayList<>(add_to_candle_recipes);
-            List<CraftingRecipe> keychainRecipe = new ArrayList<>(add_to_candle_recipes);
-            add_to_candle_recipes = add_to_candle_recipes.stream().filter((craftingRecipe) -> {
-                return craftingRecipe instanceof AddToCandleRecipe;
-            }).toList();
-            registration.addRecipes(new RecipeType<>(AddToCandleRecipeCategory.UID, AddToCandleRecipe.class), add_to_candle_recipes);
+            List<RecipeHolder<CraftingRecipe>> add_to_candle_recipes = Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING);//rm.getAllRecipesFor(AddToCandleRecipe.Type.INSTANCE);
+            List<RecipeHolder<CraftingRecipe>> flute_dye_recipes = new ArrayList<>(add_to_candle_recipes);
+            List<RecipeHolder<CraftingRecipe>> book_recipe = new ArrayList<>(add_to_candle_recipes);
+            List<RecipeHolder<CraftingRecipe>> keychainRecipe = new ArrayList<>(add_to_candle_recipes);
+            registration.addRecipes(new RecipeType<>(AddToCandleRecipeCategory.UID, AddToCandleRecipe.class), add_to_candle_recipes.stream().filter((craftingRecipe) -> {
+                return craftingRecipe.value() instanceof AddToCandleRecipe;
+            }).map(RecipeHolder::value).toList());
 
-            flute_dye_recipes = flute_dye_recipes.stream().filter((craftingRecipe) -> {
-                return craftingRecipe instanceof CrowFluteRecipe;
-            }).toList();
-            registration.addRecipes(new RecipeType<>(FluteRecipeCategory.UID, CrowFluteRecipe.class), flute_dye_recipes);
+            registration.addRecipes(new RecipeType<>(FluteRecipeCategory.UID, CrowFluteRecipe.class), flute_dye_recipes.stream().filter((craftingRecipe) -> {
+                return craftingRecipe.value() instanceof CrowFluteRecipe;
+            }).map(RecipeHolder::value).toList());
 
-            book_recipe = book_recipe.stream().filter((craftingRecipe) -> {
-                return craftingRecipe instanceof BookOfShadowsRecipe;
-            }).toList();
-//            registration.addRecipes(new RecipeType<>(BookOfShadowsRecipeCategory.UID, BookOfShadowsRecipe.class), book_recipe);
-            registration.addRecipes(RecipeTypes.CRAFTING, book_recipe);
+            registration.addRecipes(RecipeTypes.CRAFTING, book_recipe.stream().filter((craftingRecipe) -> craftingRecipe.value() instanceof BookOfShadowsRecipe).toList());
 
-            keychainRecipe = keychainRecipe.stream().filter((craftingRecipe) -> {
-                return craftingRecipe instanceof KeychainRecipe;
-            }).toList();
-            registration.addRecipes(new RecipeType<>(KeychainApplyRecipeCategory.UID, KeychainRecipe.class), keychainRecipe);
+            registration.addRecipes(new RecipeType<>(KeychainApplyRecipeCategory.UID, KeychainRecipe.class), keychainRecipe.stream().filter((craftingRecipe) -> {
+                return craftingRecipe.value() instanceof KeychainRecipe;
+            }).map(RecipeHolder::value).toList());
         }
-        List<FluidMixingRecipe> fluid_mixing_recipes = rm.getAllRecipesFor(FluidMixingRecipe.Type.INSTANCE);
-        registration.addRecipes(new RecipeType<>(FluidMixingRecipeCategory.UID, FluidMixingRecipe.class), fluid_mixing_recipes);
+        registration.addRecipes(new RecipeType<>(FluidMixingRecipeCategory.UID, FluidMixingRecipe.class), rm.getAllRecipesFor(FluidMixingRecipe.Type.INSTANCE).stream().map(RecipeHolder::value).toList());
 
         if(PotionMixingRecipes.ALL == null || PotionMixingRecipes.ALL.isEmpty())
-            PotionMixingRecipes.ALL = PotionMixingRecipes.createRecipes();
-        if(PotionMixingRecipes.ALL != null)
-            registration.addRecipes(new RecipeType<>(FluidMixingRecipeCategory.POTION_UID, FluidMixingRecipe.class), PotionMixingRecipes.ALL);
+            PotionMixingRecipes.ALL = PotionMixingRecipes.createRecipes(Minecraft.getInstance().level.potionBrewing());
+        registration.addRecipes(new RecipeType<>(FluidMixingRecipeCategory.POTION_UID, FluidMixingRecipe.class), PotionMixingRecipes.ALL);
 
-        List<PestleAndMortarRecipe> pestle_and_mortar_recipes = rm.getAllRecipesFor(PestleAndMortarRecipe.Type.INSTANCE);
-        registration.addRecipes(new RecipeType<>(PestleAndMortarRecipeCategory.UID, PestleAndMortarRecipe.class), pestle_and_mortar_recipes);
+        registration.addRecipes(new RecipeType<>(PestleAndMortarRecipeCategory.UID, PestleAndMortarRecipe.class), rm.getAllRecipesFor(PestleAndMortarRecipe.Type.INSTANCE).stream().map(RecipeHolder::value).toList());
 
-        List<DipperRecipe> dipper_recipes = rm.getAllRecipesFor(DipperRecipe.Type.INSTANCE);
-        registration.addRecipes(new RecipeType<>(DipperRecipeCategory.UID, DipperRecipe.class), dipper_recipes);
+        registration.addRecipes(new RecipeType<>(DipperRecipeCategory.UID, DipperRecipe.class), rm.getAllRecipesFor(DipperRecipe.Type.INSTANCE).stream().map(RecipeHolder::value).toList());
 
-        List<DryingRackRecipe> drying_rack_recipes = rm.getAllRecipesFor(DryingRackRecipe.Type.INSTANCE);
-        registration.addRecipes(new RecipeType<>(DryingRackRecipeCategory.UID, DryingRackRecipe.class), drying_rack_recipes);
+        registration.addRecipes(new RecipeType<>(DryingRackRecipeCategory.UID, DryingRackRecipe.class), rm.getAllRecipesFor(DryingRackRecipe.Type.INSTANCE).stream().map(RecipeHolder::value).toList());
 
-        List<WoodcutterRecipe> woodcutter_recipes = rm.getAllRecipesFor(WoodcutterRecipe.Type.INSTANCE);
-        registration.addRecipes(new RecipeType<>(WoodcutterRecipeCategory.UID, WoodcutterRecipe.class), woodcutter_recipes);
+        registration.addRecipes(new RecipeType<>(WoodcutterRecipeCategory.UID, WoodcutterRecipe.class), rm.getAllRecipesFor(WoodcutterRecipe.Type.INSTANCE).stream().map(RecipeHolder::value).toList());
 
-        List<CauldronEmptyingRecipe> bottling_recipes = BottlingRecipeJEI.getRecipeList(rm);
-        registration.addRecipes(new RecipeType<>(BottlingRecipeCategory.UID, CauldronEmptyingRecipe.class), bottling_recipes);
+        registration.addRecipes(new RecipeType<>(BottlingRecipeCategory.UID, CauldronEmptyingRecipe.class), BottlingRecipeJEI.getRecipeList(rm));
 
-        List<BloodSigilRecipeJEI> blood_sigil_recipes = BloodSigilRecipeJEI.getRecipeList();
-        registration.addRecipes(new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class), blood_sigil_recipes);
+        registration.addRecipes(new RecipeType<>(BloodSigilRecipeCategory.UID, BloodSigilRecipeJEI.class), BloodSigilRecipeJEI.getRecipeList());
 
-        List<PlantPickingRecipeJEI> plant_picking_recipes = PlantPickingRecipeJEI.getRecipeList();
-        registration.addRecipes(new RecipeType<>(PlantPickingRecipeCategory.UID, PlantPickingRecipeJEI.class), plant_picking_recipes);
+        registration.addRecipes(new RecipeType<>(PlantPickingRecipeCategory.UID, PlantPickingRecipeJEI.class), PlantPickingRecipeJEI.getRecipeList());
     }
 
 
@@ -400,7 +260,7 @@ public class HexereiJei implements IModPlugin {
                 return new ITypedIngredient<>() {
                     @Override
                     public IIngredientTypeWithSubtypes<Fluid, FluidStack> getType() {
-                        return ForgeTypes.FLUID_STACK;
+                        return NeoForgeTypes.FLUID_STACK;
                     }
 
                     @Override
@@ -410,7 +270,7 @@ public class HexereiJei implements IModPlugin {
 
                     @Override
                     public <V> Optional<V> getIngredient(IIngredientType<V> ingredientType) {
-                        if (ingredientType == ForgeTypes.FLUID_STACK)
+                        if (ingredientType == NeoForgeTypes.FLUID_STACK)
                             return ((Optional<V>) Optional.of(fluid));
                         return Optional.empty();
                     }
@@ -437,7 +297,7 @@ public class HexereiJei implements IModPlugin {
                     return new ITypedIngredient<>() {
                         @Override
                         public IIngredientTypeWithSubtypes<Fluid, FluidStack> getType() {
-                            return ForgeTypes.FLUID_STACK;
+                            return NeoForgeTypes.FLUID_STACK;
                         }
 
                         @Override
@@ -447,7 +307,7 @@ public class HexereiJei implements IModPlugin {
 
                         @Override
                         public <V> Optional<V> getIngredient(IIngredientType<V> ingredientType) {
-                            if (ingredientType == ForgeTypes.FLUID_STACK)
+                            if (ingredientType == NeoForgeTypes.FLUID_STACK)
                                 return ((Optional<V>) Optional.of(fluid));
                             return Optional.empty();
                         }
@@ -598,7 +458,7 @@ public class HexereiJei implements IModPlugin {
                 return new ITypedIngredient<>() {
                     @Override
                     public IIngredientType<FluidStack> getType() {
-                        return ForgeTypes.FLUID_STACK;
+                        return NeoForgeTypes.FLUID_STACK;
                     }
 
                     @Override
@@ -608,7 +468,7 @@ public class HexereiJei implements IModPlugin {
 
                     @Override
                     public <V> Optional<V> getIngredient(IIngredientType<V> ingredientType) {
-                        if (ingredientType == ForgeTypes.FLUID_STACK)
+                        if (ingredientType == NeoForgeTypes.FLUID_STACK)
                             return ((Optional<V>) Optional.of(fluid));
                         return Optional.empty();
                     }

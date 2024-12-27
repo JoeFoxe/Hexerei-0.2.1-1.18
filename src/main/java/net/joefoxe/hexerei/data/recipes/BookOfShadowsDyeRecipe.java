@@ -1,15 +1,18 @@
 package net.joefoxe.hexerei.data.recipes;
 
+import net.joefoxe.hexerei.item.ModDataComponents;
 import net.joefoxe.hexerei.item.ModItems;
+import net.joefoxe.hexerei.item.data_components.BookColorData;
+import net.joefoxe.hexerei.item.data_components.BookData;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.Tags;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,20 +21,20 @@ import java.util.Map;
 
 
 public class BookOfShadowsDyeRecipe extends CustomRecipe {
-    protected BookOfShadowsDyeRecipe(ResourceLocation registryName, CraftingBookCategory category) {
-        super(registryName, category);
+    protected BookOfShadowsDyeRecipe(CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level worldIn) {
+    public boolean matches(CraftingInput inv, Level worldIn) {
 
         Map<Tuple<Integer, Integer>, List<DyeColor>> posDyes = new HashMap<>();
         Tuple<Tuple<Integer, Integer>, ItemStack> posBook = null;
 
-        for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+        for (int slot = 0; slot < inv.size(); slot++) {
             ItemStack slotStack = inv.getItem(slot);
-            int column = slot % inv.getWidth();
-            int row = slot / inv.getHeight();
+            int column = slot % inv.width();
+            int row = slot / inv.height();
             if (slotStack.isEmpty()) {
                 continue;
             }
@@ -90,17 +93,17 @@ public class BookOfShadowsDyeRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registryAccess) {
         Map<Tuple<Integer, Integer>, List<DyeColor>> posDyes = new HashMap<>();
         Tuple<Tuple<Integer, Integer>, ItemStack> posBook = null;
 
-        for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+        for (int slot = 0; slot < inv.size(); slot++) {
             ItemStack slotStack = inv.getItem(slot);
             if (slotStack.isEmpty()) {
                 continue;
             }
-            int column = slot % inv.getWidth();
-            int row = slot / inv.getHeight();
+            int column = slot % inv.width();
+            int row = slot / inv.height();
             if (slotStack.is(ModItems.BOOK_OF_SHADOWS.get())) {
                 if (posBook != null) {
                     return ItemStack.EMPTY;
@@ -147,11 +150,17 @@ public class BookOfShadowsDyeRecipe extends CustomRecipe {
                 trimDyes.addAll(entry.getValue());
             }
         }
-
-        if (mainDyes.size() > 0)
-            book.getOrCreateTag().putInt("dyeColor1", mainDyes.get(0).getId());
-        if (trimDyes.size() > 0)
-            book.getOrCreateTag().putInt("dyeColor2", trimDyes.get(0).getId());
+        BookColorData bookColorData = book.get(ModDataComponents.BOOK_COLORS);
+        if (bookColorData != null){
+            int dye1 = bookColorData.color1();
+            int dye2 = bookColorData.color2();
+            if (!mainDyes.isEmpty())
+                dye1 = mainDyes.get(0).getTextureDiffuseColor();
+            if (!trimDyes.isEmpty())
+                dye2 = trimDyes.get(0).getTextureDiffuseColor();
+            bookColorData = new BookColorData(dye1, dye2);
+        }
+        book.set(ModDataComponents.BOOK_COLORS, bookColorData);
     }
 
 

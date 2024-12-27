@@ -1,18 +1,28 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class EntitySyncPacket extends AbstractPacket {
 
-public class EntitySyncPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, EntitySyncPacket> CODEC  = StreamCodec.ofMember(EntitySyncPacket::encode, EntitySyncPacket::new);
+    public static final Type<EntitySyncPacket> TYPE = new Type<>(HexereiUtil.getResource("entity_sync_packet"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     CompoundTag tag;
 
@@ -25,33 +35,19 @@ public class EntitySyncPacket {
         this.tag = buf.readNbt();
     }
 
-    public static void encode(EntitySyncPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeNbt(object.tag);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeNbt(tag);
     }
 
-    public static EntitySyncPacket decode(FriendlyByteBuf buffer) {
-        return new EntitySyncPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(EntitySyncPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) instanceof CrowEntity crow) {
-                crow.load(packet.tag);
-            }
-            if(world.getEntity(packet.sourceId) instanceof OwlEntity owl) {
-                owl.load(packet.tag);
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        if(player.level().getEntity(sourceId) instanceof CrowEntity crow) {
+            crow.load(tag);
+        }
+        if(player.level().getEntity(sourceId) instanceof OwlEntity owl) {
+            owl.load(tag);
+        }
     }
 }

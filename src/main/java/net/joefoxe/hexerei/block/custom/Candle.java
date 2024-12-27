@@ -3,14 +3,14 @@ package net.joefoxe.hexerei.block.custom;
 import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.serialization.MapCodec;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.joefoxe.hexerei.block.ITileEntity;
 import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.data.candle.AbstractCandleEffect;
 import net.joefoxe.hexerei.data.candle.CandleData;
-import net.joefoxe.hexerei.data.candle.CandleEffects;
+import net.joefoxe.hexerei.item.ModDataComponents;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.CandleItem;
 import net.joefoxe.hexerei.particle.ModParticleTypes;
@@ -20,14 +20,14 @@ import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.arguments.ParticleArgument;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -40,12 +40,13 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -65,10 +66,10 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -76,7 +77,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTile>, EntityBlock, SimpleWaterloggedBlock, DyeableLeatherItem {
+public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTile>, EntityBlock, SimpleWaterloggedBlock {
+    public static final MapCodec<Candle> CODEC = simpleCodec(Candle::new);
 
     public static final IntegerProperty CANDLES = IntegerProperty.create("candles", 1, 4);
     public static final IntegerProperty CANDLES_LIT = IntegerProperty.create("candles_lit", 0, 4);
@@ -108,29 +110,34 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
             this.setSuccess(false);
             Item item = stack.getItem();
             if (item instanceof BlockItem) {
-                Direction direction = source.getBlockState().getValue(DispenserBlock.FACING);
-                BlockPos blockpos = source.getPos().relative(direction);
+                Direction direction = source.state().getValue(DispenserBlock.FACING);
+                BlockPos blockpos = source.pos().relative(direction);
 
 
                 try {
-                    this.setSuccess(((BlockItem)item).place(new DirectionalPlaceContext(source.getLevel(), blockpos, direction, stack, direction)).consumesAction());
+                    this.setSuccess(((BlockItem)item).place(new DirectionalPlaceContext(source.level(), blockpos, direction, stack, direction)).consumesAction());
                 } catch (Exception exception) {
                     LOGGER.error("Error trying to place candle at {}", blockpos, exception);
                 }
 
-                BlockEntity blockEntity = source.getLevel().getBlockEntity(blockpos);
-                BlockState blockState = source.getLevel().getBlockState(blockpos);
+                BlockEntity blockEntity = source.level().getBlockEntity(blockpos);
+                BlockState blockState = source.level().getBlockState(blockpos);
                 if(blockEntity instanceof CandleTile candleTile){
-                    source.getLevel().scheduleTick(blockpos, blockState.getBlock(), 1);
+                    source.level().scheduleTick(blockpos, blockState.getBlock(), 1);
                 }
             }
 
             return stack;
         }
-        protected void playSound(BlockSource p_42947_) {
-            p_42947_.getLevel().levelEvent(1000, p_42947_.getPos(), 0);
+        protected void playSound(BlockSource source) {
+            source.level().levelEvent(1000, source.pos(), 0);
         }
     };
+
+    @Override
+    protected MapCodec<? extends AbstractCandleBlock> codec() {
+        return CODEC;
+    }
 
     @SuppressWarnings("deprecation")
     @Override
@@ -193,7 +200,9 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
                 CandleData candleData = candleTile.candles.get(i);
                 if (candleData.hasCandle) {
                     ItemStack itemStack = new ItemStack(ModBlocks.CANDLE.get());
-                    candleData.save(itemStack.getOrCreateTag(), true);
+                    CompoundTag tag = itemStack.getOrDefault(ModDataComponents.CANDLE_DATA, CustomData.EMPTY).copyTag();
+                    candleData.save(tag, level.registryAccess(), true);
+                    itemStack.set(ModDataComponents.CANDLE_DATA, CustomData.of(tag));
 
                     popResource(level, pos, itemStack);
                 }
@@ -202,26 +211,24 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
     }
 
     @Override
-    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockGetter worldIn, BlockPos pos, BlockState state) {
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
         ItemStack item = new ItemStack(ModItems.CANDLE.get());
-        Optional<CandleTile> tileEntityOptional = Optional.ofNullable(getBlockEntity(worldIn, pos));
+        Optional<CandleTile> tileEntityOptional = Optional.ofNullable(getBlockEntity(level, pos));
 
         tileEntityOptional.ifPresent(candleTile -> {
+
+            CompoundTag tag = item.getOrDefault(ModDataComponents.CANDLE_DATA, CustomData.EMPTY).copyTag();
             CandleData candleData = candleTile.candles.get(0);
-            candleData.save(item.getOrCreateTag(), true);
+            candleData.save(tag, level.registryAccess(), true);
+            item.set(ModDataComponents.CANDLE_DATA, CustomData.of(tag));
 
         });
 
-
-        Component customName = tileEntityOptional.map(CandleTile::getCustomName).orElse(null);
-        if (customName != null)
-            if(customName.getString().length() > 0)
-                item.setHoverName(customName);
         return item;
     }
 
@@ -241,7 +248,7 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return switch (state.getValue(CANDLES)) {
             default -> ONE_SHAPE;
             case 2 -> TWO_SHAPE;
@@ -260,20 +267,18 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
     }
 
 
-
-    @SuppressWarnings("deprecation")
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        ItemStack itemstack = player.getItemInHand(handIn);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack itemstack = player.getItemInHand(hand);
         Random random = new Random();
         if(itemstack.getItem() == Items.FLINT_AND_STEEL)
         {
 
 
-            if (canBeLit(state, pos, worldIn)) {
-                CandleTile tile = ((CandleTile) worldIn.getBlockEntity(pos));
+            if (canBeLit(state, pos, level)) {
+                CandleTile tile = ((CandleTile) level.getBlockEntity(pos));
                 if(tile == null)
-                    return InteractionResult.FAIL;
+                    return ItemInteractionResult.FAIL;
 
                 if (!tile.candles.get(0).lit)
                     tile.candles.get(0).lit = true;
@@ -284,12 +289,12 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
                 else if (!tile.candles.get(3).lit)
                     tile.candles.get(3).lit = true;
                 else
-                    return InteractionResult.FAIL;
+                    return ItemInteractionResult.FAIL;
 
-                worldIn.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
-                itemstack.hurtAndBreak(1, player, player1 -> player1.broadcastBreakEvent(handIn));
+                level.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
+                itemstack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
 
-                return InteractionResult.sidedSuccess(worldIn.isClientSide());
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
 
         }
@@ -297,10 +302,10 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
         {
 
 
-            if (canBeLit(state, pos, worldIn)) {
-                CandleTile tile = ((CandleTile) worldIn.getBlockEntity(pos));
+            if (canBeLit(state, pos, level)) {
+                CandleTile tile = ((CandleTile) level.getBlockEntity(pos));
                 if(tile == null)
-                    return InteractionResult.FAIL;
+                    return ItemInteractionResult.FAIL;
 
                 if (!tile.candles.get(0).hasCandle)
                     tile.candles.get(0).lit = true;
@@ -311,14 +316,14 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
                 if (!tile.candles.get(3).hasCandle)
                     tile.candles.get(3).lit = true;
 
-                worldIn.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
+                level.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
                 itemstack.shrink(1);
 
-                return InteractionResult.sidedSuccess(worldIn.isClientSide());
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
 
         }
-        return InteractionResult.PASS;
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     public Candle(Properties properties) {
@@ -331,20 +336,20 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
         return PARTICLE_OFFSETS.get(blockState.getValue(CANDLES).intValue());
     }
 
-    public static void spawnSmokeParticles(Level worldIn, BlockPos pos, boolean spawnExtraSmoke) {
-        RandomSource random = worldIn.getRandom();
+    public static void spawnSmokeParticles(Level level, BlockPos pos, boolean spawnExtraSmoke) {
+        RandomSource random = level.getRandom();
         SimpleParticleType basicparticletype = ModParticleTypes.EXTINGUISH.get();
 
         Vec3 offset = new Vec3(random.nextDouble() / 3.0D * (double)(random.nextBoolean() ? 1 : -1), 0, random.nextDouble() / 3.0D * (double)(random.nextBoolean() ? 1 : -1));
 
-        worldIn.addParticle(basicparticletype, true, (double)pos.getX() + 0.5D + offset.x, (double)pos.getY() + random.nextDouble() * 0.15f, (double)pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.1D + 0.1D, offset.z / 8f);
+        level.addParticle(basicparticletype, true, (double)pos.getX() + 0.5D + offset.x, (double)pos.getY() + random.nextDouble() * 0.15f, (double)pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.1D + 0.1D, offset.z / 8f);
         if (spawnExtraSmoke) {
-            worldIn.addParticle(basicparticletype, true, (double)pos.getX() + 0.5D + offset.x, (double)pos.getY() + random.nextDouble() * 0.15f, (double)pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.1D + 0.1D, offset.z / 8f);
+            level.addParticle(basicparticletype, true, (double)pos.getX() + 0.5D + offset.x, (double)pos.getY() + random.nextDouble() * 0.15f, (double)pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.1D + 0.1D, offset.z / 8f);
         }
     }
 
-    public static void spawnParticleWave(Level worldIn, BlockPos pos, boolean spawnExtraSmoke, List<String> particle, int amount) {
-        RandomSource random = worldIn.getRandom();
+    public static void spawnParticleWave(Level level, BlockPos pos, boolean spawnExtraSmoke, List<String> particle, int amount) {
+        RandomSource random = level.getRandom();
 
         for(int i = 0; i < amount; i++){
             float rotation = random.nextFloat() * 30f + (360f / amount) * i;
@@ -353,10 +358,10 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
 
             if(!particle.isEmpty()) {
                 try {
-                    ParticleOptions options = ParticleArgument.readParticle(new StringReader(particle.get(random.nextInt(particle.size()))), BuiltInRegistries.PARTICLE_TYPE.asLookup());
-                    worldIn.addParticle(options, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
+                    ParticleOptions options = ParticleArgument.readParticle(new StringReader(particle.get(random.nextInt(particle.size()))), level.registryAccess());
+                    level.addParticle(options, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
                     if (spawnExtraSmoke) {
-                        worldIn.addParticle(options, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
+                        level.addParticle(options, true, (double) pos.getX() + 0.5D + offset.x, (double) pos.getY() + random.nextDouble() * 0.15f, (double) pos.getZ() + 0.5D + offset.z, offset.x / 8f, random.nextDouble() * 0.025D, offset.z / 8f);
                     }
 
                 } catch(CommandSyntaxException e) {
@@ -385,19 +390,19 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
 
     }
 
-    public boolean placeLiquid(LevelAccessor worldIn, BlockPos pos, BlockState state, FluidState fluidStateIn) {
+    public boolean placeLiquid(LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidStateIn) {
         if (!state.getValue(BlockStateProperties.WATERLOGGED) && fluidStateIn.getType() == Fluids.WATER) {
-            CandleTile tile = ((CandleTile)worldIn.getBlockEntity(pos));
+            CandleTile tile = ((CandleTile)level.getBlockEntity(pos));
             boolean flag = (tile.candles.get(0).lit || tile.candles.get(1).lit || tile.candles.get(2).lit || tile.candles.get(3).lit);
             if (flag) {
 
 
-                extinguish(worldIn, pos, state, tile);
+                extinguish(level, pos, state, tile);
 
             }
 
-            worldIn.setBlock(pos, state.setValue(WATERLOGGED, Boolean.TRUE), 3);
-            worldIn.scheduleTick(pos, fluidStateIn.getType(), fluidStateIn.getType().getTickDelay(worldIn));
+            level.setBlock(pos, state.setValue(WATERLOGGED, Boolean.TRUE), 3);
+            level.scheduleTick(pos, fluidStateIn.getType(), fluidStateIn.getType().getTickDelay(level));
             return true;
         } else {
             return false;
@@ -407,12 +412,12 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
 
 
     @Override
-    public void onProjectileHit(Level worldIn, BlockState state, BlockHitResult hit, Projectile projectile) {
+    public void onProjectileHit(Level level, BlockState state, BlockHitResult hit, Projectile projectile) {
         if (projectile.isOnFire()) {
-            CandleTile tile = ((CandleTile)worldIn.getBlockEntity(hit.getBlockPos()));
+            CandleTile tile = ((CandleTile)level.getBlockEntity(hit.getBlockPos()));
             boolean flagLit = (tile.candles.get(0).lit && tile.candles.get(1).lit && tile.candles.get(2).lit && tile.candles.get(3).lit);
             Entity entity = projectile.getOwner();
-            boolean flag = entity == null || entity instanceof Player || net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(worldIn, entity);
+            boolean flag = entity == null || entity instanceof Player || net.neoforged.neoforge.event.EventHooks.canEntityGrief(level, entity);
             if (flag && !flagLit && !state.getValue(WATERLOGGED)) {
                 if(tile.candles.get(0).hasCandle)
                     tile.candles.get(0).lit = true;
@@ -430,16 +435,17 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
 
 
     @Override
-    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
 
         if (stack == null)
             return;
-        withTileEntityDo(worldIn, pos, te -> {
+        withTileEntityDo(level, pos, te -> {
             int newCandlePos = 0;
             for(int i = 0; i < 4; i++){
                 if (!te.candles.get(i).hasCandle) {
                     if (stack.getItem() instanceof CandleItem candleItem) {
-                        te.candles.get(i).load(stack.getOrCreateTag(), true);
+                        CompoundTag tag = stack.getOrDefault(ModDataComponents.CANDLE_DATA, CustomData.EMPTY).copyTag();
+                        te.candles.get(i).load(tag, level.registryAccess(), true);
 
                         te.setOffsetPos(true);
                         newCandlePos = i;
@@ -456,9 +462,9 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
             te.sync();
         });
         for(Direction direction : Direction.values()) {
-            worldIn.updateNeighborsAt(pos.relative(direction), this);
+            level.updateNeighborsAt(pos.relative(direction), this);
         }
-        super.setPlacedBy(worldIn, pos, state, placer, stack);
+        super.setPlacedBy(level, pos, state, placer, stack);
 
     }
 
@@ -512,8 +518,8 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
 
 
 
-    public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn) {
-        BlockEntity tileentity = worldIn.getBlockEntity(pos);
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entityIn) {
+        BlockEntity tileentity = level.getBlockEntity(pos);
         if (tileentity instanceof CandleTile tile) {
             tile.entityInside(entityIn);
         }
@@ -537,8 +543,8 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
 
     @SuppressWarnings("deprecation")
     @Override
-    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
-        return canSupportCenter(worldIn, pos.below(), Direction.UP);
+    public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+        return canSupportCenter(level, pos.below(), Direction.UP);
     }
 
     @Override
@@ -546,30 +552,28 @@ public class Candle extends AbstractCandleBlock implements ITileEntity<CandleTil
         return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
-
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 
         if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.candle_shift_1").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.candle_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.candle_shift_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.candle_shift_1").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.candle_shift_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.candle_shift_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 
         } else {
-            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 
             String str = CandleItem.getEffectLocation(stack);
             if(str != null && str.length() > 0 && !str.equals("hexerei:no_effect")) {
-                String translateEffect = "effect." + (new ResourceLocation(str).getNamespace()) + "." + new ResourceLocation(str).getPath();
+                String translateEffect = "effect." + (ResourceLocation.parse(str).getNamespace()) + "." + ResourceLocation.parse(str).getPath();
                 MutableComponent component = Component.translatable(translateEffect).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999)));
-                tooltip.add(Component.translatable("tooltip.hexerei.candle_effect", component));
+                tooltipComponents.add(Component.translatable("tooltip.hexerei.candle_effect", component));
 
             }
         }
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
-
 
     @Override
     public Class<CandleTile> getTileEntityClass() {

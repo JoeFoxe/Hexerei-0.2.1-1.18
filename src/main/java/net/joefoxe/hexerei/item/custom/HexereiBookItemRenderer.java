@@ -6,6 +6,8 @@ import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.books.HexereiBookItem;
+import net.joefoxe.hexerei.item.ModDataComponents;
+import net.joefoxe.hexerei.item.data_components.BookData;
 import net.joefoxe.hexerei.tileentity.BookOfShadowsAltarTile;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
@@ -21,10 +23,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
 
@@ -79,7 +81,7 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
 
         if(tileEntityIn.itemHandler.getStackInSlot(0).getItem() instanceof HexereiBookItem){
 
-            CompoundTag tag = stack.getOrCreateTag();
+            BookData bookData = stack.getOrDefault(ModDataComponents.BOOK, BookData.EMPTY);
 
             yPos = 0;
             xPos = 0;
@@ -89,7 +91,7 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
             matrixStackIn.pushPose();
             tileEntityIn.degreesOpened = 90;
             tileEntityIn.degreesFlopped = 90;
-            if(tag.contains("opened") && tag.getBoolean("opened")) {
+            if(bookData.isOpened()) {
                 tileEntityIn.degreesOpened = 18;
                 tileEntityIn.degreesFlopped = 0;
                 this.degreesOpened = -10;
@@ -118,56 +120,29 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
             zPos = 0;
             this.degreesOpened2 = 0;
             this.degreesOpened = 45;
-            if(tag.contains("opened"))
-            {
-                if(tag.getBoolean("opened")){
-                    tileEntityIn.degreesOpened = 18;
-                    tileEntityIn.degreesFlopped = 0;
-                    this.degreesOpened = -10;
-                    tileEntityIn.degreesSpun = 270;
-                }
-                else {
-                    tileEntityIn.degreesOpened = 90;
-                    tileEntityIn.degreesFlopped = 90;
-                    if(transformType == ItemDisplayContext.GUI) {
-                        yPos = 6 / 16f;
-                        xPos = 2/16f;
-                        zPos = -12/32f;
-                        matrixStackIn.scale(1.35f, 1.35f, 1.35f);
-                    }
-                    if(transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    {
-                        this.degreesOpened2 = 90;
-                        xPos = 4/16f;
-                        zPos = -12/32f;
-                    }
-                    if(transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    {
-                        this.degreesOpened2 = 90;
-                        xPos = 4/16f;
-                        zPos = -1/32f;
-                    }
-                }
+            if (bookData.isOpened()) {
+                tileEntityIn.degreesOpened = 18;
+                tileEntityIn.degreesFlopped = 0;
+                this.degreesOpened = -10;
+                tileEntityIn.degreesSpun = 270;
             } else {
                 tileEntityIn.degreesOpened = 90;
                 tileEntityIn.degreesFlopped = 90;
-                if(transformType == ItemDisplayContext.GUI) {
+                if (transformType == ItemDisplayContext.GUI) {
                     yPos = 6 / 16f;
-                    xPos = 2/16f;
-                    zPos = -12/32f;
+                    xPos = 2 / 16f;
+                    zPos = -12 / 32f;
                     matrixStackIn.scale(1.35f, 1.35f, 1.35f);
                 }
-                if(transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                {
+                if (transformType == ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
                     this.degreesOpened2 = 90;
-                    xPos = 4/16f;
-                    zPos = -12/32f;
+                    xPos = 4 / 16f;
+                    zPos = -12 / 32f;
                 }
-                if(transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                {
+                if (transformType == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
                     this.degreesOpened2 = 90;
-                    xPos = 4/16f;
-                    zPos = -1/32f;
+                    xPos = 4 / 16f;
+                    zPos = -1 / 32f;
                 }
             }
 
@@ -324,7 +299,7 @@ public class HexereiBookItemRenderer extends CustomItemRendererWithPageDrawing {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void renderSingleBlock(BlockState p_110913_, PoseStack poseStack, MultiBufferSource p_110915_, int p_110916_, int p_110917_, net.minecraftforge.client.model.data.ModelData modelData, int color) {
+    public void renderSingleBlock(BlockState p_110913_, PoseStack poseStack, MultiBufferSource p_110915_, int p_110916_, int p_110917_, ModelData modelData, int color) {
         RenderShape rendershape = p_110913_.getRenderShape();
         if (rendershape != RenderShape.INVISIBLE) {
             switch (rendershape) {

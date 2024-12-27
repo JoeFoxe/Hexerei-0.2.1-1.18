@@ -11,7 +11,6 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 
@@ -21,17 +20,13 @@ import java.util.Map;
 public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T> {
     public final ModelPart body;
     public final ModelPart head;
-    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "crow"), "main");
-    public static final ModelLayerLocation POWER_LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation(Hexerei.MOD_ID, "crow_power_layer"), "main");
+    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(HexereiUtil.getResource("crow"), "main");
+    public static final ModelLayerLocation POWER_LAYER_LOCATION = new ModelLayerLocation(HexereiUtil.getResource("crow_power_layer"), "main");
 
     public CrowModel(ModelPart root) {
         this.body = root.getChild("body");
         this.head = body.getChild("head");
     }
-
-//    public CrowModel(ModelPart p_170677_) {
-//        this(p_170677_, RenderType::entityCutoutNoCull);
-//    }
 
 
     public static LayerDefinition createBodyLayerNone() {
@@ -318,9 +313,8 @@ public class CrowModel<T extends CrowEntity> extends ColorableAgeableListModel<T
     }
 
     @Override
-    public void renderToBuffer(PoseStack matrixStack, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-
-        body.render(matrixStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+        body.render(poseStack, buffer, packedLight, packedOverlay, color);
     }
 
     @Override

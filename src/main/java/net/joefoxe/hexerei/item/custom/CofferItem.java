@@ -2,8 +2,11 @@ package net.joefoxe.hexerei.item.custom;
 
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.container.CofferContainer;
+import net.joefoxe.hexerei.item.ModDataComponents;
 import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColor;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,18 +20,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 
-public class CofferItem extends BlockItem implements DyeableLeatherItem {
+public class CofferItem extends BlockItem {
 
     public CofferItem(Block block, Properties properties) {
         super(block, properties);
@@ -50,25 +54,15 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
 //        }
 //    }
 
-    @Override
-    public void setColor(ItemStack p_41116_, int p_41117_) {
-        DyeableLeatherItem.super.setColor(p_41116_, p_41117_);
-    }
-
     public static int getColorValue(DyeColor color, ItemStack stack) {
         int dyeCol = getColorStatic(stack);
         if(color == null && dyeCol != -1)
             return dyeCol;
-        float[] colors = color.getTextureDiffuseColors();
-        int r = (int) (colors[0] * 255.0F);
-        int g = (int) (colors[1] * 255.0F);
-        int b = (int) (colors[2] * 255.0F);
-        return (r << 16) | (g << 8) | b;
+        return color.getTextureDiffuseColor();
     }
 
-    public static int getColorStatic(ItemStack p_41122_) {
-        CompoundTag compoundtag = p_41122_.getTagElement("display");
-        return compoundtag != null && compoundtag.contains("color", 99) ? compoundtag.getInt("color") : 0x422F1E;
+    public static int getColorStatic(ItemStack stack) {
+        return stack.getOrDefault(DataComponents.DYED_COLOR, new DyedItemColor(0x422F1E, true)).rgb();
     }
 
     public static int getDyeColorNamed(String name) {
@@ -79,8 +73,8 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
             DyeColor col1 = HexereiUtil.getDyeColorNamed(name, 0);
             DyeColor col2 = HexereiUtil.getDyeColorNamed(name, 1);
 
-            float[] afloat1 = Sheep.getColorArray(col1);
-            float[] afloat2 = Sheep.getColorArray(col2);
+            float[] afloat1 = HexereiUtil.rgbIntToFloatArray(col1.getTextureDiffuseColor());
+            float[] afloat2 = HexereiUtil.rgbIntToFloatArray(col2.getTextureDiffuseColor());
             float f = afloat1[0] * (1.0F - f3) + afloat2[0] * f3;
             float f1 = afloat1[1] * (1.0F - f3) + afloat2[1] * f3;
             float f2 = afloat1[2] * (1.0F - f3) + afloat2[2] * f3;
@@ -93,12 +87,6 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
     public static DyeColor getDyeColorNamed(ItemStack stack) {
 
         return HexereiUtil.getDyeColorNamed(stack.getHoverName().getString());
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flagIn) {
-
-        super.appendHoverText(stack, world, tooltip, flagIn);
     }
 
     @Override
@@ -123,19 +111,18 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
         boolean isCrouching = playerIn.isCrouching();
 
         playerIn.startUsingItem(handIn);
-        if (!level.isClientSide) {
+        if (playerIn instanceof ServerPlayer serverPlayer) {
             if (!isCrouching && itemstack.getCount() == 1) {
 
-                MenuProvider containerProvider = createContainerProvider(itemstack, handIn, itemstack.getTag());
+                MenuProvider containerProvider = createContainerProvider(itemstack, handIn);
 
-                NetworkHooks.openScreen((ServerPlayer) playerIn, containerProvider, b -> b.writeBoolean(false).writeInt(handIn == InteractionHand.MAIN_HAND ? 0 : 1));
-
+                serverPlayer.openMenu(containerProvider, b -> b.writeBoolean(false).writeInt(handIn == InteractionHand.MAIN_HAND ? 0 : 1));
             }
         }
         return isCrouching ? InteractionResultHolder.pass(itemstack) : InteractionResultHolder.success(itemstack);
     }
 
-    private MenuProvider createContainerProvider(ItemStack itemStack, InteractionHand hand, CompoundTag list) {
+    private MenuProvider createContainerProvider(ItemStack itemStack, InteractionHand hand) {
         return new MenuProvider() {
             @Nullable
             @Override
@@ -154,7 +141,9 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
 
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         ItemStackHandler handler = createHandler();
-        handler.deserializeNBT(stack.getOrCreateTag().getCompound("Inventory"));
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (tag.contains("Inventory") && FMLEnvironment.dist.isClient())
+            handler.deserializeNBT(Minecraft.getInstance().level.registryAccess(), tag.getCompound("Inventory"));
 
         return Optional.of(new CofferItem.CofferItemToolTip(handler, stack));
     }
@@ -162,29 +151,29 @@ public class CofferItem extends BlockItem implements DyeableLeatherItem {
     public record CofferItemToolTip(ItemStackHandler handler, ItemStack self) implements TooltipComponent {
     }
 
-    private static ItemStack[] getContents(ItemStack p_150783_) {
-        CompoundTag compoundtag = p_150783_.getTag();
-        if (compoundtag == null) {
-            return new ItemStack[0];
-        } else {
-            ItemStack[]stacks = new ItemStack[36];
-            for(int i = 0; i < stacks.length; i++)
-                stacks[i] = ItemStack.of(compoundtag.getCompound("Inventory").getList("Items", 10).getCompound(i));
-            return stacks;
-        }
-    }
-
-    private static int[] getContentsSlot(ItemStack p_150783_) {
-        CompoundTag compoundtag = p_150783_.getTag();
-        if (compoundtag == null) {
-            return new int[0];
-        } else {
-            int[]slots = new int[36];
-            for(int i = 0; i < compoundtag.getCompound("Inventory").getList("Items", 10).size(); i++)
-                slots[i] = compoundtag.getCompound("Inventory").getList("Items", 10).getCompound(i).getInt("Slot");
-//            ListTag listtag = ;
-            return slots;
-        }
-    }
+//    private static ItemStack[] getContents(ItemStack p_150783_) {
+//        CompoundTag compoundtag = p_150783_.getTag();
+//        if (compoundtag == null) {
+//            return new ItemStack[0];
+//        } else {
+//            ItemStack[]stacks = new ItemStack[36];
+//            for(int i = 0; i < stacks.length; i++)
+//                stacks[i] = ItemStack.of(compoundtag.getCompound("Inventory").getList("Items", 10).getCompound(i));
+//            return stacks;
+//        }
+//    }
+//
+//    private static int[] getContentsSlot(ItemStack p_150783_) {
+//        CompoundTag compoundtag = p_150783_.getTag();
+//        if (compoundtag == null) {
+//            return new int[0];
+//        } else {
+//            int[]slots = new int[36];
+//            for(int i = 0; i < compoundtag.getCompound("Inventory").getList("Items", 10).size(); i++)
+//                slots[i] = compoundtag.getCompound("Inventory").getList("Items", 10).getCompound(i).getInt("Slot");
+////            ListTag listtag = ;
+//            return slots;
+//        }
+//    }
 
 }

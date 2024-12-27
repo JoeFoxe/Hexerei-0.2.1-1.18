@@ -1,31 +1,24 @@
 package net.joefoxe.hexerei.item.custom;
 
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.client.renderer.entity.model.MushroomWitchArmorModel;
-import net.joefoxe.hexerei.util.ClientProxy;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.util.Mth;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import org.jetbrains.annotations.Nullable;
 
 public class MushroomWitchArmorItem extends WitchArmorItem {
 
-    public MushroomWitchArmorItem(ArmorMaterial materialIn, ArmorItem.Type slot, Properties builder) {
+    public MushroomWitchArmorItem(Holder<ArmorMaterial> materialIn, ArmorItem.Type slot, Properties builder) {
         super(materialIn, slot, builder);
     }
 
-
     @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        return Hexerei.MOD_ID + ":textures/models/armor/mushroom_witch_armor_layer1.png";
+    public @Nullable ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
+        return ResourceLocation.parse(Hexerei.MOD_ID + ":textures/models/armor/mushroom_witch_armor_layer1.png");
     }
 
     @org.jetbrains.annotations.Nullable

@@ -3,10 +3,10 @@ package net.joefoxe.hexerei.config;
 import net.joefoxe.hexerei.Hexerei;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,37 +17,37 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID)
 public class HexConfig {
 
-    public static ForgeConfigSpec COMMON_CONFIG;
-    public static ForgeConfigSpec CLIENT_CONFIG;
+    public static ModConfigSpec COMMON_CONFIG;
+    public static ModConfigSpec  CLIENT_CONFIG;
 
-    public static ForgeConfigSpec.BooleanValue JARS_ONLY_HOLD_HERBS;
+    public static ModConfigSpec .BooleanValue JARS_ONLY_HOLD_HERBS;
 
-    public static ForgeConfigSpec.ConfigValue<Integer> SAGE_BURNING_PLATE_RANGE;
-    public static ForgeConfigSpec.ConfigValue<Integer> CROW_PICKPOCKET_COOLDOWN;
-    public static ForgeConfigSpec.ConfigValue<Integer> BROOM_BRUSH_DURABILITY;
-    public static ForgeConfigSpec.ConfigValue<Integer> HERB_ENHANCED_BRUSH_DURABILITY;
-    public static ForgeConfigSpec.ConfigValue<Integer> MOON_DUST_BRUSH_DURABILITY;
-    public static ForgeConfigSpec.ConfigValue<Integer> THRUSTER_BRUSH_DURABILITY;
-    public static ForgeConfigSpec.ConfigValue<Integer> BROOM_WATERPROOF_TIP_DURABILITY;
-    public static ForgeConfigSpec.ConfigValue<Integer> BROOM_NETHERITE_TIP_DURABILITY;
-    public static ForgeConfigSpec.ConfigValue<Integer> SAGE_BUNDLE_DURATION;
-    public static ForgeConfigSpec.ConfigValue<List<? extends String>> COFFER_BLACKLIST;
-    public static ForgeConfigSpec.ConfigValue<Integer> WILLOW_SWAMP_RARITY;
-    public static ForgeConfigSpec.ConfigValue<Boolean> DYNAMIC_LIGHT_TOGGLE;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> ENTITY_LIGHT_CONFIG;
-    private static ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_LIGHT_CONFIG;
+    public static ModConfigSpec .ConfigValue<Integer> SAGE_BURNING_PLATE_RANGE;
+    public static ModConfigSpec .ConfigValue<Integer> CROW_PICKPOCKET_COOLDOWN;
+    public static ModConfigSpec .ConfigValue<Integer> BROOM_BRUSH_DURABILITY;
+    public static ModConfigSpec .ConfigValue<Integer> HERB_ENHANCED_BRUSH_DURABILITY;
+    public static ModConfigSpec .ConfigValue<Integer> MOON_DUST_BRUSH_DURABILITY;
+    public static ModConfigSpec .ConfigValue<Integer> THRUSTER_BRUSH_DURABILITY;
+    public static ModConfigSpec .ConfigValue<Integer> BROOM_WATERPROOF_TIP_DURABILITY;
+    public static ModConfigSpec .ConfigValue<Integer> BROOM_NETHERITE_TIP_DURABILITY;
+    public static ModConfigSpec .ConfigValue<Integer> SAGE_BUNDLE_DURATION;
+    public static ModConfigSpec .ConfigValue<List<? extends String>> COFFER_BLACKLIST;
+    public static ModConfigSpec .ConfigValue<Integer> WILLOW_SWAMP_RARITY;
+    public static ModConfigSpec .ConfigValue<Boolean> DYNAMIC_LIGHT_TOGGLE;
+    private static ModConfigSpec .ConfigValue<List<? extends String>> ENTITY_LIGHT_CONFIG;
+    private static ModConfigSpec .ConfigValue<List<? extends String>> ITEM_LIGHT_CONFIG;
 
     public static Map<ResourceLocation, Integer> ENTITY_LIGHT_MAP = new HashMap<>();
     public static Map<ResourceLocation, Integer> ITEM_LIGHTMAP = new HashMap<>();
 
 
-    public static ForgeConfigSpec.ConfigValue<List<? extends String>> FONT_LIST;
+    public static ModConfigSpec .ConfigValue<List<? extends String>> FONT_LIST;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec .Builder builder = new ModConfigSpec .Builder();
 
         //_____________  S E R V E R     C O N F I G   _____________//
 
@@ -134,7 +134,7 @@ public class HexConfig {
         COMMON_CONFIG = builder.build();
 
 
-        builder = new ForgeConfigSpec.Builder();
+        builder = new ModConfigSpec .Builder();
 
         //_____________  C L I E N T     C O N F I G   _____________//
 
@@ -182,11 +182,11 @@ public class HexConfig {
         ITEM_LIGHTMAP = new HashMap<>();
         // Copy values from ENTITY_LIGHT_CONFIG to ENTITY_LIGHT_MAP
         for(Map.Entry<String, Integer> entry : ConfigUtil.parseMapConfig(ENTITY_LIGHT_CONFIG).entrySet()){
-            ENTITY_LIGHT_MAP.put(new ResourceLocation(entry.getKey()), entry.getValue());
+            ENTITY_LIGHT_MAP.put(ResourceLocation.parse(entry.getKey()), entry.getValue());
         }
         // Copy values from ITEM_LIGHT_CONFIG to ITEM_LIGHT_MAP
         for(Map.Entry<String, Integer> entry : ConfigUtil.parseMapConfig(ITEM_LIGHT_CONFIG).entrySet()){
-            ITEM_LIGHTMAP.put(new ResourceLocation(entry.getKey()), entry.getValue());
+            ITEM_LIGHTMAP.put(ResourceLocation.parse(entry.getKey()), entry.getValue());
         }
     }
 
@@ -222,14 +222,14 @@ public class HexConfig {
     }
 
     public static String an(String s){
-        return new ResourceLocation(Hexerei.MOD_ID, s).toString();
+        return ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, s).toString();
     }
 
     public static class ConfigUtil{
         public static final Pattern STRING_INT_MAP = Pattern.compile("([^/=]+)=(\\p{Digit}+)");
 
         /** Parse glyph_limits into a Map from augment glyph tags to limits. */
-        public static Map<String, Integer> parseMapConfig (ForgeConfigSpec.ConfigValue < List < ? extends
+        public static Map<String, Integer> parseMapConfig (ModConfigSpec .ConfigValue < List < ? extends
         String >> configValue){
             return configValue.get().stream()
                 .map(STRING_INT_MAP::matcher)

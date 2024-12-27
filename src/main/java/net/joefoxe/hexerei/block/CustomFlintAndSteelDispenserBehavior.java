@@ -5,8 +5,8 @@ import net.joefoxe.hexerei.block.custom.SageBurningPlate;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.tileentity.CandleTile;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -24,12 +24,12 @@ public class CustomFlintAndSteelDispenserBehavior extends CustomVanillaItemDispe
     }
 
     @Override
-    protected ItemStack execute(BlockSource p_123412_, ItemStack p_123413_) {
-        Level level = p_123412_.getLevel();
+    protected ItemStack execute(BlockSource source, ItemStack stack) {
+        Level level = source.level();
 //                this.setSuccess(true);
         this.setSuccess(false);
-        Direction direction = p_123412_.getBlockState().getValue(DispenserBlock.FACING);
-        BlockPos blockpos = p_123412_.getPos().relative(direction);
+        Direction direction = source.state().getValue(DispenserBlock.FACING);
+        BlockPos blockpos = source.pos().relative(direction);
         BlockState blockstate = level.getBlockState(blockpos);
         if (Candle.canBeLit(blockstate, blockpos, level)) {
 
@@ -52,15 +52,18 @@ public class CustomFlintAndSteelDispenserBehavior extends CustomVanillaItemDispe
 
             if(!flag){
                 level.playSound(null, blockpos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, RandomSource.create().nextFloat() * 0.4F + 1.0F);
-//                    p_123413_.hurtAndBreak(1, player, player1 -> player1.broadcastBreakEvent(pContext.getHand()));
 
                 if(blockstate.hasProperty(BlockStateProperties.LIT))
                     level.setBlockAndUpdate(blockpos, blockstate.setValue(BlockStateProperties.LIT, true));
                 level.gameEvent(null, GameEvent.BLOCK_CHANGE, blockpos);
 
-                if (this.isSuccess() && p_123413_.hurt(1, level.random, null)) {
-                    p_123413_.setCount(0);
+
+                if (this.isSuccess()) {
+                    stack.setDamageValue(stack.getDamageValue() + 1);
+                    if (stack.getDamageValue() >= stack.getMaxDamage())
+                        stack.setCount(0);
                 }
+
                 this.setSuccess(true);
             }
 
@@ -68,20 +71,22 @@ public class CustomFlintAndSteelDispenserBehavior extends CustomVanillaItemDispe
         }
         if(blockstate.getBlock() instanceof SageBurningPlate sageBurningPlate){
             sageBurningPlate.withTileEntityDo(level, blockpos, te -> {
-                if (te.getItems().get(0).is(ModItems.DRIED_SAGE_BUNDLE.get()) && !blockstate.getValue(BlockStateProperties.LIT)) {
+                if (te.getItems().getFirst().is(ModItems.DRIED_SAGE_BUNDLE.get()) && !blockstate.getValue(BlockStateProperties.LIT)) {
 
                     if(blockstate.hasProperty(BlockStateProperties.LIT))
                         level.setBlockAndUpdate(blockpos, blockstate.setValue(BlockStateProperties.LIT, true));
                     level.gameEvent(null, GameEvent.BLOCK_CHANGE, blockpos);
 
-                    if (this.isSuccess() && p_123413_.hurt(1, level.random, null)) {
-                        p_123413_.setCount(0);
+                    if (this.isSuccess()) {
+                        stack.setDamageValue(stack.getDamageValue() + 1);
+                        if (stack.getDamageValue() >= stack.getMaxDamage())
+                            stack.setCount(0);
                     }
                     this.setSuccess(true);
                 }
             });
         }
 
-        return super.execute(p_123412_, p_123413_);
+        return super.execute(source, stack);
     }
 }

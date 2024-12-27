@@ -1,5 +1,6 @@
 package net.joefoxe.hexerei.block.custom;
 
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,6 +15,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class WillowVinesPlantBlock extends GrowingPlantBodyBlock {
     public static final VoxelShape SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
+
+    public static final MapCodec<WillowVinesPlantBlock> CODEC = simpleCodec(WillowVinesPlantBlock::new);
+    @Override
+    protected MapCodec<? extends WillowVinesPlantBlock> codec() {
+        return CODEC;
+    }
 
     public WillowVinesPlantBlock(BlockBehaviour.Properties p_154975_) {
         super(p_154975_, Direction.DOWN, SHAPE, false);

@@ -1,18 +1,27 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
 
-import java.util.function.Supplier;
+public class EatParticlesPacket extends AbstractPacket {
 
-public class EatParticlesPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, EatParticlesPacket> CODEC  = StreamCodec.ofMember(EatParticlesPacket::encode, EatParticlesPacket::new);
+    public static final Type<EatParticlesPacket> TYPE = new Type<>(HexereiUtil.getResource("eat_particles"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     ItemStack stack;
 
@@ -20,40 +29,26 @@ public class EatParticlesPacket {
         this.sourceId = entity.getId();
         this.stack = stack.copy();
     }
-    public EatParticlesPacket(FriendlyByteBuf buf) {
+    public EatParticlesPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
-        this.stack = buf.readItem().copy();
+        this.stack = ItemStack.STREAM_CODEC.decode(buf);
     }
 
-    public static void encode(EatParticlesPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeItemStack(object.stack, false);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        ItemStack.STREAM_CODEC.encode(buffer, stack);
     }
 
-    public static EatParticlesPacket decode(FriendlyByteBuf buffer) {
-        return new EatParticlesPacket(buffer);
-    }
-
-    public static void consume(EatParticlesPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if(player.level().getEntity(sourceId) != null) {
+            if((player.level().getEntity(sourceId)) instanceof CrowEntity crow) {
+                crow.eatParticles(stack);
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
+            if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+                owl.eatParticles(stack);
             }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof CrowEntity crow) {
-                    crow.eatParticles(packet.stack);
-                }
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                    owl.eatParticles(packet.stack);
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
+
 }

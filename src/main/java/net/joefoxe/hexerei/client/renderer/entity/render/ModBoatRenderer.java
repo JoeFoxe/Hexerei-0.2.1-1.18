@@ -5,8 +5,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.ModBoatEntity;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.model.BoatModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -16,14 +16,10 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 
 import java.util.Map;
 import java.util.stream.Stream;
-
-@OnlyIn(Dist.CLIENT)
 
 
 public class ModBoatRenderer extends EntityRenderer<ModBoatEntity> {
@@ -36,12 +32,12 @@ public class ModBoatRenderer extends EntityRenderer<ModBoatEntity> {
         this.boatResources = Stream.of(ModBoatEntity.Type.values()).collect(ImmutableMap.toImmutableMap((p_173938_) -> {
             return p_173938_;
         }, (p_234575_) -> {
-            return Pair.of(new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(p_234575_)), this.createBoatModel(p_234563_, p_234575_));
+            return Pair.of(HexereiUtil.getResource(getTextureLocation(p_234575_)), this.createBoatModel(p_234563_, p_234575_));
         }));
     }
 
     private BoatModel createBoatModel(EntityRendererProvider.Context p_234569_, ModBoatEntity.Type p_234570_) {
-        ModelLayerLocation modellayerlocation = new ModelLayerLocation(new ResourceLocation("hexerei", "boat/" + p_234570_.getName()), "main");
+        ModelLayerLocation modellayerlocation = new ModelLayerLocation(HexereiUtil.getResource("boat/" + p_234570_.getName()), "main");
         return new BoatModel(p_234569_.bakeLayer(modellayerlocation));
     }
 
@@ -72,7 +68,7 @@ public class ModBoatRenderer extends EntityRenderer<ModBoatEntity> {
         pMatrixStack.mulPose(Axis.YP.rotationDegrees(90.0F));
         boatmodel.setupAnim(pEntity, pPartialTicks, 0.0F, -0.1F, 0.0F, 0.0F);
         VertexConsumer vertexconsumer = pBuffer.getBuffer(boatmodel.renderType(resourcelocation));
-        boatmodel.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        boatmodel.renderToBuffer(pMatrixStack, vertexconsumer, pPackedLight, OverlayTexture.NO_OVERLAY, HexereiUtil.getColorValueAlpha(1.0F, 1.0F, 1.0F, 1.0F));
         if (!pEntity.isUnderWater()) {
             VertexConsumer vertexconsumer1 = pBuffer.getBuffer(RenderType.waterMask());
             boatmodel.waterPatch().render(pMatrixStack, vertexconsumer1, pPackedLight, OverlayTexture.NO_OVERLAY);
@@ -85,7 +81,7 @@ public class ModBoatRenderer extends EntityRenderer<ModBoatEntity> {
     @Override
     public ResourceLocation getTextureLocation(ModBoatEntity entity) {
 
-        return new ResourceLocation(Hexerei.MOD_ID, getTextureLocation(entity.getModBoatType()));
+        return HexereiUtil.getResource(getTextureLocation(entity.getModBoatType()));
     }
 
 

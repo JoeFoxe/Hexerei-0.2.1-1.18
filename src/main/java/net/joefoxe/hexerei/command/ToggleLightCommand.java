@@ -2,13 +2,13 @@ package net.joefoxe.hexerei.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.ToggleDynamicLightPacket;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.PacketDistributor;
 
 public class ToggleLightCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -26,7 +26,7 @@ public class ToggleLightCommand {
             e.printStackTrace();
             return 1;
         }
-        HexereiPacketHandler.instance.send(PacketDistributor.PLAYER.with(() -> player), new ToggleDynamicLightPacket(enable));
+        HexereiPacketHandler.sendToPlayerClient(new ToggleDynamicLightPacket(enable), player);
         String path = enable ? "hexerei.dynamic_light_on" : "hexerei.dynamic_light_off";
         player.sendSystemMessage(Component.translatable(path, enable));
         return 1;

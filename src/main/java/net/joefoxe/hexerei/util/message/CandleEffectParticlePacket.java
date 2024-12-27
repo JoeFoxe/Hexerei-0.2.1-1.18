@@ -1,24 +1,32 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.Candle;
 import net.joefoxe.hexerei.data.candle.PotionCandleEffect;
 import net.joefoxe.hexerei.tileentity.CandleTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.function.Supplier;
 
-public class CandleEffectParticlePacket {
+public class CandleEffectParticlePacket extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, CandleEffectParticlePacket> CODEC  = StreamCodec.ofMember(CandleEffectParticlePacket::encode, CandleEffectParticlePacket::new);
+    public static final Type<CandleEffectParticlePacket> TYPE = new Type<>(HexereiUtil.getResource("candle_effect_particle"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos pos;
 
     List<String> particleLocations;
@@ -34,51 +42,39 @@ public class CandleEffectParticlePacket {
         this.stage = stage;
     }
 
-    public static void encode(CandleEffectParticlePacket object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.pos);
-        buffer.writeInt(object.particleLocations.size());
-        for(int i = 0; i < object.particleLocations.size(); i++){
-            buffer.writeUtf(object.particleLocations.get(i));
-        }
-        buffer.writeInt(object.livingId);
-        buffer.writeInt(object.stage);
-    }
+    public CandleEffectParticlePacket(RegistryFriendlyByteBuf buffer) {
 
-    public static CandleEffectParticlePacket decode(FriendlyByteBuf buffer) {
-        BlockPos pos = buffer.readBlockPos();
+        this.pos = buffer.readBlockPos();
         int size = buffer.readInt();
         List<String> list = new ArrayList<>();
         for(int i = 0; i < size; i++){
             list.add(buffer.readUtf());
         }
-
-
-        return new CandleEffectParticlePacket(pos, list, buffer.readInt(), buffer.readInt());
+        this.particleLocations = list;
+        this.livingId = buffer.readInt();
+        this.stage = buffer.readInt();
     }
 
-    public static void consume(CandleEffectParticlePacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(pos);
+        buffer.writeInt(particleLocations.size());
+        for (String particleLocation : particleLocations)
+            buffer.writeUtf(particleLocation);
+        buffer.writeInt(livingId);
+        buffer.writeInt(stage);
+    }
 
-            if(world.getBlockEntity(packet.pos) != null){
-                BlockEntity blockEntity = world.getBlockEntity(packet.pos);
-                if(blockEntity instanceof CandleTile candleTile){
-                    Random random = new Random();
-                    if(packet.stage == 0 && world.getEntity(packet.livingId) instanceof LivingEntity livingEntity) {
-                        PotionCandleEffect.spawnParticles(world, packet.particleLocations, livingEntity);
-                    }
-                    if(packet.stage == 1)
-                        Candle.spawnParticleWave(world, packet.pos, true, packet.particleLocations, 10);
-                }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+
+        if(player.level().getBlockEntity(pos) != null){
+            BlockEntity blockEntity = player.level().getBlockEntity(pos);
+            if(blockEntity instanceof CandleTile candleTile){
+                if(stage == 0 && player.level().getEntity(livingId) instanceof LivingEntity livingEntity)
+                    PotionCandleEffect.spawnParticles(player.level(), particleLocations, livingEntity);
+                if(stage == 1)
+                    Candle.spawnParticleWave(player.level(), pos, true, particleLocations, 10);
             }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

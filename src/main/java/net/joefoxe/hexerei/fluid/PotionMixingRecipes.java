@@ -1,23 +1,22 @@
 package net.joefoxe.hexerei.fluid;
 
 
+import com.hollingsworth.arsnouveau.api.recipe.PotionIngredient;
 import net.joefoxe.hexerei.data.recipes.FluidMixingRecipe;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.brewing.BrewingRecipe;
-import net.minecraftforge.common.brewing.BrewingRecipeRegistry;
-import net.minecraftforge.common.brewing.IBrewingRecipe;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.brewing.BrewingRecipe;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.*;
 
@@ -30,85 +29,101 @@ public class PotionMixingRecipes {
     public static List<FluidMixingRecipe> ALL;
     public static Map<Item, List<FluidMixingRecipe>> BY_ITEM;// = sortRecipesByItem(ALL);
 
-    public static List<FluidMixingRecipe> createRecipes() {
+    public static List<BrewingRecipe> recipes = new ArrayList<>();
+
+    public static List<BrewingRecipe> getAllBrewingRecipes(PotionBrewing potionBrewing) {
+        if (recipes.isEmpty()) {
+            potionBrewing.getRecipes().stream()
+                    .filter(recipe -> recipe instanceof BrewingRecipe)
+                    .map(recipe -> (BrewingRecipe) recipe).forEach(recipes::add);
+
+            for(PotionBrewing.Mix<Potion> mix : potionBrewing.potionMixes){
+                recipes.add(new BrewingRecipe(PotionIngredient.fromPotion(mix.from()), mix.ingredient(), PotionIngredient.fromPotion(mix.to()).getItems()[0]));
+            }
+        }
+        return recipes;
+    }
+
+
+    public static List<FluidMixingRecipe> createRecipes(PotionBrewing potionBrewing) {
         List<FluidMixingRecipe> mixingRecipes = new ArrayList<>();
 
         int recipeIndex = 0;
+
 
         List<Item> allowedSupportedContainers = new ArrayList<>();
         List<ItemStack> supportedContainerStacks = new ArrayList<>();
         for (Item container : SUPPORTED_CONTAINERS) {
             ItemStack stack = new ItemStack(container);
             supportedContainerStacks.add(stack);
-            if (PotionBrewing.ALLOWED_CONTAINER.test(stack)) {
+            if (potionBrewing.isContainerIngredient(stack)) {
                 allowedSupportedContainers.add(container);
             }
         }
 
         for (Item container : allowedSupportedContainers) {
             PotionFluid.BottleType bottleType = PotionFluidHandler.bottleTypeFromItem(container);
-            for (PotionBrewing.Mix<Potion> mix : PotionBrewing.POTION_MIXES) {
-                FluidStack fromFluid = PotionFluidHandler.getFluidFromPotion(mix.from.get(), bottleType, 1000);
-                FluidStack toFluid = PotionFluidHandler.getFluidFromPotion(mix.to.get(), bottleType, 1000);
-                if(mix.ingredient.getItems().length == 0 || mix.ingredient.getItems()[0] == null || mix.ingredient.getItems()[0].isEmpty())
+            for (PotionBrewing.Mix<Potion> mix : potionBrewing.potionMixes) {
+                FluidStack fromFluid = PotionFluidHandler.getFluidFromPotion(mix.from().value(), bottleType, 1000);
+                FluidStack toFluid = PotionFluidHandler.getFluidFromPotion(mix.to().value(), bottleType, 1000);
+                if(mix.ingredient().getItems().length == 0 || mix.ingredient().getItems()[0] == null || mix.ingredient().getItems()[0].isEmpty())
                     continue;
 
-                mixingRecipes.add(createRecipe("potion_mixing_vanilla_" + recipeIndex++, mix.ingredient, fromFluid, toFluid));
+                mixingRecipes.add(createRecipe("potion_mixing_vanilla_" + recipeIndex++, mix.ingredient(), fromFluid, toFluid));
             }
         }
 
-        for (PotionBrewing.Mix<Item> mix : PotionBrewing.CONTAINER_MIXES) {
-            Item from = mix.from.get();
+        for (PotionBrewing.Mix<Item> mix : potionBrewing.containerMixes) {
+            Item from = mix.from().value();
             if (!allowedSupportedContainers.contains(from)) {
                 continue;
             }
-            Item to = mix.to.get();
+            Item to = mix.to().value();
             if (!allowedSupportedContainers.contains(to)) {
                 continue;
             }
             PotionFluid.BottleType fromBottleType = PotionFluidHandler.bottleTypeFromItem(from);
             PotionFluid.BottleType toBottleType = PotionFluidHandler.bottleTypeFromItem(to);
-            Ingredient ingredient = mix.ingredient;
-            if(mix.ingredient.getItems()[0] == null)
+            Ingredient ingredient = mix.ingredient();
+            if(mix.ingredient().getItems()[0] == null)
                 continue;
 
-            for (Potion potion : ForgeRegistries.POTIONS.getValues()) {
-                if (potion == Potions.EMPTY) {
+            for (Holder.Reference<Potion> potion : BuiltInRegistries.POTION.holders().toList()) {
+                if (potion.value() == Potions.WATER) {
                     continue;
                 }
 
-                FluidStack fromFluid = PotionFluidHandler.getFluidFromPotion(potion, fromBottleType, 1000);
-                FluidStack toFluid = PotionFluidHandler.getFluidFromPotion(potion, toBottleType, 1000);
+                FluidStack fromFluid = PotionFluidHandler.getFluidFromPotion(potion.value(), fromBottleType, 1000);
+                FluidStack toFluid = PotionFluidHandler.getFluidFromPotion(potion.value(), toBottleType, 1000);
 
                 mixingRecipes.add(createRecipe("potion_mixing_vanilla_" + recipeIndex++, ingredient, fromFluid, toFluid));
             }
         }
 
         recipeIndex = 0;
-        for (IBrewingRecipe recipe : BrewingRecipeRegistry.getRecipes()) {
-            if (recipe instanceof BrewingRecipe recipeImpl) {
-                ItemStack output = recipeImpl.getOutput();
-                if (!SUPPORTED_CONTAINERS.contains(output.getItem())) {
-                    continue;
-                }
 
-                Ingredient input = recipeImpl.getInput();
-                Ingredient ingredient = recipeImpl.getIngredient();
-                FluidStack outputFluid = null;
-                for (ItemStack stack : supportedContainerStacks) {
-                    if (input.test(stack)) {
-                        FluidStack inputFluid = PotionFluidHandler.getFluidFromPotionItem(stack);
-                        if (outputFluid == null) {
-                            outputFluid = PotionFluidHandler.getFluidFromPotionItem(output);
-                        }
-                        mixingRecipes.add(createRecipe("potion_mixing_modded_" + recipeIndex++, ingredient, inputFluid, outputFluid));
+        for (BrewingRecipe recipe : getAllBrewingRecipes(potionBrewing)) {
+            ItemStack output = recipe.getOutput();
+            if (!SUPPORTED_CONTAINERS.contains(output.getItem())) {
+                continue;
+            }
+
+            Ingredient input = recipe.getInput();
+            Ingredient ingredient = recipe.getIngredient();
+            FluidStack outputFluid = null;
+            for (ItemStack stack : supportedContainerStacks) {
+                if (input.test(stack)) {
+                    FluidStack inputFluid = PotionFluidHandler.getFluidFromPotionItem(stack);
+                    if (outputFluid == null) {
+                        outputFluid = PotionFluidHandler.getFluidFromPotionItem(output);
                     }
+                    mixingRecipes.add(createRecipe("potion_mixing_modded_" + recipeIndex++, ingredient, inputFluid, outputFluid));
                 }
             }
         }
 
-        if(mixingRecipes.size() == 0)
-            mixingRecipes.add(createRecipe("potion_mixing_vanilla_" + recipeIndex++, Ingredient.EMPTY, new FluidStack(Fluids.WATER, 2000), new FluidStack(Fluids.WATER, 2000)));
+        if(mixingRecipes.isEmpty())
+            mixingRecipes.add(createRecipe("potion_mixing_missing", Ingredient.EMPTY, new FluidStack(Fluids.WATER, 2000), new FluidStack(Fluids.WATER, 2000)));
 
         return mixingRecipes;
     }
@@ -117,7 +132,7 @@ public class PotionMixingRecipes {
         NonNullList<Ingredient> nonNullList = NonNullList.withSize(8, Ingredient.EMPTY);
         nonNullList.set(0, ingredient);
         nonNullList.set(4, ingredient);
-        return new FluidMixingRecipe(new ResourceLocation(id), nonNullList, fromFluid, toFluid, FluidMixingRecipe.HeatCondition.HEATED);
+        return new FluidMixingRecipe(nonNullList, fromFluid, toFluid, FluidMixingRecipe.HeatCondition.HEATED);
     }
 
     public static Map<Item, List<FluidMixingRecipe>> sortRecipesByItem(List<FluidMixingRecipe> all) {

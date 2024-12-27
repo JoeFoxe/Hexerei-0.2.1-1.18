@@ -1,19 +1,13 @@
 package net.joefoxe.hexerei.world.processor;
 
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.Hexerei;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.server.level.WorldGenRegion;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
@@ -28,8 +22,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @MethodsReturnNonnullByDefault
 public class DarkCovenLegProcessor extends StructureProcessor {
-    public static final DarkCovenLegProcessor INSTANCE = new DarkCovenLegProcessor();
-    public static final Codec<DarkCovenLegProcessor> CODEC = Codec.unit(() -> INSTANCE);
+    public static final MapCodec<DarkCovenLegProcessor> CODEC = MapCodec.unit(DarkCovenLegProcessor::new);
+
 
     @ParametersAreNonnullByDefault
     @Override

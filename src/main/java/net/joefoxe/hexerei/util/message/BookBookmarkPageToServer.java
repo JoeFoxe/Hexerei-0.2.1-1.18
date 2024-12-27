@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.BookOfShadowsAltarTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class BookBookmarkPageToServer extends AbstractPacket {
 
-public class BookBookmarkPageToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BookBookmarkPageToServer> CODEC  = StreamCodec.ofMember(BookBookmarkPageToServer::encode, BookBookmarkPageToServer::new);
+    public static final Type<BookBookmarkPageToServer> TYPE = new Type<>(HexereiUtil.getResource("book_bookmark_page_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos bookAltar;
     int chapter;
     int page;
@@ -20,36 +29,22 @@ public class BookBookmarkPageToServer {
         this.chapter = chapter;
         this.page = page;
     }
-    public BookBookmarkPageToServer(FriendlyByteBuf buf) {
+    public BookBookmarkPageToServer(RegistryFriendlyByteBuf buf) {
         this.bookAltar = buf.readBlockPos();
         this.chapter = buf.readInt();
         this.page = buf.readInt();
 
     }
 
-    public static void encode(BookBookmarkPageToServer object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.bookAltar);
-        buffer.writeInt(object.chapter);
-        buffer.writeInt(object.page);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(bookAltar);
+        buffer.writeInt(chapter);
+        buffer.writeInt(page);
     }
 
-    public static BookBookmarkPageToServer decode(FriendlyByteBuf buffer) {
-        return new BookBookmarkPageToServer(buffer);
-    }
-
-    public static void consume(BookBookmarkPageToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BookOfShadowsAltarTile)world.getBlockEntity(packet.bookAltar)).clickPageBookmark(packet.chapter, packet.page);
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if (player.level().getBlockEntity(bookAltar) instanceof  BookOfShadowsAltarTile book)
+            book.clickPageBookmark(chapter, page);
     }
 }

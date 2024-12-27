@@ -1,6 +1,5 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +25,8 @@ public class MoonPhases {
         public String getName() {
             return name;
         }
+
+        public static final StringRepresentable.EnumCodec<MoonCondition> CODEC = StringRepresentable.fromEnum(MoonCondition::values);
 
         public String getNameTranslated(){
             return "tooltip.hexerei." + name;

@@ -9598,8 +9598,8 @@
 [11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/UsernameCache.class
 [11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/UsernameCache$SaveThread.class
 [11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/UsernameCache$1.class
-[11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/ToolActions.class
-[11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/ToolAction.class
+[11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/ItemAbilities.class
+[11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/ItemAbility.class
 [11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/TierSortingRegistry.class
 [11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/TierSortingRegistry$SyncPacket.class
 [11Jun2024 20:54:23.249] [pool-2-thread-1/DEBUG] [net.minecraftforge.fml.loading.moddiscovery.Scanner/SCAN]: Scanning Mod File: / path net/minecraftforge/common/TierSortingRegistry$ClientEvents.class

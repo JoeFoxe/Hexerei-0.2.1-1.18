@@ -13,9 +13,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
@@ -38,8 +41,6 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -81,7 +82,7 @@ public class Candelabra extends Block implements SimpleWaterloggedBlock {
     }
 
     @Override
-    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }
 
@@ -177,25 +178,23 @@ public class Candelabra extends Block implements SimpleWaterloggedBlock {
         return state.getValue(HorizontalDirectionalBlock.FACING) == Direction.NORTH || state.getValue(HorizontalDirectionalBlock.FACING) == Direction.SOUTH ? (state.getValue(HANGING) ? HANGING_SHAPES : GROUNDED_SHAPE) : (state.getValue(HANGING) ? HANGING_SHAPES_TURNED : GROUNDED_SHAPE_TURNED);
     }
 
-
-    @SuppressWarnings("deprecation")
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        ItemStack itemstack = player.getItemInHand(handIn);
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack itemstack = player.getItemInHand(hand);
         Random random = new Random();
         if(itemstack.getItem() == Items.FLINT_AND_STEEL)
         {
             if (canBeLit(state)) {
 
-                worldIn.setBlock(pos, state.setValue(BlockStateProperties.LIT, Boolean.TRUE), 11);
-                worldIn.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
-                itemstack.hurtAndBreak(1, player, player1 -> player1.broadcastBreakEvent(handIn));
+                level.setBlock(pos, state.setValue(BlockStateProperties.LIT, Boolean.TRUE), 11);
+                level.playSound(null, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
+                itemstack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
 
-                return InteractionResult.sidedSuccess(worldIn.isClientSide());
+                return ItemInteractionResult.sidedSuccess(level.isClientSide());
             }
 
         }
-        return net.minecraft.world.InteractionResult.PASS;
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     public static boolean canBeLit(BlockState state) {
@@ -253,16 +252,18 @@ public class Candelabra extends Block implements SimpleWaterloggedBlock {
         }
     }
 
-    public void onProjectileCollision(Level worldIn, BlockState state, BlockHitResult hit, Projectile projectile) {
-        if (!worldIn.isClientSide && projectile.isOnFire()) {
+    @Override
+    protected void onProjectileHit(Level level, BlockState state, BlockHitResult hit, Projectile projectile) {
+        if (!level.isClientSide && projectile.isOnFire()) {
             Entity entity = projectile.getOwner();
-            boolean flag = entity == null || entity instanceof Player || net.minecraftforge.event.ForgeEventFactory.getMobGriefingEvent(worldIn, entity);
+
+            boolean flag = entity == null || entity instanceof Player || net.neoforged.neoforge.event.EventHooks.canEntityGrief(level, entity);
             if (flag && !state.getValue(LIT) && !state.getValue(WATERLOGGED)) {
                 BlockPos blockpos = hit.getBlockPos();
-                worldIn.setBlock(blockpos, state.setValue(BlockStateProperties.LIT, Boolean.TRUE), 11);
+                level.setBlock(blockpos, state.setValue(BlockStateProperties.LIT, Boolean.TRUE), 11);
             }
         }
-
+        super.onProjectileHit(level, state, hit, projectile);
     }
 
     public static void spawnSmokeParticles(Level worldIn, BlockPos pos, boolean spawnExtraSmoke) {
@@ -307,15 +308,15 @@ public class Candelabra extends Block implements SimpleWaterloggedBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 
         if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.candelabra_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.candelabra_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         } else {
-            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         }
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
 //    @Override
@@ -332,7 +333,6 @@ public class Candelabra extends Block implements SimpleWaterloggedBlock {
 //    }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource rand) {
         if (state.getValue(LIT)) {
             if (rand.nextInt(10) == 0) {
@@ -391,41 +391,6 @@ public class Candelabra extends Block implements SimpleWaterloggedBlock {
                     world.addParticle(ParticleTypes.SMOKE, pos.getX() + 0.5f - 6f / 16f, pos.getY() + 14f / 16f, pos.getZ() + 0.5f, (rand.nextDouble() - 0.5d) / 100d, (rand.nextDouble() + 0.5d) * 0.035d, (rand.nextDouble() - 0.5d) / 100d);
             }
 
-
         }
     }
-//
-//    private MenuProvider createContainerProvider(Level worldIn, BlockPos pos) {
-//        return new MenuProvider() {
-//            @Override
-//            public Component getDisplayName() {
-//                if(((CofferTile)worldIn.getBlockEntity(pos)).customName != null)
-//                    return Component.translatable(((CofferTile)worldIn.getBlockEntity(pos)).customName.getString());
-//                return Component.translatable("screen.hexerei.coffer");
-//            }
-//
-//            @Nullable
-//            @Override
-//            public AbstractContainerMenu createMenu(int i, Inventory playerInventory, Player playerEntity) {
-//                return new CofferContainer(i, worldIn, pos, playerInventory, playerEntity);
-//            }
-//        };
-//    }
-//
-//    @Nullable
-//    @Override
-//    public BlockEntity createTileEntity(BlockState state, BlockGetter world) {
-//        BlockEntity te = ModTileEntities.COFFER_TILE.get().create();
-//        return te;
-//    }
-//
-//    @Override
-//    public boolean hasBlockEntity(BlockState state) {
-//        return true;
-//    }
-//
-//    @Override
-//    public Class<CofferTile> getTileEntityClass() {
-//        return CofferTile.class;
-//    }
 }

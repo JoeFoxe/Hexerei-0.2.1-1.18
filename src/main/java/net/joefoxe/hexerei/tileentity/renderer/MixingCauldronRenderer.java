@@ -12,7 +12,6 @@ import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -31,11 +30,14 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.client.RenderTypeHelper;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.joml.Matrix4f;
 
 import java.awt.*;
@@ -48,6 +50,11 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
     public static final float CORNERS = (float)MixingCauldron.SHAPE.min(Direction.Axis.X) + 3 / 16f;
     public static final float MIN_Y = 4f / 16f;
     public static final float MAX_Y = 15f/ 16f;
+
+    @Override
+    public AABB getRenderBoundingBox(MixingCauldronTile blockEntity) {
+        return BlockEntityRenderer.super.getRenderBoundingBox(blockEntity).inflate(5);
+    }
 
     @Override
     public void render(MixingCauldronTile tileEntityIn, float partialTicks, PoseStack matrixStackIn,
@@ -179,7 +186,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
 
     public static void renderFluidBox(FluidStack fluidStack, float xMin, float yMin, float zMin, float xMax, float yMax,
                                       float zMax, MultiBufferSource buffer, PoseStack ms, int light, boolean renderBottom, int waterColor) {
-        renderFluidBox(fluidStack, xMin, yMin, zMin, xMax, yMax, zMax, buffer.getBuffer(RenderType.translucentNoCrumbling()), ms, light,
+        renderFluidBox(fluidStack, xMin, yMin, zMin, xMax, yMax, zMax, buffer.getBuffer(RenderType.translucent()), ms, light,
                 renderBottom, waterColor);
     }
 
@@ -195,7 +202,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         int color = clientFluid.getTintColor(fluidStack);
         int a = (color >> 24) & 255;
 
-        if(fluidStack.isFluidEqual(new FluidStack(Fluids.WATER, 1)))
+        if(FluidStack.isSameFluidSameComponents(fluidStack, new FluidStack(Fluids.WATER, 1)))
             color = a << 24 | waterColor;
 
         int blockLightIn = (light >> 4) & 0xF;
@@ -311,13 +318,12 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         int g = color >> 8 & 0xff;
         int b = color & 0xff;
 
-        builder.vertex(peek.pose(), x, y, z)
-                .color(r, g, b, a)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(peek.normal(), normal.getX(), normal.getY(), normal.getZ())
-                .endVertex();
+        builder.addVertex(peek.pose(), x, y, z)
+                .setColor(r, g, b, a)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(peek, normal.getX(), normal.getY(), normal.getZ());
     }
 
 
@@ -361,7 +367,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
     }
 
     public static void renderFluidGUI(PoseStack matrixStack, MultiBufferSource renderTypeBuffer, FluidStack fluidStack, float alpha, float heightPercentage, int combinedLight){
-        VertexConsumer vertexBuilder = renderTypeBuffer.getBuffer(RenderType.translucentNoCrumbling());
+        VertexConsumer vertexBuilder = renderTypeBuffer.getBuffer(RenderType.translucent());
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(IClientFluidTypeExtensions.of(fluidStack.getFluid()).getStillTexture(fluidStack));
         int color = IClientFluidTypeExtensions.of(fluidStack.getFluid()).getTintColor(fluidStack);
 
@@ -375,7 +381,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
     }
 
     public static void renderFluidBlockGUI(PoseStack matrixStack, MultiBufferSource renderTypeBuffer, FluidStack fluidStack, float alpha, int combinedLight){
-        VertexConsumer vertexBuilder = renderTypeBuffer.getBuffer(RenderType.translucentNoCrumbling());
+        VertexConsumer vertexBuilder = renderTypeBuffer.getBuffer(RenderType.translucent());
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(IClientFluidTypeExtensions.of(fluidStack.getFluid()).getStillTexture(fluidStack));
         int color = IClientFluidTypeExtensions.of(fluidStack.getFluid()).getTintColor(fluidStack);
 
@@ -394,10 +400,10 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         float maxU = sprite.getU((1 - CORNERS) * 16);
         float minV = sprite.getV(CORNERS * 16);
         float maxV = sprite.getV((1 - CORNERS) * 16);
-        vertexBuilder.vertex(matrix, CORNERS, height, CORNERS).color(r, g, b, alpha).uv(minU, minV).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS, height, 1 - CORNERS).color(r, g, b, alpha).uv(minU, maxV).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS, height, 1 - CORNERS).color(r, g, b, alpha).uv(maxU, maxV).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS, height, CORNERS).color(r, g, b, alpha).uv(maxU, minV).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.addVertex(matrix, CORNERS, height, CORNERS).setColor(r, g, b, alpha).setUv(minU, minV).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, CORNERS, height, 1 - CORNERS).setColor(r, g, b, alpha).setUv(minU, maxV).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS, height, 1 - CORNERS).setColor(r, g, b, alpha).setUv(maxU, maxV).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS, height, CORNERS).setColor(r, g, b, alpha).setUv(maxU, minV).setLight(light).setNormal(0, 1, 0);
     }
 
     private static void renderQuadsBlock(Matrix4f matrix, VertexConsumer vertexBuilder, TextureAtlasSprite sprite, float r, float g, float b, float alpha, int light){
@@ -407,24 +413,24 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
         float minV = sprite.getV(CORNERS * 16);
         float maxV = sprite.getV((1 - CORNERS) * 16);
 
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, CORNERS / 5f).setColor(r, g, b, alpha).setUv(minU, minV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r, g, b, alpha).setUv(minU, maxV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r, g, b, alpha).setUv(maxU, maxV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, height, CORNERS / 5f).setColor(r, g, b, alpha).setUv(maxU, minV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 1, 0);
 
 
         float shading = 0.75f;
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(-1, 0, 0).endVertex();
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, minV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1, 0, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, maxV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1, 0, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, 0, CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, maxV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1, 0, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, minV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(-1, 0, 0);
 
 
         shading = 0.45f;
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light).normal(0, 0, -1).endVertex();
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, minV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, -1);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, maxV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, -1);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, maxV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, -1);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, minV).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(0, 0, -1);
     }
 
     private void renderItem(ItemStack stack, Level level, PoseStack matrixStackIn, MultiBufferSource bufferIn,
@@ -443,7 +449,7 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
 
     }
 
-    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_, net.minecraftforge.client.model.data.ModelData modelData, net.minecraft.client.renderer.RenderType renderType, int color) {
+    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_, ModelData modelData, net.minecraft.client.renderer.RenderType renderType, int color) {
         RenderShape rendershape = p_110913_.getRenderShape();
         if (rendershape != RenderShape.INVISIBLE) {
             switch (rendershape) {
@@ -455,11 +461,11 @@ public class MixingCauldronRenderer implements BlockEntityRenderer<MixingCauldro
                     float f1 = (float) (i >> 8 & 255) / 255.0F;
                     float f2 = (float) (i & 255) / 255.0F;
                     for (RenderType rt : bakedmodel.getRenderTypes(p_110913_, RandomSource.create(42), modelData))
-                        dispatcher.getModelRenderer().renderModel(p_110914_.last(), p_110915_.getBuffer(renderType != null ? renderType : net.minecraftforge.client.RenderTypeHelper.getEntityRenderType(rt, false)), p_110913_, bakedmodel, f, f1, f2, p_110916_, p_110917_, modelData, rt);
+                        dispatcher.getModelRenderer().renderModel(p_110914_.last(), p_110915_.getBuffer(renderType != null ? renderType : RenderTypeHelper.getEntityRenderType(rt, false)), p_110913_, bakedmodel, f, f1, f2, p_110916_, p_110917_, modelData, rt);
                 }
                 case ENTITYBLOCK_ANIMATED -> {
                     ItemStack stack = new ItemStack(p_110913_.getBlock());
-                    net.minecraftforge.client.extensions.common.IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
+                    IClientItemExtensions.of(stack).getCustomRenderer().renderByItem(stack, ItemDisplayContext.NONE, p_110914_, p_110915_, p_110916_, p_110917_);
                 }
             }
 

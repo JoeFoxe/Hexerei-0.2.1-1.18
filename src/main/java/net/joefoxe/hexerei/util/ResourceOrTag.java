@@ -21,11 +21,11 @@ public class ResourceOrTag<K> {
         if (string.startsWith("#")) {
             // if string is a tag key remove pound
             String str = string.substring(1);
-            ResourceLocation loc = new ResourceLocation(str);
+            ResourceLocation loc = ResourceLocation.parse(str);
             return new ResourceOrTag<>(Either.right(TagKey.create(registry, loc)));
         }
 
-        ResourceLocation loc = new ResourceLocation(string);
+        ResourceLocation loc = ResourceLocation.parse(string);
         return new ResourceOrTag<>(Either.left(ResourceKey.create(registry, loc)));
     }
 

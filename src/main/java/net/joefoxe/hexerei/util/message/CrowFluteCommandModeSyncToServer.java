@@ -1,16 +1,30 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.item.ModDataComponents;
+import net.joefoxe.hexerei.item.data_components.FluteData;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class CrowFluteCommandModeSyncToServer {
+public class CrowFluteCommandModeSyncToServer extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrowFluteCommandModeSyncToServer> CODEC  = StreamCodec.ofMember(CrowFluteCommandModeSyncToServer::encode, CrowFluteCommandModeSyncToServer::new);
+    public static final Type<CrowFluteCommandModeSyncToServer> TYPE = new Type<>(HexereiUtil.getResource("crow_flute_command_mode_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     ItemStack flute;
     int mode;
     UUID entityId;
@@ -22,45 +36,43 @@ public class CrowFluteCommandModeSyncToServer {
         this.entityId = entityId;
         this.hand = hand;
     }
-    public CrowFluteCommandModeSyncToServer(FriendlyByteBuf buf) {
-        this.flute = buf.readItem();
+    public CrowFluteCommandModeSyncToServer(RegistryFriendlyByteBuf buf) {
+        this.flute = ItemStack.STREAM_CODEC.decode(buf);
         this.mode = buf.readInt();
         this.entityId = buf.readUUID();
         this.hand = buf.readInt();
 
     }
 
-    public static void encode(CrowFluteCommandModeSyncToServer object, FriendlyByteBuf buffer) {
-        buffer.writeItem(object.flute);
-        buffer.writeInt(object.mode);
-        buffer.writeUUID(object.entityId);
-        buffer.writeInt(object.hand);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        ItemStack.STREAM_CODEC.encode(buffer, flute);
+        buffer.writeInt(mode);
+        buffer.writeUUID(entityId);
+        buffer.writeInt(hand);
     }
 
-    public static CrowFluteCommandModeSyncToServer decode(FriendlyByteBuf buffer) {
-        return new CrowFluteCommandModeSyncToServer(buffer);
-    }
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
 
-    public static void consume(CrowFluteCommandModeSyncToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if (player.level().getPlayerByUUID(entityId) instanceof Player player1) {
+            if(hand == 0) {
+                ItemStack stack = player1.getMainHandItem();
+                if (stack.getItem() == flute.getItem()) {
+                    FluteData fluteData = stack.getOrDefault(ModDataComponents.FLUTE, FluteData.empty());
+                    fluteData = new FluteData(fluteData.commandSelected(), fluteData.helpCommandSelected(), mode, fluteData.crowList(), fluteData.dyeColor1(), fluteData.dyeColor2());
+                    stack.set(ModDataComponents.FLUTE, fluteData);
+                    player1.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                }
             }
             else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
+                ItemStack stack = player1.getOffhandItem();
+                if (player1.getOffhandItem().getItem() == flute.getItem()) {
+                    FluteData fluteData = stack.getOrDefault(ModDataComponents.FLUTE, FluteData.empty());
+                    fluteData = new FluteData(fluteData.commandSelected(), fluteData.helpCommandSelected(), mode, fluteData.crowList(), fluteData.dyeColor1(), fluteData.dyeColor2());
+                    stack.set(ModDataComponents.FLUTE, fluteData);
+                    player1.setItemInHand(InteractionHand.OFF_HAND, stack);
+                }
             }
-
-            if(packet.hand == 0) {
-                if (world.getPlayerByUUID(packet.entityId).getMainHandItem().getItem() == packet.flute.getItem())
-                    world.getPlayerByUUID(packet.entityId).getMainHandItem().getOrCreateTag().putInt("commandMode", packet.mode);
-            }
-            else {
-                if (world.getPlayerByUUID(packet.entityId).getOffhandItem().getItem() == packet.flute.getItem())
-                    world.getPlayerByUUID(packet.entityId).getOffhandItem().getOrCreateTag().putInt("commandMode", packet.mode);
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

@@ -3,9 +3,9 @@ package net.joefoxe.hexerei.tileentity.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.ModChest;
 import net.joefoxe.hexerei.tileentity.ModChestBlockEntity;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -27,8 +27,8 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.LidBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Calendar;
 
@@ -54,15 +54,15 @@ public class ModChestRenderer<T extends BlockEntity & LidBlockEntity> implements
             this.xmasTextures = true;
         }
 
-        ModelPart modelpart = pContext.bakeLayer(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany"), "main"));
+        ModelPart modelpart = pContext.bakeLayer(new ModelLayerLocation(HexereiUtil.getResource("chest/mahogany"), "main"));
         this.bottom = modelpart.getChild("bottom");
         this.lid = modelpart.getChild("lid");
         this.lock = modelpart.getChild("lock");
-        ModelPart modelpart1 = pContext.bakeLayer(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany_left"), "main"));
+        ModelPart modelpart1 = pContext.bakeLayer(new ModelLayerLocation(HexereiUtil.getResource("chest/mahogany_left"), "main"));
         this.doubleLeftBottom = modelpart1.getChild("bottom");
         this.doubleLeftLid = modelpart1.getChild("lid");
         this.doubleLeftLock = modelpart1.getChild("lock");
-        ModelPart modelpart2 = pContext.bakeLayer(new ModelLayerLocation(new ResourceLocation("hexerei", "chest/mahogany_right"), "main"));
+        ModelPart modelpart2 = pContext.bakeLayer(new ModelLayerLocation(HexereiUtil.getResource("chest/mahogany_right"), "main"));
         this.doubleRightBottom = modelpart2.getChild("bottom");
         this.doubleRightLid = modelpart2.getChild("lid");
         this.doubleRightLock = modelpart2.getChild("lock");
@@ -142,17 +142,17 @@ public class ModChestRenderer<T extends BlockEntity & LidBlockEntity> implements
         pBottomPart.render(pPoseStack, pConsumer, pPackedLight, pPackedOverlay);
     }
 
-    public static final ResourceLocation WILLOW_CHEST_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/willow.png");
-    public static final ResourceLocation WITCH_HAZEL_CHEST_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/witch_hazel.png");
-    public static final ResourceLocation MAHOGANY_CHEST_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/mahogany.png");
-    public static final ResourceLocation HOOTY_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/hooty.png");
-    public static final ResourceLocation HOOTLE_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/hootle.png");
-    public static final ResourceLocation WILLOW_CHEST_LOCATION_LEFT = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/willow_left.png");
-    public static final ResourceLocation WILLOW_CHEST_LOCATION_RIGHT = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/willow_right.png");
-    public static final ResourceLocation WITCH_HAZEL_CHEST_LOCATION_LEFT = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/witch_hazel_left.png");
-    public static final ResourceLocation WITCH_HAZEL_CHEST_LOCATION_RIGHT = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/witch_hazel_right.png");
-    public static final ResourceLocation MAHOGANY_CHEST_LOCATION_LEFT = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/mahogany_left.png");
-    public static final ResourceLocation MAHOGANY_CHEST_LOCATION_RIGHT = new ResourceLocation(Hexerei.MOD_ID,"textures/entity/chest/mahogany_right.png");
+    public static final ResourceLocation WILLOW_CHEST_LOCATION = HexereiUtil.getResource("textures/entity/chest/willow.png");
+    public static final ResourceLocation WITCH_HAZEL_CHEST_LOCATION = HexereiUtil.getResource("textures/entity/chest/witch_hazel.png");
+    public static final ResourceLocation MAHOGANY_CHEST_LOCATION = HexereiUtil.getResource("textures/entity/chest/mahogany.png");
+    public static final ResourceLocation HOOTY_LOCATION = HexereiUtil.getResource("textures/entity/chest/hooty.png");
+    public static final ResourceLocation HOOTLE_LOCATION = HexereiUtil.getResource("textures/entity/chest/hootle.png");
+    public static final ResourceLocation WILLOW_CHEST_LOCATION_LEFT = HexereiUtil.getResource("textures/entity/chest/willow_left.png");
+    public static final ResourceLocation WILLOW_CHEST_LOCATION_RIGHT = HexereiUtil.getResource("textures/entity/chest/willow_right.png");
+    public static final ResourceLocation WITCH_HAZEL_CHEST_LOCATION_LEFT = HexereiUtil.getResource("textures/entity/chest/witch_hazel_left.png");
+    public static final ResourceLocation WITCH_HAZEL_CHEST_LOCATION_RIGHT = HexereiUtil.getResource("textures/entity/chest/witch_hazel_right.png");
+    public static final ResourceLocation MAHOGANY_CHEST_LOCATION_LEFT = HexereiUtil.getResource("textures/entity/chest/mahogany_left.png");
+    public static final ResourceLocation MAHOGANY_CHEST_LOCATION_RIGHT = HexereiUtil.getResource("textures/entity/chest/mahogany_right.png");
     protected ResourceLocation getLoc(ChestType chestType, BlockEntity block) {
         if(block instanceof ModChestBlockEntity blockEntity)
         {

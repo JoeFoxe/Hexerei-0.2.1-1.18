@@ -73,7 +73,7 @@ public class CandleLayer {
                 this.layerFromBlockLocation = ct.getBoolean("layerFromBlockLocation");
             else
                 this.layerFromBlockLocation = false;
-            this.layer = new ResourceLocation(ct.getString("layer"));
+            this.layer = ResourceLocation.parse(ct.getString("layer"));
         }
     }
 }

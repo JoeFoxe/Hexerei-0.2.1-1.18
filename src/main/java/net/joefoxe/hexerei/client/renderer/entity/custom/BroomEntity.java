@@ -32,11 +32,13 @@ import net.minecraft.network.protocol.game.ServerboundPaddleBoatPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -59,18 +61,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -140,7 +137,6 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     public UUID broomUUID;
 
     public final ItemStackHandler itemHandler = createHandler();
-    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
 
     public NonNullList<ItemStack> items = NonNullList.withSize(30, ItemStack.EMPTY);
 
@@ -160,23 +156,27 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         super(broomEntityEntityType, world);
     }
 
-    @Override
-    protected float getEyeHeight(Pose poseIn, EntityDimensions sizeIn) {
-        return sizeIn.height;
-    }
+
+
+//    @Override
+//    protected float getEyeHeight(Pose poseIn, EntityDimensions sizeIn) {
+//        return sizeIn.height;
+//    }
+
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(TIME_SINCE_HIT, 0);
-        this.entityData.define(FORWARD_DIRECTION, 1);
-        this.entityData.define(DAMAGE_TAKEN, 0.0F);
-        this.entityData.define(LEFT_PADDLE, false);
-        this.entityData.define(RIGHT_PADDLE, false);
-        this.entityData.define(ROCKING_TICKS, 0);
-        this.entityData.define(FIRST_SLOT, 0);
-        this.entityData.define(SECOND_SLOT, 0);
-        this.entityData.define(THIRD_SLOT, 0);
-        this.entityData.define(BROOM_TYPE, "willow");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+       builder.define(TIME_SINCE_HIT, 0);
+       builder.define(FORWARD_DIRECTION, 1);
+       builder.define(DAMAGE_TAKEN, 0.0F);
+       builder.define(LEFT_PADDLE, false);
+       builder.define(RIGHT_PADDLE, false);
+       builder.define(ROCKING_TICKS, 0);
+       builder.define(FIRST_SLOT, 0);
+       builder.define(SECOND_SLOT, 0);
+       builder.define(THIRD_SLOT, 0);
+       builder.define(BROOM_TYPE, "willow");
+
     }
 
     @Override
@@ -201,9 +201,14 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         return !broomCalled;
     }
 
+//    @Override
+//    protected Vec3 getRelativePortalPosition(Direction.Axis axis, BlockUtil.FoundRectangle result) {
+//        return PortalShape.getRelativePosition(result, axis, this.position(), this.getDimensions(this.getPose()));
+//    }
+
     @Override
-    protected Vec3 getRelativePortalPosition(Direction.Axis axis, BlockUtil.FoundRectangle result) {
-        return PortalShape.getRelativePosition(result, axis, this.position(), this.getDimensions(this.getPose()));
+    public Vec3 getRelativePortalPosition(Direction.Axis axis, BlockUtil.FoundRectangle portal) {
+        return PortalShape.getRelativePosition(portal, axis, this.position(), this.getDimensions(this.getPose()));
     }
 
 
@@ -213,15 +218,24 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     /**
      * Returns the Y offset from the entity's position for any entity riding this one.
      */
-    @Override
-    public double getPassengersRidingOffset() {
+    public double getPassengersRidingOffset(Entity passenger) {
         float height = 2.25f;
-        if (this.getControllingPassenger() != null) {
-            height = this.getControllingPassenger().getBbHeight();
+        if (passenger != null) {
+            height = passenger.getBbHeight();
 
         }
 
         return floatingOffset - height;
+    }
+
+    @Override
+    public Vec3 getVehicleAttachmentPoint(Entity entity) {
+        return super.getVehicleAttachmentPoint(entity);
+    }
+
+    @Override
+    public Vec3 getPassengerRidingPosition(Entity passenger) {
+        return super.getPassengerRidingPosition(passenger).add(0, getPassengersRidingOffset(passenger), 0);
     }
 
     /**
@@ -264,72 +278,12 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
             return DyeColor.byId(14);
 
         return HexereiUtil.getDyeColorNamed(broom.getCustomName().getString(), 0);
-
-//
-//        if(broom.getCustomName().getString().equals("jeb_"))
-//            return DyeColor.byId((int)(((Hexerei.getClientTicks() + 4)/10) % 16));
-//
-//        if(broom.getCustomName().getString().equals("les_"))
-//            return DyeColor.byId(switch((int)(((Hexerei.getClientTicks() + 4)/6) % 15)) {
-//                case 4, 5, 3 -> 1;
-//                case 7, 8, 6 -> 2;
-//                case 10, 11, 9 -> 6;
-//                case 13, 14, 12 -> 14;
-//                default -> 0;
-//            });
-//
-//        if(broom.getCustomName().getString().equals("bi_"))
-//            return DyeColor.byId(switch((int)(((Hexerei.getClientTicks() + 4)/4) % 15)) {
-//                case 6, 7, 8, 9, 5 -> 10;
-//                case 11, 12, 13, 14, 10 -> 11;
-//                default -> 2;
-//            });
-//
-//        if(broom.getCustomName().getString().equals("trans_"))
-//            return DyeColor.byId(switch((int)(((Hexerei.getClientTicks() + 4)/4) % 16)) {
-//                case 0, 1, 2, 3 -> 3;
-//                case 9, 10, 11, 8 -> 0;
-//                default -> 6;
-//            });
-//
-//        if(broom.getCustomName().getString().equals("joe_"))
-//            return DyeColor.byId(switch((int)(((Hexerei.getClientTicks() + 4)/4) % 16)) {
-//                case 0, 3, 2, 1 -> 3;
-//                case 5, 4, 6, 7, 15, 12, 13, 14 -> 9;
-//                default -> 11;
-//            });
-//
-//        if(broom.getCustomName().getString().equals("Thunderbolt VII"))
-//            return DyeColor.byId(4);
-//
-//        if(broom.getCustomName().getString().equals("Firebolt"))
-//            return DyeColor.byId(14);
-
-//        if(this.getName().getString().equals("les_"))
-//            return DyeColor.byId(switch((int)(((Hexerei.getClientTicks() + 4)/10) % 15)) {
-//                case 1 -> 0;
-//                case 2 -> 0;
-//                case 3 -> 0;
-//                case 4 -> 1;
-//                case 5 -> 1;
-//                case 6 -> 1;
-//                case 7 -> 2;
-//                case 8 -> 2;
-//                case 9 -> 2;
-//                case 10 -> 6;
-//                case 11 -> 6;
-//                case 12 -> 6;
-//                case 13 -> 14;
-//                case 14 -> 14;
-//                case 15 -> 14;
-//                default -> 0;
-//            });
-
-
-        //DyeColor.byId((int)(((Hexerei.getClientTicks() + 4)/10) % 16));
-//        return null;
     }
 
+    @Override
+    public @org.jetbrains.annotations.Nullable ItemStack getPickedResult(HitResult target) {
+        return super.getPickedResult(target);
+    }
 
     //TODO    @Override  REDO THIS AS IT DOESNT WORK PROPERLY
     @Override
@@ -337,26 +291,26 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     public ItemStack getPickResult() {
         ItemStack item = getBroomItem().getDefaultInstance();
 
-        CompoundTag tag = item.getOrCreateTag();
-        CompoundTag inv = itemHandler.serializeNBT();
-        boolean flag = false;
-        for (int i = 0; i < 30; i++) {
-            if (!itemHandler.getStackInSlot(i).isEmpty()) {
-                flag = true;
-                break;
-            }
-        }
-        if (flag)
-            tag.put("Inventory", inv);
-
-        tag.putBoolean("floatMode", this.floatMode);
-
-        if (this.broomUUID != null)
-            tag.putUUID("broomUUID", this.broomUUID);
-
-        Component name = getCustomName();
-        if (name != null && !name.getString().isEmpty())
-            item.setHoverName(name);
+//        CompoundTag tag = item.getOrCreateTag();
+//        CompoundTag inv = itemHandler.serializeNBT();
+//        boolean flag = false;
+//        for (int i = 0; i < 30; i++) {
+//            if (!itemHandler.getStackInSlot(i).isEmpty()) {
+//                flag = true;
+//                break;
+//            }
+//        }
+//        if (flag)
+//            tag.put("Inventory", inv);
+//
+//        tag.putBoolean("floatMode", this.floatMode);
+//
+//        if (this.broomUUID != null)
+//            tag.putUUID("broomUUID", this.broomUUID);
+//
+//        Component name = getCustomName();
+//        if (name != null && !name.getString().isEmpty())
+//            item.setHoverName(name);
         return item;
     }
 
@@ -401,7 +355,6 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     /**
      * Setups the entity to do the hurt animation. Only used by packets in multiplayer.
      */
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void animateHurt(float pYaw) {
         this.setForwardDirection(-this.getForwardDirection());
@@ -415,20 +368,6 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     @Override
     public boolean isPickable() {
         return !this.isRemoved();
-    }
-
-    /**
-     * Sets a target for the client to interpolate towards over the next few ticks
-     */
-    @OnlyIn(Dist.CLIENT)
-    @Override
-    public void lerpTo(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
-        this.lerpX = x;
-        this.lerpY = y;
-        this.lerpZ = z;
-        this.lerpYaw = yaw;
-        this.lerpPitch = pitch;
-        this.lerpSteps = 10;
     }
 
     /**
@@ -448,7 +387,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     }
 
     public void damageBrush() {
-        this.getModule(BroomSlot.BRUSH).hurt(1, RandomSource.create(), null);
+        this.getModule(BroomSlot.BRUSH).setDamageValue(this.getModule(BroomSlot.BRUSH).getDamageValue() + 1);
         if (this.getModule(BroomSlot.BRUSH).getDamageValue() >= this.getModule(BroomSlot.BRUSH).getMaxDamage()) {
             this.setModule(BroomSlot.BRUSH, ItemStack.EMPTY);
             this.level().playSound(null, this, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.5F, random.nextFloat() * 0.4F + 1.0F);
@@ -536,7 +475,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     }
 
     public void damageMisc() {
-        this.getModule(BroomSlot.MISC).hurt(1, RandomSource.create(), null);
+        this.getModule(BroomSlot.MISC).setDamageValue(this.getModule(BroomSlot.MISC).getDamageValue() + 1);
         if (this.getModule(BroomSlot.MISC).getDamageValue() >= this.getModule(BroomSlot.MISC).getMaxDamage()) {
             this.setModule(BroomSlot.MISC, ItemStack.EMPTY);
             this.level().playSound(null, this, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1.0F, random.nextFloat() * 0.4F + 1.0F);
@@ -547,7 +486,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     @Override
     public void startOpen(Player pPlayer) {
         Container.super.startOpen(pPlayer);
-        SoundEvent sound = SoundEvents.ARMOR_EQUIP_LEATHER;
+        SoundEvent sound = SoundEvents.ARMOR_EQUIP_LEATHER.value();
         float volume = 0.75f;
         if (isEnder()) {
             sound = SoundEvents.ENDER_CHEST_OPEN;
@@ -560,7 +499,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     @Override
     public void stopOpen(Player p_18954_) {
         Container.super.stopOpen(p_18954_);
-        SoundEvent sound = SoundEvents.ARMOR_EQUIP_LEATHER;
+        SoundEvent sound = SoundEvents.ARMOR_EQUIP_LEATHER.value();
         float pitch = 0.4f;
         float volume = 0.75f;
         if (isEnder()) {
@@ -603,7 +542,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         if (!this.broomSync && this.level() instanceof ClientLevel) {
 
             if (level().isClientSide)
-                HexereiPacketHandler.sendToServer(new BroomAskForSyncPacket(this));
+                HexereiPacketHandler.sendToServer(new BroomAskForSyncPacket(this.getId()));
 
             this.broomSync = true;
         }
@@ -656,7 +595,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
                 }
                 if (drainTime <= 0) {
 
-                    HexereiPacketHandler.sendToServer(new BroomDamageBrushToServer(this));
+                    HexereiPacketHandler.sendToServer(new BroomDamageBrushToServer(this.getId()));
                     drainTime = drainTimeMax;
                 }
             }
@@ -713,7 +652,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
             if (this.level().isClientSide) {
                 this.controlBoat();
                 this.level().sendPacketToServer(new ServerboundPaddleBoatPacket(this.getPaddleState(0), this.getPaddleState(1)));
-                HexereiPacketHandler.sendToServer(new BroomSyncRotationToServer(this, getYRot(), this.getControllingPassenger()));
+                HexereiPacketHandler.sendToServer(new BroomSyncRotationToServer(this.getId(), getYRot()));
 
             }
 
@@ -1091,7 +1030,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
 
                     miscDrainTime--;
                     if (miscDrainTime <= 0) {
-                        HexereiPacketHandler.sendToServer(new BroomDamageMiscToServer(this));
+                        HexereiPacketHandler.sendToServer(new BroomDamageMiscToServer(this.getId()));
                         miscDrainTime = miscDrainTimeMax;
                     }
                 }
@@ -1103,7 +1042,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
 
                     miscDrainTime--;
                     if (miscDrainTime <= 0) {
-                        HexereiPacketHandler.sendToServer(new BroomDamageMiscToServer(this));
+                        HexereiPacketHandler.sendToServer(new BroomDamageMiscToServer(this.getId()));
                         miscDrainTime = miscDrainTimeMax;
                     }
                 }
@@ -1184,20 +1123,20 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
                     f = -0.6F;
                     Vec3 vec3 = (new Vec3((double)f, 0.0D, 0.0D))
                             .zRot(((float)this.getDeltaMovement().y() * 25f) * ((float)Math.PI / 180F));
-                    f1 += vec3.y + passenger.getMyRidingOffset();
+                    f1 += (float) vec3.y;
                 } else {
                     f = 0.4F;
                     Vec3 vec3 = (new Vec3((double)f, 0.0D, 0.0D))
                             .zRot(((float)this.getDeltaMovement().y() * 25f) * ((float)Math.PI / 180F));
-                    f1 += vec3.y + passenger.getMyRidingOffset() + 0.1f;
+                    f1 += (float) vec3.y + 0.1f;
                 }
             } else {
-                f1 += passenger.getMyRidingOffset();
+//                f1 += passenger.getMyRidingOffset();
                 if(hasSeat) {
                     f = 0.4F;
                     Vec3 vec3 = (new Vec3((double)f, 0.0D, 0.0D))
                             .zRot(((float)this.getDeltaMovement().y() * 25f) * ((float)Math.PI / 180F));
-                    f1 += vec3.y + 0.1f;
+                    f1 += (float) vec3.y + 0.1f;
                 }
             }
             if(passenger instanceof Animal){
@@ -1246,7 +1185,6 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     /**
      * Applies this entity's orientation (pitch/yaw) to another entity. Used to update passenger orientation.
      */
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void onPassengerTurned(Entity entityToUpdate) {
         this.applyYawToEntity(entityToUpdate);
@@ -1256,7 +1194,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     @Override
     protected void addAdditionalSaveData(CompoundTag compound) {
         compound.putString("BroomType", this.getBroomType().name());
-        compound.put("inv", itemHandler.serializeNBT());
+        compound.put("inv", itemHandler.serializeNBT(this.level().registryAccess()));
         compound.putBoolean("floatMode", floatMode);
         if (broomUUID != null)
             compound.putUUID("broomUUID", broomUUID);
@@ -1265,7 +1203,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     @Override
     public boolean save(CompoundTag compound) {
         compound.putString("BroomType", this.getBroomType().name());
-        compound.put("inv", itemHandler.serializeNBT());
+        compound.put("inv", itemHandler.serializeNBT(this.level().registryAccess()));
         compound.putBoolean("floatMode", floatMode);
         if (broomUUID != null)
             compound.putUUID("broomUUID", broomUUID);
@@ -1287,7 +1225,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         if (compound.contains("BroomType", 8)) {
             this.setBroomType(compound.getString("BroomType"));
         }
-        itemHandler.deserializeNBT(compound.getCompound("inv"));
+        itemHandler.deserializeNBT(this.level().registryAccess(), compound.getCompound("inv"));
         this.floatMode = compound.getBoolean("floatMode");
         if (compound.contains("broomUUID"))
             this.broomUUID = compound.getUUID("broomUUID");
@@ -1299,7 +1237,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     public void load(CompoundTag compound) {
         super.load(compound);
 
-        itemHandler.deserializeNBT(compound.getCompound("inv"));
+//        itemHandler.deserializeNBT(this.level().registryAccess(), compound.getCompound("inv"));
         this.floatMode = compound.getBoolean("floatMode");
 
         //legacy type
@@ -1311,7 +1249,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         if (compound.contains("BroomType", 8)) {
             this.setBroomType(compound.getString("BroomType"));
         }
-        itemHandler.deserializeNBT(compound.getCompound("inv"));
+        itemHandler.deserializeNBT(this.level().registryAccess(), compound.getCompound("inv"));
         this.floatMode = compound.getBoolean("floatMode");
         if (compound.contains("broomUUID"))
             this.broomUUID = compound.getUUID("broomUUID");
@@ -1385,7 +1323,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
             if (!level().isClientSide()) {
                 MenuProvider containerProvider = createContainerProvider(level(), blockPosition(), getModule(BroomSlot.SATCHEL).is(ModItems.ENDER_SATCHEL.get()));
 
-                NetworkHooks.openScreen((ServerPlayer) player, containerProvider, b -> b.writeInt(this.getId()).writeBoolean(isEnder()));
+                player.openMenu(containerProvider, b -> b.writeInt(this.getId()).writeBoolean(isEnder()));
 
 //                    throw new IllegalStateException("Our Container provider is missing!");
                 return InteractionResult.SUCCESS;
@@ -1453,7 +1391,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         this.floatMode = floatMode;
 
         if (level().isClientSide)
-            HexereiPacketHandler.sendToServer(new BroomSyncFloatModeToServer(this, getFloatMode()));
+            HexereiPacketHandler.sendToServer(new BroomSyncFloatModeToServer(this.getId(), getFloatMode()));
 
         sync();
 
@@ -1472,7 +1410,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         this.yRotO = rotation;
 
         if (!this.level().isClientSide) {
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new BroomSyncRotation(this, rotation));
+            HexereiPacketHandler.sendToNearbyClient(this.level(), this, new BroomSyncRotation(this, rotation));
         }
 
     }
@@ -1513,7 +1451,6 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         return this.entityData.get(ROCKING_TICKS);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public float getRockingAngle(float partialTicks) {
         return Mth.lerp(partialTicks, this.prevRockingAngle, this.rockingAngle);
     }
@@ -1557,7 +1494,6 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public void updateInputs(boolean leftInputDown, boolean rightInputDown, boolean forwardInputDown, boolean backInputDown, boolean jumpInputDown, boolean sneakingInputDown) {
         this.leftInputDown = leftInputDown;
         this.rightInputDown = rightInputDown;
@@ -1576,9 +1512,14 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         }
     }
 
+//    @Override
+//    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+//        return NetworkHooks.getEntitySpawningPacket(this);
+//    }
+
     @Override
-    public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity entity) {
+        return super.getAddEntityPacket(entity);
     }
 
     public boolean canSwim() {
@@ -1655,8 +1596,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
     public void sync() {
         setChanged();
         if (!level().isClientSide) {
-
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new BroomSyncPacket(this, saveWithoutId(new CompoundTag())));
+            HexereiPacketHandler.sendToNearbyClient(level(), this, new BroomSyncPacket(this.getId(), saveWithoutId(new CompoundTag())));
         }
 
     }
@@ -1692,12 +1632,13 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
 
 //    private net.minecraftforge.common.util.LazyOptional<?> handler = net.minecraftforge.common.util.LazyOptional.of(() -> new net.minecraftforge.items.wrapper.InvWrapper(this));
 
-    @Override
-    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable net.minecraft.core.Direction facing) {
-        if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER)
-            return handler.cast();
-        return super.getCapability(capability, facing);
-    }
+
+//    @Override
+//    public <T> net.minecraftforge.common.util.LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable net.minecraft.core.Direction facing) {
+//        if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER)
+//            return handler.cast();
+//        return super.getCapability(capability, facing);
+//    }
 
     @Override
     public void openCustomInventoryScreen(Player pPlayer) {
@@ -1705,7 +1646,7 @@ public class BroomEntity extends Entity implements Container, MenuProvider, HasC
         if (!this.level().isClientSide && (!this.isVehicle() || this.hasPassenger(pPlayer))) {
             MenuProvider containerProvider = createContainerProvider(level(), blockPosition(), getModule(BroomSlot.SATCHEL).is(ModItems.ENDER_SATCHEL.get()));
 
-            NetworkHooks.openScreen((ServerPlayer) pPlayer, containerProvider, b -> b.writeInt(this.getId()).writeBoolean(isEnder()));
+            pPlayer.openMenu(containerProvider, b -> b.writeInt(this.getId()).writeBoolean(isEnder()));
         }
     }
 

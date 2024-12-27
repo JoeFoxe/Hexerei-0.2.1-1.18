@@ -4,37 +4,35 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.joefoxe.hexerei.item.ModItems;
-import net.joefoxe.hexerei.item.custom.CandleItem;
 import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.core.Registry;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.conditions.IConditionBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class ModRecipeProvider extends RecipeProvider implements IConditionBuilder {
-    public ModRecipeProvider(PackOutput packOutput) {
-        super(packOutput);
+    public ModRecipeProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+        super(packOutput, registries);
     }
 
 
     public static String getItemName(ItemLike pItemLike) {
-        return ForgeRegistries.ITEMS.getKey(pItemLike.asItem()).getPath();
+        return BuiltInRegistries.ITEM.getKey(pItemLike.asItem()).getPath();
     }
 
 	public static String getAddCandleRecipeName(ItemLike pResult) {
@@ -42,11 +40,11 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 	}
 
 	public static String getWoodcuttingRecipeName(String type, Item result, Item input) {
-		return "woodcutting" + "/" + type + "/" + ForgeRegistries.ITEMS.getKey(result).getPath() + "_from_" + ForgeRegistries.ITEMS.getKey(input).getPath() + "_woodcutting";
+		return "woodcutting" + "/" + type + "/" + BuiltInRegistries.ITEM.getKey(result).getPath() + "_from_" + BuiltInRegistries.ITEM.getKey(input).getPath() + "_woodcutting";
 	}
 
-    @Override
-    protected void buildRecipes(Consumer<FinishedRecipe> pFinishedRecipeConsumer) {
+	@Override
+	protected void buildRecipes(RecipeOutput p_recipeOutput) {
 
 		File add_to_candle_file = new File("recipe-builder/add_to_candle.json");
 		File woodcutting_file = new File("recipe-builder/woodcutting.json");
@@ -77,13 +75,13 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 //                    CandleItem.setLayerFromBlock(stack, ForgeRegistries.BLOCKS.getKey(block).toString(), "base");
 //                    new AddToCandleRecipeBuilder(block.asItem(), stack.getItem(), 1, stack.getOrCreateTag())
 //                            .unlockedBy("has_candle", inventoryTrigger(ItemPredicate.Builder.item()
-//                                    .of(ModItems.CANDLE.get()).build())).save(pFinishedRecipeConsumer, getAddCandleRecipeName(block));
+//                                    .of(ModItems.CANDLE.get()).build())).save(p_recipeOutput, getAddCandleRecipeName(block));
 //                }
 //            });
 //        });
 
 		JsonArray finalrecipesWoodcutting = recipesWoodcutting;
-		ForgeRegistries.BLOCKS.forEach((block) -> {
+		BuiltInRegistries.BLOCK.forEach((block) -> {
 			finalrecipesWoodcutting.forEach((recipeBlock) -> {
 
 				Item reg = Item.byBlock(block);
@@ -308,97 +306,97 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 
 				List<Item> planks_list = new ArrayList<>();
 				for (String s : planks_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					planks_list.add(item);
 				}
 				List<Item> slab_list = new ArrayList<>();
 				for (String s : slab_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					slab_list.add(item);
 				}
 				List<Item> stairs_list = new ArrayList<>();
 				for (String s : stairs_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					stairs_list.add(item);
 				}
 				List<Item> button_list = new ArrayList<>();
 				for (String s : button_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					button_list.add(item);
 				}
 				List<Item> pressure_plate_list = new ArrayList<>();
 				for (String s : pressure_plate_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					pressure_plate_list.add(item);
 				}
 				List<Item> fence_list = new ArrayList<>();
 				for (String s : fence_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					fence_list.add(item);
 				}
 				List<Item> fence_gate_list = new ArrayList<>();
 				for (String s : fence_gate_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					fence_gate_list.add(item);
 				}
 				List<Item> door_list = new ArrayList<>();
 				for (String s : door_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					door_list.add(item);
 				}
 				List<Item> trapdoor_list = new ArrayList<>();
 				for (String s : trapdoor_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					trapdoor_list.add(item);
 				}
 				List<Item> boat_list = new ArrayList<>();
 				for (String s : boat_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					boat_list.add(item);
 				}
 				List<Item> chest_boat_list = new ArrayList<>();
 				for (String s : chest_boat_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					chest_boat_list.add(item);
 				}
 				List<Item> chest_list = new ArrayList<>();
 				for (String s : chest_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					chest_list.add(item);
 				}
 				List<Item> crafting_table_list = new ArrayList<>();
 				for (String s : crafting_table_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					crafting_table_list.add(item);
 				}
 				List<Item> barrel_list = new ArrayList<>();
 				for (String s : barrel_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					barrel_list.add(item);
 				}
 				List<Item> sign_list = new ArrayList<>();
 				for (String s : sign_loc_list) {
-					Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(s));
+					Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(s));
 					sign_list.add(item);
 				}
-//                Item planks = ForgeRegistries.ITEMS.getValue(new ResourceLocation(planks_loc));
-				Item stripped_wood = ForgeRegistries.ITEMS.getValue(new ResourceLocation(stripped_wood_loc));
-				Item wood = ForgeRegistries.ITEMS.getValue(new ResourceLocation(wood_loc));
-				Item stripped_log = ForgeRegistries.ITEMS.getValue(new ResourceLocation(stripped_log_loc));
-				Item log = ForgeRegistries.ITEMS.getValue(new ResourceLocation(log_loc));
+//                Item planks = BuiltInRegistries.ITEM.get(ResourceLocation.parse()(planks_loc));
+				Item stripped_wood = BuiltInRegistries.ITEM.get(ResourceLocation.parse(stripped_wood_loc));
+				Item wood = BuiltInRegistries.ITEM.get(ResourceLocation.parse(wood_loc));
+				Item stripped_log = BuiltInRegistries.ITEM.get(ResourceLocation.parse(stripped_log_loc));
+				Item log = BuiltInRegistries.ITEM.get(ResourceLocation.parse(log_loc));
 
 				if (reg.equals(wood) && stripped_wood != null && stripped_wood != Items.AIR)
 					new WoodcutterRecipeBuilder(block.asItem(), stripped_wood, 1, 1, type)
-						.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, stripped_wood, reg));
+						.save(p_recipeOutput, getWoodcuttingRecipeName(type, stripped_wood, reg));
 				if (reg.equals(log) && stripped_log != null && stripped_log != Items.AIR)
 					new WoodcutterRecipeBuilder(block.asItem(), stripped_log, 1, 1, type)
-						.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, stripped_log, reg));
+						.save(p_recipeOutput, getWoodcuttingRecipeName(type, stripped_log, reg));
 
 				if (reg.equals(stripped_wood) || reg.equals(wood) || reg.equals(log) || reg.equals(stripped_log)) {
 					for (Item planks : planks_list) {
 						if (planks != null && planks != Items.AIR)
 							new WoodcutterRecipeBuilder(block.asItem(), planks, 5, 1, type)
-									.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, planks, reg));
+									.save(p_recipeOutput, getWoodcuttingRecipeName(type, planks, reg));
 					}
 				}
 
@@ -408,82 +406,82 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 						for (Item planks2 : planks_list)
 							if (planks2 != null && planks2 != Items.AIR && planks != planks2)
 								new WoodcutterRecipeBuilder(block.asItem(), planks2, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, planks2, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, planks2, reg));
 
 //                        if (slab != null && slab != Items.AIR)
 //                            new WoodcutterRecipeBuilder(block.asItem(), slab, 2, 1, type)
-//                                    .save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, slab, reg));
+//                                    .save(p_recipeOutput, getWoodcuttingRecipeName(type, slab, reg));
 
 						for (Item slab : slab_list) {
 							if (slab != null && slab != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), slab, 2, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, slab, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, slab, reg));
 						}
 
 						for (Item stairs : stairs_list)
 							if (stairs != null && stairs != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), stairs, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, stairs, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, stairs, reg));
 
 						for (Item pressure_plate : pressure_plate_list)
 							if (pressure_plate != null && pressure_plate != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), pressure_plate, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, pressure_plate, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, pressure_plate, reg));
 
 						for (Item button : button_list)
 							if (button != null && button != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), button, 2, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, button, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, button, reg));
 
 						for (Item fence : fence_list)
 							if (fence != null && fence != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), fence, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, fence, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, fence, reg));
 
 						for (Item fence_gate : fence_gate_list)
 							if (fence_gate != null && fence_gate != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), fence_gate, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, fence_gate, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, fence_gate, reg));
 
 						for (Item door : door_list)
 							if (door != null && door != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), door, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, door, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, door, reg));
 
 						for (Item trapdoor : trapdoor_list)
 							if (trapdoor != null && trapdoor != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), trapdoor, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, trapdoor, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, trapdoor, reg));
 
 						for (Item boat : boat_list)
 							if (boat != null && boat != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), boat, 1, 4, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, boat, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, boat, reg));
 
 						for (Item chest_boat : chest_boat_list)
 							if (chest_boat != null && chest_boat != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), chest_boat, 1, 9, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, chest_boat, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, chest_boat, reg));
 
 						for (Item chest : chest_list)
 							if (chest != null && chest != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), chest, 1, 6, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, chest, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, chest, reg));
 
 						for (Item crafting_table : crafting_table_list)
 							if (crafting_table != null && crafting_table != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), crafting_table, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, crafting_table, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, crafting_table, reg));
 
 						for (Item barrel : barrel_list)
 							if (barrel != null && barrel != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), barrel, 1, 3, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, barrel, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, barrel, reg));
 
 						for (Item sign : sign_list)
 							if (sign != null && sign != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), sign, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, sign, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, sign, reg));
 					}
 				}
 
@@ -493,65 +491,65 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 						for (Item planks : planks_list) {
 							if (planks != null && planks != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), planks, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, planks, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, planks, reg));
 						}
 
 						for (Item slab2 : slab_list)
 							if (slab2 != null && slab2 != Items.AIR && slab != slab2)
 								new WoodcutterRecipeBuilder(block.asItem(), slab2, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, slab2, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, slab2, reg));
 						for (Item stairs : stairs_list)
 							if (stairs != null && stairs != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), stairs, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, stairs, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, stairs, reg));
 						for (Item pressure_plate : pressure_plate_list)
 							if (pressure_plate != null && pressure_plate != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), pressure_plate, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, pressure_plate, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, pressure_plate, reg));
 						for (Item button : button_list)
 							if (button != null && button != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), button, 1, 1, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, button, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, button, reg));
 						for (Item fence : fence_list)
 							if (fence != null && fence != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), fence, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, fence, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, fence, reg));
 						for (Item fence_gate : fence_gate_list)
 							if (fence_gate != null && fence_gate != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), fence_gate, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, fence_gate, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, fence_gate, reg));
 						for (Item door : door_list)
 							if (door != null && door != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), door, 1, 4, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, door, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, door, reg));
 						for (Item trapdoor : trapdoor_list)
 							if (trapdoor != null && trapdoor != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), trapdoor, 1, 4, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, trapdoor, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, trapdoor, reg));
 						for (Item boat : boat_list)
 							if (boat != null && boat != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), boat, 1, 8, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, boat, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, boat, reg));
 						for (Item chest_boat : chest_boat_list)
 							if (chest_boat != null && chest_boat != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), chest_boat, 1, 18, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, chest_boat, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, chest_boat, reg));
 						for (Item chest : chest_list)
 							if (chest != null && chest != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), chest, 1, 10, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, chest, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, chest, reg));
 						for (Item crafting_table : crafting_table_list)
 							if (crafting_table != null && crafting_table != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), crafting_table, 1, 4, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, crafting_table, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, crafting_table, reg));
 						for (Item barrel : barrel_list)
 							if (barrel != null && barrel != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), barrel, 1, 6, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, barrel, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, barrel, reg));
 						for (Item sign : sign_list)
 							if (sign != null && sign != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), sign, 1, 2, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, sign, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, sign, reg));
 
 					}
 				for (Item stairs : stairs_list)
@@ -560,7 +558,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 						for (Item planks : planks_list) {
 							if (planks != null && planks != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), planks, 3, 4, type)
-										.save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, planks, reg));
+										.save(p_recipeOutput, getWoodcuttingRecipeName(type, planks, reg));
 						}
 
 
@@ -568,7 +566,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 							if (slab != null && slab != Items.AIR)
 								new WoodcutterRecipeBuilder(block.asItem(), slab, 3, 2, type)
 										.unlockedBy("has_block", inventoryTrigger(ItemPredicate.Builder.item()
-												.of(reg).build())).save(pFinishedRecipeConsumer, getWoodcuttingRecipeName(type, slab, reg) + "_combine");
+												.of(reg).build())).save(p_recipeOutput, getWoodcuttingRecipeName(type, slab, reg) + "_combine");
 
 					}
 			});
@@ -607,7 +605,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 //
 //                        new FluidMixingRecipeBuilder(new ArrayList<>(List.of(ingredient)), inputFluid, outputFluid)
 //                                .unlockedBy("has_blaze_powder", inventoryTrigger(ItemPredicate.Builder.item()
-//                                        .of(Items.BLAZE_POWDER).build())).save(pFinishedRecipeConsumer, new ResourceLocation(Hexerei.MOD_ID,
+//                                        .of(Items.BLAZE_POWDER).build())).save(p_recipeOutput, HexereiUtil.getResource(
 //                                        Registry.POTION.getKey(PotionFluidHandler.getPotionFromFluidStack(outputFluid)).getPath() + "_from_fluid_mixing"));
 //
 //                    }
@@ -637,7 +635,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 //                ItemStack stack = new ItemStack(ModItems.CANDLE.get());
 //                new FluidMixingRecipeBuilder(ingredients, PotionFluidHandler.getFluidFromPotion(potion, PotionFluid.BottleType.REGULAR, 2000), PotionFluidHandler.getFluidFromPotion(potion, PotionFluid.BottleType.REGULAR, 2000))
 //                        .unlockedBy("has_blaze_powder", inventoryTrigger(ItemPredicate.Builder.item()
-//                                .of(Items.BLAZE_POWDER).build())).save(pFinishedRecipeConsumer, new ResourceLocation(Hexerei.MOD_ID,
+//                                .of(Items.BLAZE_POWDER).build())).save(p_recipeOutput, HexereiUtil.getResource(
 //                                Registry.POTION.getKey(potion).getPath() + "_from_fluid_mixing"));
 //            }
 //        });
@@ -650,13 +648,13 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 //                .pattern("EE")
 //                .unlockedBy("has_ebony_planks", inventoryTrigger(ItemPredicate.Builder.item()
 //                        .of(ModBlocks.EBONY_PLANKS.get()).build()))
-//                .save(pFinishedRecipeConsumer);
+//                .save(p_recipeOutput);
 //
 //        ShapelessRecipeBuilder.shapeless(ModItems.CITRINE.get())
 //                .requires(ModBlocks.CITRINE_BLOCK.get())
 //                .unlockedBy("has_citrine_block", inventoryTrigger(ItemPredicate.Builder.item()
 //                        .of(ModBlocks.CITRINE_BLOCK.get()).build()))
-//                .save(pFinishedRecipeConsumer);
+//                .save(p_recipeOutput);
 //
 //        ShapedRecipeBuilder.shaped(ModBlocks.CITRINE_BLOCK.get())
 //                .define('C', ModItems.CITRINE.get())
@@ -665,7 +663,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
 //                .pattern("CCC")
 //                .unlockedBy("has_citrine", inventoryTrigger(ItemPredicate.Builder.item()
 //                        .of(ModItems.CITRINE.get()).build()))
-//                .save(pFinishedRecipeConsumer);
+//                .save(p_recipeOutput);
 
 	}
 }

@@ -2,15 +2,26 @@ package net.joefoxe.hexerei.util.message;
 
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class BrowPositioningPacket extends AbstractPacket {
 
-public class BrowPositioningPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BrowPositioningPacket> CODEC  = StreamCodec.ofMember(BrowPositioningPacket::encode, BrowPositioningPacket::new);
+    public static final Type<BrowPositioningPacket> TYPE = new Type<>(HexereiUtil.getResource("brow_positioning"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     OwlEntity.BrowPositioning browPositioning;
 
@@ -19,37 +30,20 @@ public class BrowPositioningPacket {
         this.browPositioning = browPositioning;
 
     }
-    public BrowPositioningPacket(FriendlyByteBuf buf) {
+    public BrowPositioningPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.browPositioning = buf.readEnum(OwlEntity.BrowPositioning.class);
     }
 
-    public static void encode(BrowPositioningPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeEnum(object.browPositioning);
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeEnum(browPositioning);
     }
 
-    public static BrowPositioningPacket decode(FriendlyByteBuf buffer) {
-        return new BrowPositioningPacket(buffer);
-    }
-
-    public static void consume(BrowPositioningPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof OwlEntity owl) {
-                    owl.setBrowPos(packet.browPositioning);
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if((player.level().getEntity(sourceId)) instanceof OwlEntity owl) {
+            owl.setBrowPos(browPositioning);
+        }
     }
 }

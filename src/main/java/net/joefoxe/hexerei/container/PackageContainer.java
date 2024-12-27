@@ -1,12 +1,13 @@
 package net.joefoxe.hexerei.container;
 
 import net.joefoxe.hexerei.item.custom.CourierPackageItem;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
 public class PackageContainer extends ItemStackContainer {
     public static final int OFFSET = 28;
@@ -31,6 +32,12 @@ public class PackageContainer extends ItemStackContainer {
         this.addDataSlot(this.sealed);
         if (wrapper != null)
             setSealed(wrapper.getSealed() ? 1 : 0);
+    }
+    public PackageContainer(int windowId, Inventory playerInventory, InteractionHand hand, int slotIndex) {
+        this(windowId, playerInventory.player.getItemInHand(hand), playerInventory, hand, slotIndex);
+    }
+    public PackageContainer(int windowId, Inventory playerInventory, RegistryFriendlyByteBuf byteBuf) {
+        this(windowId, playerInventory, byteBuf.readByte() == 0 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, byteBuf.readByte());
     }
 
     @Override

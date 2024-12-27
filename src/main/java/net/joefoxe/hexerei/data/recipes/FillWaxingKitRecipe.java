@@ -1,13 +1,17 @@
 package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.ModItems;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -19,8 +23,8 @@ import java.util.List;
 public class FillWaxingKitRecipe extends CustomRecipe {
 
     int waxUsed;
-    public FillWaxingKitRecipe(ResourceLocation pId, CraftingBookCategory cBc) {
-        super(pId, cBc);
+    public FillWaxingKitRecipe(CraftingBookCategory cBc) {
+        super(cBc);
         waxUsed = 0;
     }
 
@@ -31,12 +35,12 @@ public class FillWaxingKitRecipe extends CustomRecipe {
     public boolean isSpecial() {
         return true;
     }
-    public boolean matches(CraftingContainer pInv, Level pLevel) {
+    public boolean matches(CraftingInput pInv, Level pLevel) {
         int kit = 0;
         int wax = 0;
         ItemStack kit_item = ItemStack.EMPTY;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack container_item = pInv.getItem(j);
             if (!container_item.isEmpty()) {
                 if (container_item.is(ModItems.WAX_BLEND.get())) {
@@ -52,17 +56,19 @@ public class FillWaxingKitRecipe extends CustomRecipe {
             }
         }
 
-        return wax >= 1 && kit == 1 && (!kit_item.hasTag() || (!kit_item.getOrCreateTag().contains("waxCount") || kit_item.getOrCreateTag().getInt("waxCount") < 256));
+        CompoundTag tag = kit_item.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+
+        return wax >= 1 && kit == 1 && ((!tag.contains("waxCount") || tag.getInt("waxCount") < 256));
     }
 
-    public ItemStack assemble(CraftingContainer pInv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput pInv, HolderLookup.Provider registryAccess) {
         int kit_i = 0;
         int wax_i = 0;
         ItemStack kit = ItemStack.EMPTY;
 //        ItemStack wax = ItemStack.EMPTY;
         List<ItemStack> wax = new ArrayList<>();
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(ModItems.WAX_BLEND.get())) {
@@ -79,7 +85,7 @@ public class FillWaxingKitRecipe extends CustomRecipe {
         if (wax_i >= 1 && kit_i == 1) {
             ItemStack itemstack2 = kit.copy();
             int baseCount = 0;
-            CompoundTag tag = itemstack2.getOrCreateTag();
+            CompoundTag tag = itemstack2.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
             if(tag.contains("waxCount")){
                 baseCount = tag.getInt("waxCount");
             }
@@ -92,6 +98,7 @@ public class FillWaxingKitRecipe extends CustomRecipe {
                 this.waxUsed = 256 - baseCount;
                 tag.putInt("waxCount", 256);
             }
+            itemstack2.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
             return itemstack2;
         } else {
             return ItemStack.EMPTY;

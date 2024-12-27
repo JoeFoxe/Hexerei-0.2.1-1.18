@@ -3,11 +3,11 @@ package net.joefoxe.hexerei.screen.tooltip;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.books.PageDrawing;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.BroomItem;
 import net.joefoxe.hexerei.util.HexereiTags;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,20 +15,22 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.world.item.component.CustomData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.joml.Matrix4f;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientBroomToolTip implements HexereiBookTooltip {
-    public static final ResourceLocation TEXTURE_LOCATION = new ResourceLocation(Hexerei.MOD_ID,"textures/gui/broom_tooltip_inventory.png");
+    public static final ResourceLocation TEXTURE_LOCATION = HexereiUtil.getResource("textures/gui/broom_tooltip_inventory.png");
     private final ItemStackHandler handler;
     private final ItemStack self;
     public Font font = Minecraft.getInstance().font;
@@ -280,7 +282,8 @@ public class ClientBroomToolTip implements HexereiBookTooltip {
             this.blit(guiGraphics, p_194027_ - 4, p_194028_ - 4, 1, Texture.SATCHEL_SLOT);
         if(slot == 2) {
             this.blit(guiGraphics, p_194027_ - 4, p_194028_ - 4, 1, Texture.BRUSH_SLOT);
-            if(!self.getOrCreateTag().contains("floatMode")){
+            CustomData customData = self.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+            if(!customData.contains("floatMode")){
                 if(isGui){
                     guiGraphics.renderItem(new ItemStack(ModItems.BROOM_BRUSH.get()), p_194027_ + 1, p_194028_ + 1, slot);
                     guiGraphics.renderItemDecorations(p_194031_, new ItemStack(ModItems.BROOM_BRUSH.get()), p_194027_ + 1, p_194028_ + 1);
@@ -358,7 +361,8 @@ public class ClientBroomToolTip implements HexereiBookTooltip {
 
     private void renderSlotItem(MultiBufferSource bufferSource, VertexConsumer buffer, int xIn, int yIn, int slot, Font p_194031_, PoseStack matrixStack, ItemRenderer p_194033_, int z, int overlay, int light) {
         ItemStack itemstack = this.handler.getStackInSlot(slot);
-        if(!self.getOrCreateTag().contains("floatMode") && slot == 2){
+        CustomData customData = self.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        if(!customData.contains("floatMode") && slot == 2){
 
             PageDrawing.renderGuiItem(bufferSource, p_194031_, new ItemStack(ModItems.BROOM_BRUSH.get()), matrixStack, xIn, yIn, overlay, light);
         }
@@ -487,10 +491,10 @@ public class ClientBroomToolTip implements HexereiBookTooltip {
 
         poseStack.translate(0,0, p_93118_);
 
-        buffer.vertex(poseStack.last().pose(), (float)p_93114_, (float)p_93117_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93119_, p_93122_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
-        buffer.vertex(poseStack.last().pose(), (float)p_93115_, (float)p_93117_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93120_, p_93122_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
-        buffer.vertex(poseStack.last().pose(), (float)p_93115_, (float)p_93116_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93120_, p_93121_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
-        buffer.vertex(poseStack.last().pose(), (float)p_93114_, (float)p_93116_, (float)p_93118_).color(255, 255, 255, 255).uv(p_93119_, p_93121_).overlayCoords(overlay).uv2(light).normal(0F, 1F, 0F).endVertex();
+        buffer.addVertex(poseStack.last().pose(), (float)p_93114_, (float)p_93117_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93119_, p_93122_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
+        buffer.addVertex(poseStack.last().pose(), (float)p_93115_, (float)p_93117_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93120_, p_93122_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
+        buffer.addVertex(poseStack.last().pose(), (float)p_93115_, (float)p_93116_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93120_, p_93121_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
+        buffer.addVertex(poseStack.last().pose(), (float)p_93114_, (float)p_93116_, (float)p_93118_).setColor(255, 255, 255, 255).setUv(p_93119_, p_93121_).setOverlay(overlay).setLight(light).setNormal(0F, 1F, 0F);
 //        $$10.end();
 
         poseStack.popPose();

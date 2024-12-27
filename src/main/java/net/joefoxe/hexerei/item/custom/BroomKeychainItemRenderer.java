@@ -1,22 +1,24 @@
 package net.joefoxe.hexerei.item.custom;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 public class BroomKeychainItemRenderer extends CustomItemRenderer {
 
@@ -30,7 +32,7 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
 //        Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, ModelData.EMPTY, null);
 //        matrixStackIn.popPose();
 
-        this.renderTileStuff(stack.getOrCreateTag(), stack, displayContext, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+        this.renderTileStuff(stack, displayContext, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
     }
 
     public static int getCustomColor(CompoundTag tag) {
@@ -50,7 +52,7 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(state, matrixStackIn, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
     }
 
-    public void renderTileStuff(CompoundTag tag, ItemStack stack, ItemDisplayContext displayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
+    public void renderTileStuff(ItemStack stack, ItemDisplayContext displayContext, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
 
 
 
@@ -65,10 +67,10 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
         renderItem(new ItemStack(ModItems.BROOM_KEYCHAIN_BASE.get(), 1), displayContext, matrixStackIn, bufferIn, combinedLightIn);
 
 
-        CompoundTag tag2 = stack.getOrCreateTag();
+        CompoundTag tag2 = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         if(tag2.contains("Items")){
             ListTag list = tag2.getList("Items", 10);
-            ItemStack other = ItemStack.of(list.getCompound(0));
+            ItemStack other = ItemStack.parseOptional(Hexerei.proxy.getLevel().registryAccess(), list.getCompound(0));
             if (!other.isEmpty() && !list.isEmpty()) {
 
                 matrixStackIn.pushPose();
@@ -95,7 +97,7 @@ public class BroomKeychainItemRenderer extends CustomItemRenderer {
 
     }
 
-    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_, net.minecraftforge.client.model.data.ModelData modelData, int color) {
+    public void renderSingleBlock(BlockState p_110913_, PoseStack p_110914_, MultiBufferSource p_110915_, int p_110916_, int p_110917_, ModelData modelData, int color) {
         RenderShape rendershape = p_110913_.getRenderShape();
         if (rendershape != RenderShape.INVISIBLE) {
             switch (rendershape) {

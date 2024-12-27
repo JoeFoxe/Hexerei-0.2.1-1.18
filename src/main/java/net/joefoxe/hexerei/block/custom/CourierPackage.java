@@ -1,26 +1,26 @@
 package net.joefoxe.hexerei.block.custom;
 
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.block.ITileEntity;
-import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.item.ModItems;
-import net.joefoxe.hexerei.tileentity.CofferTile;
 import net.joefoxe.hexerei.tileentity.CourierPackageTile;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -37,7 +37,6 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -45,16 +44,14 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static net.joefoxe.hexerei.block.custom.ConnectingCarpetDyed.COLOR;
-import static net.minecraft.world.level.block.ShulkerBoxBlock.CONTENTS;
 
 public class CourierPackage extends BaseEntityBlock implements ITileEntity<CourierPackageTile>, SimpleWaterloggedBlock {
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     public static final EnumProperty<State> STATE = EnumProperty.create("state", State.class);
+
+    public static final MapCodec<CourierPackage> CODEC = simpleCodec(CourierPackage::new);
 
     public enum State implements StringRepresentable {
         OPENED("opened"),
@@ -95,13 +92,16 @@ public class CourierPackage extends BaseEntityBlock implements ITileEntity<Couri
     }
 
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
 
-        if (pLevel.getBlockEntity(pPos) instanceof CourierPackageTile courierPackageTile) {
-            return courierPackageTile.interact(pPlayer) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        if (level.getBlockEntity(pos) instanceof CourierPackageTile courierPackageTile) {
+            return courierPackageTile.interact(player) ? ItemInteractionResult.SUCCESS : super.useItemOn(stack, state, level, pos, player, hand, hitResult);
         }
-//        pLevel.setBlock(pPos, pState.setValue(STATE, !pState.getValue(STATE)), 11);
-        return InteractionResult.PASS;
+        return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
     @Override
@@ -126,14 +126,14 @@ public class CourierPackage extends BaseEntityBlock implements ITileEntity<Couri
      * Called before the Block is set to air in the world. Called regardless of if the player's tool can actually collect
      * this block
      */
-    public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+    public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
         BlockEntity blockentity = pLevel.getBlockEntity(pPos);
         if (blockentity instanceof CourierPackageTile packageTile) {
             if (!pLevel.isClientSide && pPlayer.isCreative() && !packageTile.isEmpty()) {
                 ItemStack itemstack = ModItems.COURIER_PACKAGE.get().getDefaultInstance();
-                blockentity.saveToItem(itemstack);
+                blockentity.saveToItem(itemstack, pLevel.registryAccess());
                 if (packageTile.hasCustomName()) {
-                    itemstack.setHoverName(packageTile.getCustomName());
+                    itemstack.set(DataComponents.CUSTOM_NAME, packageTile.getCustomName());
                 }
 
                 ItemEntity itementity = new ItemEntity(pLevel, (double)pPos.getX() + 0.5D, (double)pPos.getY() + 0.5D, (double)pPos.getZ() + 0.5D, itemstack);
@@ -144,7 +144,7 @@ public class CourierPackage extends BaseEntityBlock implements ITileEntity<Couri
             }
         }
 
-        super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+        return super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
     }
 
     public List<ItemStack> getDrops(BlockState pState, LootParams.Builder pParams) {
@@ -171,8 +171,9 @@ public class CourierPackage extends BaseEntityBlock implements ITileEntity<Couri
         FluidState fluidstate = context.getLevel().getFluidState(context.getClickedPos());
         State state = State.OPENED;
         ItemStack stack = context.getItemInHand();
-        CompoundTag tag = BlockItem.getBlockEntityData(stack);
-        if (tag != null && tag.contains("Items") && !tag.getList("Items", Tag.TAG_COMPOUND).isEmpty()) {
+
+        CompoundTag tag = stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY).copyTag();
+        if (tag.contains("Items") && !tag.getList("Items", Tag.TAG_COMPOUND).isEmpty()) {
             if (tag.contains("Sealed") && tag.getBoolean("Sealed"))
                 state = State.SEALED;
             else
@@ -187,9 +188,8 @@ public class CourierPackage extends BaseEntityBlock implements ITileEntity<Couri
         return RenderShape.MODEL;
     }
 
-
     @Override
-    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }
 
@@ -219,19 +219,6 @@ public class CourierPackage extends BaseEntityBlock implements ITileEntity<Couri
     @Override
     public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
         return !state.getValue(WATERLOGGED);
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
-
-//        if(Screen.hasShiftDown()) {
-//            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//            tooltip.add(Component.translatable("tooltip.hexerei.altar_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//        } else {
-//            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//
-//        }
-        super.appendHoverText(stack, world, tooltip, flagIn);
     }
 
     @Override

@@ -9,7 +9,7 @@ import net.minecraft.world.food.FoodProperties;
 
 public class BottleQuicksilverItem extends HexBottleItem {
 
-    public static FoodProperties FOOD = new FoodProperties.Builder().saturationMod(1).nutrition(1).alwaysEat().effect(new MobEffectInstance(MobEffects.HUNGER, 600, 0), 0.8F).effect(new MobEffectInstance(MobEffects.POISON, 300, 0), 0.8F).build();
+    public static FoodProperties FOOD = new FoodProperties.Builder().saturationModifier(1).nutrition(1).alwaysEdible().effect(() -> new MobEffectInstance(MobEffects.HUNGER, 600, 0), 0.8F).effect(() -> new MobEffectInstance(MobEffects.POISON, 300, 0), 0.8F).build();
 
     public BottleQuicksilverItem(Properties properties) {
         super(properties.food(FOOD));

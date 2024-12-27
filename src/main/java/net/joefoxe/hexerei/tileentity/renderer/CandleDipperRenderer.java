@@ -8,7 +8,6 @@ import net.joefoxe.hexerei.item.custom.CandleItem;
 import net.joefoxe.hexerei.tileentity.CandleDipperTile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -22,7 +21,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 public class CandleDipperRenderer implements BlockEntityRenderer<CandleDipperTile> {
 
@@ -33,6 +33,11 @@ public class CandleDipperRenderer implements BlockEntityRenderer<CandleDipperTil
         double deltaZ = entity.getZ() - pos.getZ();
 
         return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY) + (deltaZ * deltaZ));
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(CandleDipperTile blockEntity) {
+        return BlockEntityRenderer.super.getRenderBoundingBox(blockEntity).inflate(5);
     }
 
     @Override

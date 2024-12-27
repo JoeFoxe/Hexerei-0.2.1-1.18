@@ -14,8 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 
-import java.util.Random;
-
 public class BuddingSelenite extends AmethystBlock {
     public static final int GROWTH_CHANCE = 5;
     private static final Direction[] DIRECTIONS = Direction.values();
@@ -30,7 +28,7 @@ public class BuddingSelenite extends AmethystBlock {
 
     @Override
     public void randomTick(BlockState p_152728_, ServerLevel p_152729_, BlockPos p_152730_, RandomSource p_152731_) {
-        if (p_152731_.nextInt(5) == 0) {
+        if (p_152731_.nextInt(GROWTH_CHANCE) == 0) {
             Direction direction = DIRECTIONS[p_152731_.nextInt(DIRECTIONS.length)];
             BlockPos blockpos = p_152730_.relative(direction);
             BlockState blockstate = p_152729_.getBlockState(blockpos);

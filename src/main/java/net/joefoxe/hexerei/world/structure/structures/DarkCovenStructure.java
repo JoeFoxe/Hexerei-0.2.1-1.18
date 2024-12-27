@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.world.structure.ModStructures;
@@ -39,6 +40,7 @@ import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 import net.minecraft.world.level.levelgen.structure.pools.*;
+import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.minecraft.world.phys.AABB;
@@ -58,7 +60,7 @@ public class DarkCovenStructure extends Structure {
 
     // A custom codec that changes the size limit for our code_structure_sky_fan.json's config to not be capped at 7.
     // With this, we can have a structure with a size limit up to 30 if we want to have extremely long branches of pieces in the structure.
-    public static final Codec<DarkCovenStructure> CODEC = RecordCodecBuilder.<DarkCovenStructure>mapCodec(instance ->
+    public static final MapCodec<DarkCovenStructure> CODEC = RecordCodecBuilder.<DarkCovenStructure>mapCodec(instance ->
             instance.group(DarkCovenStructure.settingsCodec(instance),
                     StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(structure -> structure.startPool),
                     ResourceLocation.CODEC.optionalFieldOf("start_jigsaw_name").forGetter(structure -> structure.startJigsawName),
@@ -66,7 +68,7 @@ public class DarkCovenStructure extends Structure {
                     HeightProvider.CODEC.fieldOf("start_height").forGetter(structure -> structure.startHeight),
                     Heightmap.Types.CODEC.optionalFieldOf("project_start_to_heightmap").forGetter(structure -> structure.projectStartToHeightmap),
                     Codec.intRange(1, 128).fieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter)
-            ).apply(instance, DarkCovenStructure::new)).codec();
+            ).apply(instance, DarkCovenStructure::new));
 
     private final Holder<StructureTemplatePool> startPool;
     private final Optional<ResourceLocation> startJigsawName;
@@ -115,38 +117,39 @@ public class DarkCovenStructure extends Structure {
 
         try {
 
-            for (BlockPos blockPos : BlockPos.betweenClosed(pBoundingBox.minX(), pBoundingBox.minY(), pBoundingBox.minZ(), pBoundingBox.maxX(), pBoundingBox.maxY(), pBoundingBox.maxZ())) {
-                if (pPieces.isInsidePiece(blockPos) && pLevel.isAreaLoaded(blockPos, 1) && pLevel.getBlockState(blockPos).is(Blocks.YELLOW_STAINED_GLASS_PANE)) {
-                    if (pLevel instanceof ServerLevel serverLevel) {
-                        // Always replace the glass itself with witch hazel pillar
-                        serverLevel.setBlockAndUpdate(blockPos, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState());
-
-                        // Generate vertical pillar down
-                        BlockPos.MutableBlockPos mutable = blockPos.below().mutable();
-                        BlockState currBlock = pLevel.getBlockState(mutable);
-                        while (mutable.getY() > 0 && canBeReplaced(currBlock)) {
-                            serverLevel.setBlockAndUpdate(mutable, Blocks.DARK_OAK_LOG.defaultBlockState());
-                            mutable.move(Direction.DOWN);
-                            currBlock = serverLevel.getBlockState(mutable);
-                        }
-                    } else if (pLevel instanceof WorldGenRegion worldGenRegion) {
-
-                        // Always replace the glass itself with witch hazel pillar
-                        worldGenRegion.setBlock(blockPos, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState(), 3);
-
-                        // Generate vertical pillar down
-                        BlockPos.MutableBlockPos mutable = blockPos.below().mutable();
-                        BlockState currBlock = pLevel.getBlockState(mutable);
-                        while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
-                            worldGenRegion.setBlock(mutable, Blocks.DARK_OAK_LOG.defaultBlockState(), 3);
-                            mutable.move(Direction.DOWN);
-                            currBlock = worldGenRegion.getBlockState(mutable);
-                        }
-                    }
-
-
-                }
-            }
+            //TODO uncomment once connecting textures fixed
+//            for (BlockPos blockPos : BlockPos.betweenClosed(pBoundingBox.minX(), pBoundingBox.minY(), pBoundingBox.minZ(), pBoundingBox.maxX(), pBoundingBox.maxY(), pBoundingBox.maxZ())) {
+//                if (pPieces.isInsidePiece(blockPos) && pLevel.isAreaLoaded(blockPos, 1) && pLevel.getBlockState(blockPos).is(Blocks.YELLOW_STAINED_GLASS_PANE)) {
+//                    if (pLevel instanceof ServerLevel serverLevel) {
+//                        // Always replace the glass itself with witch hazel pillar
+//                        serverLevel.setBlockAndUpdate(blockPos, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState());
+//
+//                        // Generate vertical pillar down
+//                        BlockPos.MutableBlockPos mutable = blockPos.below().mutable();
+//                        BlockState currBlock = pLevel.getBlockState(mutable);
+//                        while (mutable.getY() > 0 && canBeReplaced(currBlock)) {
+//                            serverLevel.setBlockAndUpdate(mutable, Blocks.DARK_OAK_LOG.defaultBlockState());
+//                            mutable.move(Direction.DOWN);
+//                            currBlock = serverLevel.getBlockState(mutable);
+//                        }
+//                    } else if (pLevel instanceof WorldGenRegion worldGenRegion) {
+//
+//                        // Always replace the glass itself with witch hazel pillar
+//                        worldGenRegion.setBlock(blockPos, ModBlocks.POLISHED_WITCH_HAZEL_PILLAR.get().defaultBlockState(), 3);
+//
+//                        // Generate vertical pillar down
+//                        BlockPos.MutableBlockPos mutable = blockPos.below().mutable();
+//                        BlockState currBlock = pLevel.getBlockState(mutable);
+//                        while (mutable.getY() > 0 && (currBlock.canBeReplaced() || currBlock.isAir() || currBlock.is(BlockTags.LEAVES) || currBlock.is(Blocks.WATER) || currBlock.is(Blocks.LAVA))) {
+//                            worldGenRegion.setBlock(mutable, Blocks.DARK_OAK_LOG.defaultBlockState(), 3);
+//                            mutable.move(Direction.DOWN);
+//                            currBlock = worldGenRegion.getBlockState(mutable);
+//                        }
+//                    }
+//
+//
+//                }
+//            }
 
         } catch (Exception err) {
             err.printStackTrace();
@@ -184,7 +187,7 @@ public class DarkCovenStructure extends Structure {
 
             Vec3i vec3i = blockpos.subtract(pPos);
             BlockPos blockpos1 = pPos.subtract(vec3i);
-            PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(structuretemplatemanager, structurepoolelement, blockpos1, structurepoolelement.getGroundLevelDelta(), rotation, structurepoolelement.getBoundingBox(structuretemplatemanager, blockpos1, rotation));
+            PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(structuretemplatemanager, structurepoolelement, blockpos1, structurepoolelement.getGroundLevelDelta(), rotation, structurepoolelement.getBoundingBox(structuretemplatemanager, blockpos1, rotation), LiquidSettings.APPLY_WATERLOGGING);
             BoundingBox boundingbox = poolelementstructurepiece.getBoundingBox();
             int i = (boundingbox.maxX() + boundingbox.minX()) / 2;
             int j = (boundingbox.maxZ() + boundingbox.minZ()) / 2;
@@ -442,7 +445,7 @@ public class DarkCovenStructure extends Structure {
                                                     k2 = structurepoolelement1.getGroundLevelDelta();
                                                 }
 
-                                                PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(this.structureTemplateManager, structurepoolelement1, blockpos5, k2, rotation1, boundingbox3);
+                                                PoolElementStructurePiece poolelementstructurepiece = new PoolElementStructurePiece(this.structureTemplateManager, structurepoolelement1, blockpos5, k2, rotation1, boundingbox3, LiquidSettings.APPLY_WATERLOGGING);
                                                 int l2;
                                                 if (flag) {
                                                     l2 = i + j;
@@ -476,7 +479,7 @@ public class DarkCovenStructure extends Structure {
         }
 
         private static ResourceKey<StructureTemplatePool> readPoolName(StructureTemplate.StructureBlockInfo pStructureBlockInfo) {
-            return ResourceKey.create(Registries.TEMPLATE_POOL, new ResourceLocation(pStructureBlockInfo.nbt().getString("pool")));
+            return ResourceKey.create(Registries.TEMPLATE_POOL, ResourceLocation.parse(pStructureBlockInfo.nbt().getString("pool")));
         }
     }
     static final class PieceState {

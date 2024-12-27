@@ -2,22 +2,21 @@ package net.joefoxe.hexerei.data.recipes;
 
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.item.custom.CandleItem;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.Tags;
 
 
 public class CutCandleRecipe extends CustomRecipe {
-    public CutCandleRecipe(ResourceLocation pId, CraftingBookCategory cBc) {
-        super(pId, cBc);
+    public CutCandleRecipe(CraftingBookCategory cBc) {
+        super(cBc);
     }
 
     @Override
@@ -27,11 +26,11 @@ public class CutCandleRecipe extends CustomRecipe {
     /**
      * Used to check if a recipe matches current crafting inventory
      */
-    public boolean matches(CraftingContainer pInv, Level pLevel) {
+    public boolean matches(CraftingInput pInv, Level pLevel) {
         int i = 0;
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.getItem() instanceof SwordItem) {
@@ -50,17 +49,17 @@ public class CutCandleRecipe extends CustomRecipe {
             }
         }
 
-        return !itemstack.isEmpty() && itemstack.hasTag() && i == 1;
+        return !itemstack.isEmpty() && i == 1;
     }
 
     /**
      * Returns an Item that is the result of this recipe
      */
-    public ItemStack assemble(CraftingContainer pInv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput pInv, HolderLookup.Provider registryAccess) {
         int i = 0;
         ItemStack itemstack = ItemStack.EMPTY;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.getItem() instanceof SwordItem) {

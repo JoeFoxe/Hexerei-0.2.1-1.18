@@ -1,9 +1,7 @@
 package net.joefoxe.hexerei.data.books;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.math.Axis;
 import mezz.jei.api.runtime.IRecipesGui;
@@ -14,6 +12,8 @@ import net.joefoxe.hexerei.config.ModKeyBindings;
 import net.joefoxe.hexerei.integration.HexereiModNameTooltipCompat;
 import net.joefoxe.hexerei.integration.jei.HexereiJei;
 import net.joefoxe.hexerei.integration.jei.HexereiJeiCompat;
+import net.joefoxe.hexerei.item.ModDataComponents;
+import net.joefoxe.hexerei.item.data_components.BookData;
 import net.joefoxe.hexerei.screen.tooltip.HexereiBookTooltip;
 import net.joefoxe.hexerei.tileentity.BookOfShadowsAltarTile;
 import net.joefoxe.hexerei.util.ClientProxy;
@@ -39,6 +39,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
@@ -54,6 +57,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
@@ -69,27 +74,20 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderTooltipEvent;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModContainer;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.forgespi.language.IModInfo;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.tags.ITag;
-import net.minecraftforge.registries.tags.ITagManager;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -102,7 +100,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(value = Dist.CLIENT)
 public class PageDrawing {
     public float lineWidth;
     public float lineHeight;
@@ -131,9 +129,9 @@ public class PageDrawing {
 
     private static final NumberFormat nf = NumberFormat.getIntegerInstance();
 
-    public static final ResourceLocation SLOT_ATLAS = new ResourceLocation(Hexerei.MOD_ID, "book/slot");
-    public static final ResourceLocation SLOT = new ResourceLocation(Hexerei.MOD_ID, "textures/book/slot.png");
-    public static final ResourceLocation TITLE = new ResourceLocation(Hexerei.MOD_ID, "book/title");
+    public static final ResourceLocation SLOT_ATLAS = HexereiUtil.getResource("book/slot");
+    public static final ResourceLocation SLOT = HexereiUtil.getResource("textures/book/slot.png");
+    public static final ResourceLocation TITLE = HexereiUtil.getResource("book/title");
     public static final float CORNERS = (float) MixingCauldron.SHAPE.min(Direction.Axis.X) + 3 / 16f;
     public static final float MIN_Y = 4f / 16f;
     public static final float MAX_Y = 15f/ 16f;
@@ -184,59 +182,21 @@ public class PageDrawing {
 
     public static ItemStack getTagStack(TagKey<Item> key) {
 
-        ITagManager itemTags = ForgeRegistries.ITEMS.tags();
-        if (itemTags != null){
-            ITag<Item> itemITag = itemTags.getTag(key);
-            final float[] fl = new float[1];
-            DistExecutor.runForDist(() -> () -> {
-                fl[0] = Hexerei.getClientTicks();
-                return null;
-            }, () -> () -> {
-                fl[0] = 0;
-                return null;
-            });
-            Optional<Item> optional = itemITag.getRandomElement(RandomSource.create((long) (fl[0] * 1000f)));
-            return optional.orElse(Items.AIR).getDefaultInstance();
-        }
-        return ItemStack.EMPTY;
+        float fl = 0;
+        if (FMLEnvironment.dist.isClient())
+            fl = Hexerei.getClientTicks();
+        return BuiltInRegistries.ITEM.getRandomElementOf(key, RandomSource.create((long) (fl * 1000f))).orElse(Holder.direct(Items.AIR)).value().getDefaultInstance();
     }
 
     public static Block getTagBlock(TagKey<Block> key) {
-        ITagManager blockTags = ForgeRegistries.BLOCKS.tags();
-        if (blockTags != null){
-            ITag<Block> blockITag = blockTags.getTag(key);
-            final float[] fl = new float[1];
-            DistExecutor.runForDist(() -> () -> {
-                fl[0] = Hexerei.getClientTicksWithoutPartial();
-                return null;
-            }, () -> () -> {
-                fl[0] = 0;
-                return null;
-            });
-            Optional<Block> optional = blockITag.getRandomElement(RandomSource.create((long) fl[0]));
-            return optional.orElse(Blocks.AIR);
-        }
-        return Blocks.AIR;
-    }
-    public static Optional<Item> getTagStackStatic(TagKey<Item> key){
-        ITagManager itemTags = ForgeRegistries.ITEMS.tags();
-        if (itemTags != null){
-            ITag<Item> itemITag = itemTags.getTag(key);
-            final float[] fl = new float[1];
-            DistExecutor.runForDist(() -> () -> {
-                fl[0] = Hexerei.getClientTicks();
-                return null;
-            }, () -> () -> {
-                fl[0] = 0;
-                return null;
-            });
-            return itemITag.getRandomElement(RandomSource.create((long) (fl[0] * 1000f)));
-        }
-        return Optional.of(Items.AIR);
+
+        float fl = 0;
+        if (FMLEnvironment.dist.isClient())
+            fl = Hexerei.getClientTicks();
+        return BuiltInRegistries.BLOCK.getRandomElementOf(key, RandomSource.create((long) (fl * 1000f))).orElse(Holder.direct(Blocks.AIR)).value();
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderItem(BookOfShadowsAltarTile tileEntityIn, @NotNull BookItemsAndFluids itemStackElement, PoseStack matrixStackIn, MultiBufferSource buffer, float xIn, float yIn, float zLevel, int combinedLight, int combinedOverlay, PageOn pageOn, boolean isItem) {
 
         ItemStack itemStack = itemStackElement.item;
@@ -343,7 +303,6 @@ public class PageDrawing {
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderBlock(BookOfShadowsAltarTile tileEntityIn, @NotNull BookBlocks blockElement, PoseStack matrixStackIn, MultiBufferSource buffer, float xIn, float yIn, float zLevel, int combinedLight, int combinedOverlay, PageOn pageOn) {
 
         BlockState blockState = blockElement.blockState;
@@ -401,7 +360,7 @@ public class PageDrawing {
             if (blockState.getBlock() instanceof LiquidBlock liquidBlock) {
 //                blockState = liquidBlock.getFluidState(liquidBlock.defaultBlockState()).createLegacyBlock().setValue(LiquidBlock.LEVEL, 7);
                 matrixStackIn.last().normal().set(matrixStackIn.last().normal().rotate(BLOCK_LIGHT_ROTATION_3D));
-                renderFluidBlockGUI(matrixStackIn, buffer, new FluidStack(liquidBlock.getFluid(), 2000), 1, combinedLight, combinedOverlay);
+                renderFluidBlockGUI(matrixStackIn, buffer, new FluidStack(liquidBlock.fluid, 2000), 1, combinedLight, combinedOverlay);
                 if (buffer instanceof MultiBufferSource.BufferSource bufferSource)
                     bufferSource.endBatch();
             }else {
@@ -437,28 +396,27 @@ public class PageDrawing {
         float minV = sprite.getV(CORNERS * 16);
         float maxV = sprite.getV((1 - CORNERS) * 16);
 
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(minU, minV).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(minU, maxV).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r, g, b, alpha).uv(maxU, maxV).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, CORNERS / 5f).color(r, g, b, alpha).uv(maxU, minV).overlayCoords(overlay).uv2(light).normal(0, 1, 0).endVertex();
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, CORNERS / 5f).setColor(r, g, b, alpha).setUv(minU, minV).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r, g, b, alpha).setUv(minU, maxV).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r, g, b, alpha).setUv(maxU, maxV).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, height, CORNERS / 5f).setColor(r, g, b, alpha).setUv(maxU, minV).setOverlay(overlay).setLight(light).setNormal(0, 1, 0);
 
 
         float shading = 0.75f;
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).overlayCoords(overlay).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).overlayCoords(overlay).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).overlayCoords(overlay).uv2(light).normal(-1, 0, 0).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).overlayCoords(overlay).uv2(light).normal(-1, 0, 0).endVertex();
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, minV).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, maxV).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, 0, CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, maxV).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, minV).setOverlay(overlay).setLight(light).setNormal(-1, 0, 0);
 
 
         shading = 0.45f;
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, minV).overlayCoords(overlay).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(minU, maxV).overlayCoords(overlay).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, maxV).overlayCoords(overlay).uv2(light).normal(0, 0, -1).endVertex();
-        vertexBuilder.vertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).color(r * shading, g * shading, b * shading, alpha).uv(maxU, minV).overlayCoords(overlay).uv2(light).normal(0, 0, -1).endVertex();
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, minV).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, height, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(minU, maxV).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        vertexBuilder.addVertex(matrix, CORNERS / 5f, 0, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, maxV).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
+        vertexBuilder.addVertex(matrix, 1 - CORNERS / 5f, 0, 1 - CORNERS / 5f).setColor(r * shading, g * shading, b * shading, alpha).setUv(maxU, minV).setOverlay(overlay).setLight(light).setNormal(0, 0, -1);
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderGuiItemDecorations(MultiBufferSource bufferSource, Font font, ItemStack itemStack, PoseStack matrixStackIn, float xIn, float yIn, int overlay, int light) {
 
         if (itemStack.isBarVisible()) {
@@ -474,14 +432,13 @@ public class PageDrawing {
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderGuiItemCount(MultiBufferSource bufferSource, Font font, ItemStack itemStack, PoseStack matrixStackIn, float xIn, float yIn, int overlay, int light) {
 
         if (itemStack.getCount() > 1) {
             matrixStackIn.pushPose();
             matrixStackIn.translate(0, 0, -7f);
             String s = String.valueOf(itemStack.getCount());
-            MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+            MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
             font.drawInBatch(s, (xIn + 19 - 2 - font.width(s)) + 1f, (yIn + 6 + 3) + 1f, HexereiUtil.getColorValueAlpha(0.245f, 0.245f, 0.245f, 1), false, matrixStackIn.last().pose(), bufferSource, Font.DisplayMode.NORMAL, overlay, light);
 //              drawInBatch(pText, float pX,                        float pY,           int pColor,                                                  boolean pDropShadow,   Matrix4f pMatrix,   MultiBufferSource pBuffer, Font.DisplayMode pDisplayMode, int pBackgroundColor, int pPackedLightCoords) {
             matrixStackIn.translate(0, 0, -6f);
@@ -492,7 +449,6 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void renderGuiItem(MultiBufferSource bufferSource, Font font, ItemStack itemStack, PoseStack matrixStackIn, float xIn, float yIn, int overlay, int light) {
 
 
@@ -526,12 +482,11 @@ public class PageDrawing {
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     private static void fillRect(PoseStack poseStack, MultiBufferSource p_115153_, float xIn, float yIn, float zIn, float widthIn, float heightIn, int p_115158_, int p_115159_, int p_115160_, int p_115161_, int overlay, int light) {
 
         poseStack.pushPose();
         poseStack.translate(0, 0, -4.15f);
-        Matrix3f normal = poseStack.last().normal();
+        PoseStack.Pose normal = poseStack.last();
         Matrix4f matrix4f = poseStack.last().pose();
 
 
@@ -547,16 +502,15 @@ public class PageDrawing {
         float v2 = (v + (float) height) / (float) imageHeight;
 
 
-        VertexConsumer buffer = p_115153_.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/blank.png")));
-        buffer.vertex(matrix4f, (xIn + 0), (yIn + 0), zIn).color(p_115158_, p_115159_, p_115160_, p_115161_).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix4f, (xIn + 0), (yIn + heightIn), zIn).color(p_115158_, p_115159_, p_115160_, p_115161_).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix4f, (xIn + widthIn), (yIn + heightIn), zIn).color(p_115158_, p_115159_, p_115160_, p_115161_).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix4f, (xIn + widthIn), (yIn + 0), zIn).color(p_115158_, p_115159_, p_115160_, p_115161_).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+        VertexConsumer buffer = p_115153_.getBuffer(RenderType.entityCutout(HexereiUtil.getResource("hexerei:textures/book/blank.png")));
+        buffer.addVertex(matrix4f, (xIn + 0), (yIn + 0), zIn).setColor(p_115158_, p_115159_, p_115160_, p_115161_).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix4f, (xIn + 0), (yIn + heightIn), zIn).setColor(p_115158_, p_115159_, p_115160_, p_115161_).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix4f, (xIn + widthIn), (yIn + heightIn), zIn).setColor(p_115158_, p_115159_, p_115160_, p_115161_).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix4f, (xIn + widthIn), (yIn + 0), zIn).setColor(p_115158_, p_115159_, p_115160_, p_115161_).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
         poseStack.popPose();
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     public static void translateToLeftPageUnder(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
@@ -597,7 +551,6 @@ public class PageDrawing {
         matrixStack.translate(0, -1 / 2f + 1 / 8f - 1 / 128f, 0);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void translateToLeftPage(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
 
@@ -640,7 +593,6 @@ public class PageDrawing {
 //        matrixStack.translate(0,1/64f,0);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void translateToRightPageUnder(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
@@ -682,7 +634,6 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void translateToRightPage(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
@@ -724,7 +675,6 @@ public class PageDrawing {
         matrixStack.translate(0, -1 / 2f + 1 / 8f - 1 / 128f, 0);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void translateToLeftPagePrevious(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
@@ -786,7 +736,6 @@ public class PageDrawing {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static void translateToRightPagePrevious(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
@@ -849,7 +798,6 @@ public class PageDrawing {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void translateToMiddleButton(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, boolean isItem, ItemDisplayContext transformType) {
 
         float yPos = 0;
@@ -894,12 +842,10 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawPage(BookPage page, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem, ItemDisplayContext transformType) throws CommandSyntaxException {
         drawPage(page, tileEntityIn, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn, pageOn, isItem, transformType, -1);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawPage(BookPage page, BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem, ItemDisplayContext transformType, int pageNum) throws CommandSyntaxException {
 
         if (page != null) {
@@ -907,7 +853,7 @@ public class PageDrawing {
 
             Player playerIn = Hexerei.proxy.getPlayer();
 
-            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+            double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
             Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
             Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
 
@@ -1446,7 +1392,7 @@ public class PageDrawing {
                             livingEntity.load(tag);
 
                             if (livingEntity instanceof TamableAnimal)
-                                ((TamableAnimal) livingEntity).setTame(true);
+                                ((TamableAnimal) livingEntity).setTame(true, false);
 
                             bookEntity.entityTagsListOnSet = bookEntity.entityTagsListOn;
 
@@ -1511,7 +1457,7 @@ public class PageDrawing {
                                 livingEntity.readAdditionalSaveData(tag);
 
                                 if (livingEntity instanceof TamableAnimal)
-                                    ((TamableAnimal) livingEntity).setTame(true);
+                                    ((TamableAnimal) livingEntity).setTame(true, false);
 
                             }
 
@@ -1553,7 +1499,6 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawLivingEntity(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, float scale, float xIn, float yIn, float rot, int p_98853_, float p_98854_, float p_98855_, LivingEntity livingEntity, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem) {
         matrixStackIn.pushPose();
 
@@ -1614,7 +1559,6 @@ public class PageDrawing {
         matrixStackIn.popPose();
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawEntity(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStackIn, MultiBufferSource bufferIn, float scale, float xIn, float yIn, float rot, int p_98853_, float p_98854_, float p_98855_, Entity entity, int combinedLightIn, int combinedOverlayIn, PageOn pageOn, boolean isItem) {
         matrixStackIn.pushPose();
 
@@ -1656,12 +1600,10 @@ public class PageDrawing {
         matrixStackIn.popPose();
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawPages(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, float partialTicks) throws CommandSyntaxException {
         drawPages(tileEntityIn, matrixStack, bufferSource, light, overlay, false, ItemDisplayContext.NONE, partialTicks);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawTooltips(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, float partialTicks) throws CommandSyntaxException {
         this.drawTooltip = tileEntityIn.turnPage == 0;
 
@@ -1691,7 +1633,6 @@ public class PageDrawing {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawPages(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean isItem, ItemDisplayContext transformType, float partialTicks) throws CommandSyntaxException {
         this.tick++;
 
@@ -1708,7 +1649,7 @@ public class PageDrawing {
 
         ItemStack stack = tileEntityIn.itemHandler.getStackInSlot(0);
 
-        CompoundTag tag = stack.getOrCreateTag();
+        BookData bookData = stack.get(ModDataComponents.BOOK);
 
         tileEntityIn.pageOneRotationRender = Mth.lerp(partialTicks, tileEntityIn.pageOneRotationLast, tileEntityIn.pageOneRotation);
         tileEntityIn.pageTwoRotationRender = Mth.lerp(partialTicks, tileEntityIn.pageTwoRotationLast, tileEntityIn.pageTwoRotation);
@@ -1727,9 +1668,9 @@ public class PageDrawing {
         int location2_next_p = 0;
         int chapter = 0;
         int page = 0;
-        if (tag.contains("chapter")) {
-            chapter = tag.getInt("chapter");
-            page = tag.getInt("page");
+        if (bookData != null) {
+            chapter = bookData.getChapter();
+            page = bookData.getPage();
             if (page % 2 == 1)
                 page--;
 
@@ -1796,22 +1737,22 @@ public class PageDrawing {
 //
         if (transformType != ItemDisplayContext.GUI) {
 
-            BookPage page1 = BookManager.getBookPages(new ResourceLocation(location1));
-            BookPage page2 = BookManager.getBookPages(new ResourceLocation(location2));
+            BookPage page1 = BookManager.getBookPages(ResourceLocation.parse(location1));
+            BookPage page2 = BookManager.getBookPages(ResourceLocation.parse(location2));
             drawPage(page1, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.LEFT_PAGE, isItem, transformType, location1_p);
             drawPage(page2, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.RIGHT_PAGE, isItem, transformType, location2_p);
-            BookPage page1_under = BookManager.getBookPages(new ResourceLocation(location2_back));
-            BookPage page1_prev = BookManager.getBookPages(new ResourceLocation(location1_back));
-            BookPage page2_under = BookManager.getBookPages(new ResourceLocation(location1_next));
-            BookPage page2_prev = BookManager.getBookPages(new ResourceLocation(location2_next));
+            BookPage page1_under = BookManager.getBookPages(ResourceLocation.parse(location2_back));
+            BookPage page1_prev = BookManager.getBookPages(ResourceLocation.parse(location1_back));
+            BookPage page2_under = BookManager.getBookPages(ResourceLocation.parse(location1_next));
+            BookPage page2_prev = BookManager.getBookPages(ResourceLocation.parse(location2_next));
             drawPage(page1_under, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.LEFT_PAGE_UNDER, isItem, transformType, location2_back_p);
             drawPage(page2_under, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.RIGHT_PAGE_UNDER, isItem, transformType, location1_next_p);
             drawPage(page1_prev, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.LEFT_PAGE_PREV, isItem, transformType, location1_back_p);
             drawPage(page2_prev, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.RIGHT_PAGE_PREV, isItem, transformType, location2_next_p);
         } else {
 
-            BookPage page1 = BookManager.getBookPages(new ResourceLocation("hexerei:book/book_pages/gui_page_1"));
-            BookPage page2 = BookManager.getBookPages(new ResourceLocation("hexerei:book/book_pages/gui_page_1"));
+            BookPage page1 = BookManager.getBookPages(ResourceLocation.parse("hexerei:book/book_pages/gui_page_1"));
+            BookPage page2 = BookManager.getBookPages(ResourceLocation.parse("hexerei:book/book_pages/gui_page_1"));
             drawPage(page1, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.LEFT_PAGE, isItem, transformType, location1_p);
             drawPage(page2, tileEntityIn, matrixStack, bufferSource, light, overlay, PageOn.RIGHT_PAGE, isItem, transformType, location2_p);
         }
@@ -1832,12 +1773,10 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawBaseButtons(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean drawNext, boolean drawBack, int chapter, int page, boolean isItem) {
         drawBaseButtons(tileEntityIn, matrixStack, bufferSource, light, overlay, drawNext, drawBack, chapter, page, isItem, ItemDisplayContext.NONE, false);
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawBaseButtons(BookOfShadowsAltarTile tileEntityIn, PoseStack matrixStack, MultiBufferSource bufferSource, int light, int overlay, boolean drawNext, boolean drawBack, int chapter, int page, boolean isItem, ItemDisplayContext transformType, boolean fullyExtended) {
 
         Player playerIn = null;
@@ -1847,11 +1786,11 @@ public class PageDrawing {
 
             boolean drawBookmarkButton = chapter != 0;
 
-            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+            double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
             Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
             Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
-            CompoundTag tag = tileEntityIn.itemHandler.getStackInSlot(0).getOrCreateTag();
-
+            ItemStack stack = tileEntityIn.itemHandler.getStackInSlot(0);
+            BookData bookData = stack.get(ModDataComponents.BOOK);
 
             if (drawBookmarkButton && !isItem) {
                 Vector3f vector3f = new Vector3f(0, 0, 0);
@@ -1889,23 +1828,19 @@ public class PageDrawing {
                 }
 
 
-                if (tag.contains("bookmarks") && tag.getBoolean("opened")) {
+                if (bookData != null) {
 
-                    int bookmark_color = 0;
+                    DyeColor bookmark_color = DyeColor.WHITE;
                     int bookmark_chapter = 0;
                     int bookmark_page = 0;
-                    String bookmark_id = null;
+                    String bookmark_id = "";
                     boolean flag2 = false;
-                    CompoundTag bookmarks = tag.getCompound("bookmarks");
-                    for (int i = 0; i < 20; i++) {
-                        if (bookmarks.contains("slot_" + i)) {
-                            CompoundTag slot = bookmarks.getCompound("slot_" + i);
-                            bookmark_color = slot.getInt("color");
-                            if (slot.contains("id"))
-                                bookmark_id = slot.getString("id");
 
+                    for (BookData.Bookmarks.Slot slot : bookData.getBookmarks().getSlots()) {
                             boolean flag3 = false;
-                            if (bookmark_id != null) {
+                            if (!slot.getId().isEmpty()) {
+                                bookmark_color = slot.getColor();
+                                bookmark_id = slot.getId();
                                 for (BookChapter chapterEntry : BookManager.getBookEntries().chapterList) {
                                     for (BookPageEntry pageEntry : chapterEntry.pages) {
                                         if (pageEntry.location.equals(bookmark_id)) {
@@ -1924,7 +1859,6 @@ public class PageDrawing {
                                 }
                             }
 
-                        }
                     }
                     // draw bookmark button
                     if (flag2) {
@@ -1932,7 +1866,7 @@ public class PageDrawing {
 
                         if (flag) {
                             List<Component> list = new ArrayList<>();
-                            DyeColor col = DyeColor.byId(bookmark_color);
+                            DyeColor col = bookmark_color;
 
                             String output = col.getName().substring(0, 1).toUpperCase() + col.getName().substring(1);
                             output = output.replaceAll("_", " ");
@@ -1948,7 +1882,7 @@ public class PageDrawing {
                         BookImage bookImage_overlay = new BookImage(-0.5f, -1f, 0, 0, 0, 32, 32, 32, 32, tileEntityIn.buttonScaleRender / 2 * 1.15f, "hexerei:textures/book/bookmark_button_overlay.png", effects);
 
                         drawImage(bookImage, tileEntityIn, matrixStack, bufferSource, 0, light, overlay, PageOn.LEFT_PAGE, isItem);
-                        drawImage(bookImage_overlay, tileEntityIn, matrixStack, bufferSource, 0, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
+                        drawImage(bookImage_overlay, tileEntityIn, matrixStack, bufferSource, 0, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
 
                     } else {
 
@@ -1971,23 +1905,22 @@ public class PageDrawing {
 
                 }
             }
-            if (tag.contains("bookmarks")) {
+            if (bookData != null) {
 
-                int bookmark_color = 0;
+                DyeColor bookmark_color = DyeColor.WHITE;
                 int bookmark_chapter = 0;
                 int bookmark_page = 0;
                 ResourceLocation bookmark_id;
-                CompoundTag bookmarks = tag.getCompound("bookmarks");
-                for (int i = 0; i < 20; i++) {
+                for (BookData.Bookmarks.Slot slot : bookData.getBookmarks().getSlots()) {
                     boolean flag2 = false;
-                    if (bookmarks.contains("slot_" + i)) {
+                    if (!slot.getId().isEmpty()) {
 
-                        CompoundTag slot = bookmarks.getCompound("slot_" + i);
-                        bookmark_color = slot.getInt("color");
-                        bookmark_chapter = slot.getInt("chapter");
-                        bookmark_page = slot.getInt("page");
-                        if (slot.contains("id"))
-                            bookmark_id = new ResourceLocation(slot.getString("id"));
+
+                        bookmark_color = slot.getColor();
+//                        bookmark_chapter = slot.getInt("chapter");
+//                        bookmark_page = slot.getInt("page");
+                        if (!slot.getId().isEmpty())
+                            bookmark_id = ResourceLocation.parse(slot.getId());
                         else
                             bookmark_id = null;
 
@@ -1995,7 +1928,7 @@ public class PageDrawing {
                         if (bookmark_id != null) {
                             for (BookChapter chapterEntry : BookManager.getBookEntries().chapterList) {
                                 for (BookPageEntry pageEntry : chapterEntry.pages) {
-                                    if (new ResourceLocation(pageEntry.location).equals(bookmark_id)) {
+                                    if (ResourceLocation.parse(pageEntry.location).equals(bookmark_id)) {
                                         bookmark_chapter = pageEntry.chapterNum;
                                         bookmark_page = pageEntry.chapterPageNum;
                                         flag3 = true;
@@ -2008,10 +1941,10 @@ public class PageDrawing {
 
                         ArrayList<BookImageEffect> effectsBookmark = new ArrayList<>();
 
-                        if (i < 5) {
+                        if (slot.getIndex() < 5) {
 
                             float xIn = -0.4f - tileEntityIn.buttonScaleRender - 0.15f;
-                            float yIn = i * 1.5f;
+                            float yIn = slot.getIndex() * 1.5f;
                             if (fullyExtended) {
                                 xIn = -1.55f + 0.5f;
                                 yIn += 0.25f;
@@ -2033,18 +1966,18 @@ public class PageDrawing {
 
                             Vec3 intersectionVec = intersectPoint(xIn, yIn, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, tileEntityIn, PageOn.LEFT_PAGE);
                             if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
-                                tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 1, 0.1f);
+                                tileEntityIn.bookmarkHoverAmount[slot.getIndex()] = moveTo(tileEntityIn.bookmarkHoverAmount[slot.getIndex()], 1, 0.1f);
                                 flag2 = true;
 
                             }
 
-                            float bookX = xIn + 0.4f - tileEntityIn.bookmarkHoverAmount[i] / 3 * tileEntityIn.buttonScaleRender;
+                            float bookX = xIn + 0.4f - tileEntityIn.bookmarkHoverAmount[slot.getIndex()] / 3 * tileEntityIn.buttonScaleRender;
                             if (fullyExtended)
                                 bookX = xIn + 0.4f - 0.33f;
 
                             if (flag2) {
                                 List<Component> list = new ArrayList<>();
-                                DyeColor col = DyeColor.byId(bookmark_color);
+                                DyeColor col = bookmark_color;
 
                                 BookEntries bookEntries = BookManager.getBookEntries();
 
@@ -2065,14 +1998,14 @@ public class PageDrawing {
                             BookImage bookImageUnderlay = new BookImage(bookX, yIn, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_underlay.png", effectsBookmark);
                             BookImage bookImageOverlay = new BookImage(bookX, yIn, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_overlay.png", effectsBookmark);
 
-                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, 90, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
-                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, 90, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
+                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, 90, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
+                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, 90, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
                         }
-                        if (i >= 5 && i < 10) {
+                        if (slot.getIndex() >= 5 && slot.getIndex() < 10) {
 
 
                             float yIn = -0.95f - tileEntityIn.buttonScaleRender - 0.25f;
-                            float xIn = -5.5f + i * 1.15f;
+                            float xIn = -5.5f + slot.getIndex() * 1.15f;
                             if (fullyExtended) {
                                 yIn = -2.15f + 0.65f;
                                 xIn += 0.25f;
@@ -2094,19 +2027,19 @@ public class PageDrawing {
 
                             Vec3 intersectionVec = intersectPoint(xIn, yIn, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, tileEntityIn, PageOn.LEFT_PAGE);
                             if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
-                                tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 1, 0.1f);
+                                tileEntityIn.bookmarkHoverAmount[slot.getIndex()] = moveTo(tileEntityIn.bookmarkHoverAmount[slot.getIndex()], 1, 0.1f);
                                 flag2 = true;
 
                             }
 
 
-                            float bookY = yIn + 0.5f - tileEntityIn.bookmarkHoverAmount[i] / 3 * tileEntityIn.buttonScaleRender;
+                            float bookY = yIn + 0.5f - tileEntityIn.bookmarkHoverAmount[slot.getIndex()] / 3 * tileEntityIn.buttonScaleRender;
                             if (fullyExtended)
                                 bookY = yIn + 0.5f - 0.33f;
 
                             if (flag2) {
                                 List<Component> list = new ArrayList<>();
-                                DyeColor col = DyeColor.byId(bookmark_color);
+                                DyeColor col = bookmark_color;
 
                                 BookEntries bookEntries = BookManager.getBookEntries();
 
@@ -2126,13 +2059,13 @@ public class PageDrawing {
                             BookImage bookImageUnderlay = new BookImage(xIn, bookY, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_underlay.png", effectsBookmark);
                             BookImage bookImageOverlay = new BookImage(xIn, bookY, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_overlay.png", effectsBookmark);
 
-                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
-                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
+                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
+                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.LEFT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
                         }
-                        if (i >= 10 && i < 15) {
+                        if (slot.getIndex() >= 10 && slot.getIndex() < 15) {
 
                             float yIn = -0.95f - tileEntityIn.buttonScaleRender - 0.25f;
-                            float xIn = -11.25f + i * 1.15f;
+                            float xIn = -11.25f + slot.getIndex() * 1.15f;
                             if (fullyExtended) {
                                 yIn = -2.15f + 0.65f;
                                 xIn += 0.25f;
@@ -2154,7 +2087,7 @@ public class PageDrawing {
 
                             Vec3 intersectionVec = intersectPoint(xIn, yIn, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalRight, tileEntityIn, PageOn.RIGHT_PAGE);
                             if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
-                                tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 1, 0.1f);
+                                tileEntityIn.bookmarkHoverAmount[slot.getIndex()] = moveTo(tileEntityIn.bookmarkHoverAmount[slot.getIndex()], 1, 0.1f);
                                 flag2 = true;
 
                             }
@@ -2162,7 +2095,7 @@ public class PageDrawing {
 
                             if (flag2) {
                                 List<Component> list = new ArrayList<>();
-                                DyeColor col = DyeColor.byId(bookmark_color);
+                                DyeColor col = bookmark_color;
 
                                 BookEntries bookEntries = BookManager.getBookEntries();
 
@@ -2180,20 +2113,20 @@ public class PageDrawing {
                             }
 
 
-                            float bookY = yIn + 0.5f - tileEntityIn.bookmarkHoverAmount[i] / 3 * tileEntityIn.buttonScaleRender;
+                            float bookY = yIn + 0.5f - tileEntityIn.bookmarkHoverAmount[slot.getIndex()] / 3 * tileEntityIn.buttonScaleRender;
                             if (fullyExtended)
                                 bookY = yIn + 0.5f - 0.33f;
 
                             BookImage bookImageUnderlay = new BookImage(xIn, bookY, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_underlay.png", effectsBookmark);
                             BookImage bookImageOverlay = new BookImage(xIn, bookY, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_overlay.png", effectsBookmark);
 
-                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
-                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
+                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
+                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, 0, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
                         }
-                        if (i >= 15) {
+                        if (slot.getIndex() >= 15) {
 
                             float xIn = 5.5f + tileEntityIn.buttonScaleRender;
-                            float yIn = (i - 15) * 1.5f;
+                            float yIn = (slot.getIndex() - 15) * 1.5f;
                             if (fullyExtended) {
                                 xIn = 6.65f;
                                 yIn -= 0.25f;
@@ -2217,18 +2150,18 @@ public class PageDrawing {
 
                             Vec3 intersectionVec = intersectPoint(xIn, yIn, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalRight, tileEntityIn, PageOn.RIGHT_PAGE);
                             if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
-                                tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 1, 0.1f);
+                                tileEntityIn.bookmarkHoverAmount[slot.getIndex()] = moveTo(tileEntityIn.bookmarkHoverAmount[slot.getIndex()], 1, 0.1f);
                                 flag2 = true;
 
                             }
 
-                            float bookX = xIn - 0.4f + tileEntityIn.bookmarkHoverAmount[i] / 3 * tileEntityIn.buttonScaleRender;
+                            float bookX = xIn - 0.4f + tileEntityIn.bookmarkHoverAmount[slot.getIndex()] / 3 * tileEntityIn.buttonScaleRender;
                             if (fullyExtended)
                                 bookX = xIn - 0.4f - 0.33f;
 
                             if (flag2) {
                                 List<Component> list = new ArrayList<>();
-                                DyeColor col = DyeColor.byId(bookmark_color);
+                                DyeColor col = bookmark_color;
 
                                 BookEntries bookEntries = BookManager.getBookEntries();
 
@@ -2249,13 +2182,13 @@ public class PageDrawing {
                             BookImage bookImageUnderlay = new BookImage(bookX, yIn, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_underlay.png", effectsBookmark);
                             BookImage bookImageOverlay = new BookImage(bookX, yIn, 0, 0, 0, 64, 48, 64, 48, 0.5f, "hexerei:textures/book/bookmark_overlay.png", effectsBookmark);
 
-                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, -90, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
-                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, -90, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(DyeColor.byId(bookmark_color)), isItem, transformType);
+                            drawBookmark(bookImageUnderlay, tileEntityIn, matrixStack, bufferSource, -10, -90, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
+                            drawBookmark(bookImageOverlay, tileEntityIn, matrixStack, bufferSource, -10, -90, light, overlay, PageOn.RIGHT_PAGE, HexereiUtil.getColorValue(bookmark_color), isItem, transformType);
                         }
 
 
                         if (chapter == bookmark_chapter && (page == bookmark_page || page + 1 == bookmark_page)) {
-                            tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 1, 0.1f);
+                            tileEntityIn.bookmarkHoverAmount[slot.getIndex()] = moveTo(tileEntityIn.bookmarkHoverAmount[slot.getIndex()], 1, 0.1f);
                         }
 
 
@@ -2263,8 +2196,8 @@ public class PageDrawing {
 
                     if (chapter == bookmark_chapter && (page == bookmark_page || page + 1 == bookmark_page)) {
 //                        tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 1, 0.1f);
-                    } else if (tileEntityIn.bookmarkHoverAmount[i] > 0 && !flag2)
-                        tileEntityIn.bookmarkHoverAmount[i] = moveTo(tileEntityIn.bookmarkHoverAmount[i], 0, 0.05f);
+                    } else if (tileEntityIn.bookmarkHoverAmount[slot.getIndex()] > 0 && !flag2)
+                        tileEntityIn.bookmarkHoverAmount[slot.getIndex()] = moveTo(tileEntityIn.bookmarkHoverAmount[slot.getIndex()], 0, 0.05f);
                 }
 
 
@@ -2688,7 +2621,6 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void drawBlock(BookOfShadowsAltarTile tileEntityIn, BookBlocks bookItemStackInSlot, PoseStack matrixStack, MultiBufferSource bufferSource, float xIn, float yIn, float zLevel, int light, int overlay, PageOn pageOn) {
         if (bookItemStackInSlot.type.equals("block") || bookItemStackInSlot.type.equals("tag")) {
             if (bookItemStackInSlot.show_slot)
@@ -2698,7 +2630,6 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public AABB getpositionAABBNext(BookOfShadowsAltarTile altarTile) {
 
         BlockPos blockPos = altarTile.getBlockPos();
@@ -2715,7 +2646,6 @@ public class PageDrawing {
         return new AABB(vec.add(-0.03, -0.03, -0.03), vec.add(0.03, 0.03, 0.03));
     }
 
-    @OnlyIn(Dist.CLIENT)
     public AABB getpositionAABBBack(BookOfShadowsAltarTile altarTile) {
         Vector3f vector3f = new Vector3f(0, 0, 0);
         Vector3f vector3f_1 = new Vector3f(0.35f - -0.5f * 0.06f, 0.5f - 7.25f * 0.061f, -0.03f);
@@ -2737,7 +2667,6 @@ public class PageDrawing {
         return new AABB(vec.add(-0.03, -0.03, -0.03), vec.add(0.03, 0.03, 0.03));
     }
 
-    @OnlyIn(Dist.CLIENT)
     public AABB getpositionAABBLeft(BookOfShadowsAltarTile altarTile, float xIn, float yIn) {
         Vector3f vector3f = new Vector3f(0, 0, 0);
         Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
@@ -2759,7 +2688,6 @@ public class PageDrawing {
         return new AABB(vec.add(-0.03, -0.03, -0.03), vec.add(0.03, 0.03, 0.03));
     }
 
-    @OnlyIn(Dist.CLIENT)
     public AABB getpositionAABBClose(BookOfShadowsAltarTile altarTile) {
         Vector3f vector3f = new Vector3f(0, 0, 0);
         //back position
@@ -2779,7 +2707,6 @@ public class PageDrawing {
         return new AABB(vec.add(-0.03, -0.03, -0.03), vec.add(0.03, 0.03, 0.03));
     }
 
-    @OnlyIn(Dist.CLIENT)
     public AABB getpositionAABBHome(BookOfShadowsAltarTile altarTile) {
         Vector3f vector3f = new Vector3f(0, 0, 0);
         //back position
@@ -2800,7 +2727,6 @@ public class PageDrawing {
     }
 
 
-    @OnlyIn(Dist.CLIENT)
     protected static BlockHitResult getPlayerPOVHitResult(int i, Level level, Player player, ClipContext.Fluid p_41438_) {
         float f = player.getXRot();
         float f1 = player.getYRot();
@@ -2811,7 +2737,7 @@ public class PageDrawing {
         float f5 = Mth.sin(-f * 0.017453292F);
         float f6 = f3 * f4;
         float f7 = f2 * f4;
-        double d0 = player.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+        double d0 = player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
 
         if (i == 1) {
             vec3 = vec3.subtract(0, 1, 0);
@@ -2830,13 +2756,12 @@ public class PageDrawing {
         }
 
         Vec3 vec31 = vec3.add((double) f6 * d0, (double) f5 * d0, (double) f7 * d0);
-        return level.clip(new ClipContext(vec3, vec31, ClipContext.Block.OUTLINE, p_41438_, null));
+        return level.clip(new ClipContext(vec3, vec31, ClipContext.Block.OUTLINE, p_41438_, (Entity)null));
     }
 
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public void onClientTick(TickEvent.ClientTickEvent event) {
+    public void onClientTick(ClientTickEvent event) {
         this.drawTooltipScaleOld = this.drawTooltipScale;
         if (this.drawTooltipStack && this.drawTooltip) {
             this.drawTooltipStackFlag = true;
@@ -2857,8 +2782,8 @@ public class PageDrawing {
 
 
     @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public void onClickEvent(InputEvent.MouseButton event) {
+//    @OnlyIn(Dist.CLIENT)
+    public void onClickEvent(InputEvent.MouseButton.Pre event) {
 
         Player playerIn = Hexerei.proxy.getPlayer();
         if (event.getButton() == 1 && playerIn != null) {
@@ -2868,7 +2793,7 @@ public class PageDrawing {
             if (Minecraft.getInstance().screen != null)
                 return;
 
-            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+            double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
 
             List<BlockPos> altars = getAltars(playerIn);
 
@@ -2883,13 +2808,12 @@ public class PageDrawing {
                             if (++altarTile.slotClickedTick > 0) {
                                 playerIn.swinging = false;
                                 event.setCanceled(true);
-                                event.setResult(Event.Result.DENY);
                             }
                         }
 
-                        CompoundTag tag = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
+                        BookData bookData = altarTile.itemHandler.getStackInSlot(0).get(ModDataComponents.BOOK);
 
-                        if (tag.contains("opened") && tag.getBoolean("opened")) {
+                        if (bookData != null && bookData.isOpened()) {
                             int clicked = checkClick(playerIn, altarTile);
 //                            System.out.println(clicked);
                             if (clicked == 1) {
@@ -2898,7 +2822,6 @@ public class PageDrawing {
 
                                     playerIn.swing(InteractionHand.MAIN_HAND);
                                     event.setCanceled(true);
-                                    event.setResult(Event.Result.DENY);
                                     break;
                                 }
                             }
@@ -2908,14 +2831,12 @@ public class PageDrawing {
 
                                     playerIn.swing(InteractionHand.MAIN_HAND);
                                     event.setCanceled(true);
-                                    event.setResult(Event.Result.DENY);
                                     break;
                                 } else if (altarTile.slotClicked == -1) {
 
                                     ClientProxy.fontIndex++;
                                     playerIn.swing(InteractionHand.MAIN_HAND);
                                     event.setCanceled(true);
-                                    event.setResult(Event.Result.DENY);
                                     break;
                                 }
                             }
@@ -2925,14 +2846,12 @@ public class PageDrawing {
 
                                 playerIn.swing(InteractionHand.MAIN_HAND);
                                 event.setCanceled(true);
-                                event.setResult(Event.Result.DENY);
                                 break;
                             }
                             if (clicked == -1) {
 
                                 playerIn.swing(InteractionHand.MAIN_HAND);
                                 event.setCanceled(true);
-                                event.setResult(Event.Result.DENY);
                                 break;
                             }
                             if (clicked == -3) {
@@ -2940,24 +2859,21 @@ public class PageDrawing {
 
                                 playerIn.swing(InteractionHand.MAIN_HAND);
                                 event.setCanceled(true);
-                                event.setResult(Event.Result.DENY);
                                 break;
                             }
                             if (clicked == 3) {
                                 // clicked bookmark
-                                if (tag.getInt("chapter") != 0) {
-                                    altarTile.clickPageBookmark(tag.getInt("chapter"), tag.getInt("page"));
+                                if (bookData.getChapter() != 0) {
+                                    altarTile.clickPageBookmark(bookData.getChapter(), bookData.getPage());
 
                                     playerIn.swing(InteractionHand.MAIN_HAND);
                                     event.setCanceled(true);
-                                    event.setResult(Event.Result.DENY);
                                     break;
                                 }
                             }
                             if (clicked == -5) {
                                 playerIn.swinging = false;
                                 event.setCanceled(true);
-                                event.setResult(Event.Result.DENY);
                                 break;
                             }
                         }
@@ -2969,19 +2885,18 @@ public class PageDrawing {
                         Vec3 planeNormalRight = planeNormal(altarTile, PageOn.RIGHT_PAGE);
                         Vec3 planeNormalLeft = planeNormal(altarTile, PageOn.LEFT_PAGE);
 
-                        CompoundTag tag = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
+                        BookData bookData = altarTile.itemHandler.getStackInSlot(0).get(ModDataComponents.BOOK);
 
 
-                        if (tag.contains("bookmarks")) {
+                        if (bookData != null) {
 
-                            int bookmark_color = 0;
                             int bookmark_chapter = 0;
                             int bookmark_page = 0;
                             ResourceLocation bookmark_id = null;
                             boolean flag = false;
                             int int_slot = 0;
-                            CompoundTag bookmarks = tag.getCompound("bookmarks");
 
+                            BookData.Bookmarks bookmarks = bookData.getBookmarks();
 
                             if (altarTile.slotClicked != -1) {
                                 Vec3 intersectionVec = intersectPoint(0, 7.05f, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, altarTile, PageOn.MIDDLE_BUTTON);
@@ -2993,27 +2908,24 @@ public class PageDrawing {
                             }
 
 
-                            for (int i = 0; i < 20; i++) {
+                            for (BookData.Bookmarks.Slot slot : bookmarks.getSlots()) {
                                 boolean flag2 = false;
-                                if (bookmarks.contains("slot_" + i)) {
+                                if (!slot.getId().isEmpty()) {
 
-                                    CompoundTag slot = bookmarks.getCompound("slot_" + i);
-                                    bookmark_color = slot.getInt("color");
 //                                    if (slot.contains("chapter"))
 //                                        bookmark_chapter = slot.getInt("chapter");
 //                                    if (slot.contains("page"))
 //                                        bookmark_page = slot.getInt("page");
-                                    if (slot.contains("id"))
-                                        bookmark_id = new ResourceLocation(slot.getString("id"));
+                                    bookmark_id = ResourceLocation.parse(slot.getId());
 
 
                                 }
 
                                 ArrayList<BookImageEffect> effectsBookmark = new ArrayList<>();
-                                if (i < 5) {
+                                if (slot.getIndex() < 5) {
 
                                     float xIn = -0.4f - altarTile.buttonScale - 0.15f;
-                                    float yIn = i * 1.5f;
+                                    float yIn = slot.getIndex() * 1.5f;
                                     Vector3f vector3f = new Vector3f(0, 0, 0);
                                     Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
@@ -3034,9 +2946,9 @@ public class PageDrawing {
                                         flag2 = true;
                                     }
                                 }
-                                if (i >= 5 && i < 10) {
+                                if (slot.getIndex() >= 5 && slot.getIndex() < 10) {
 
-                                    float xIn = -5.5f + i * 1.15f;
+                                    float xIn = -5.5f + slot.getIndex() * 1.15f;
                                     float yIn = -0.95f - altarTile.buttonScale - 0.25f;
                                     Vector3f vector3f = new Vector3f(0, 0, 0);
                                     Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
@@ -3058,9 +2970,9 @@ public class PageDrawing {
                                         flag2 = true;
                                     }
                                 }
-                                if (i >= 10 && i < 15) {
+                                if (slot.getIndex() >= 10 && slot.getIndex() < 15) {
 
-                                    float xIn = -11.25f + i * 1.15f;
+                                    float xIn = -11.25f + slot.getIndex() * 1.15f;
                                     float yIn = -0.95f - altarTile.buttonScale - 0.25f;
                                     Vector3f vector3f = new Vector3f(0, 0, 0);
                                     Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
@@ -3082,10 +2994,10 @@ public class PageDrawing {
                                         flag2 = true;
                                     }
                                 }
-                                if (i >= 15) {
+                                if (slot.getIndex() >= 15) {
 
                                     float xIn = 5.5f + altarTile.buttonScale + 0.15f;
-                                    float yIn = (i - 15) * 1.5f;
+                                    float yIn = (slot.getIndex() - 15) * 1.5f;
                                     Vector3f vector3f = new Vector3f(0, 0, 0);
                                     Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
@@ -3107,14 +3019,14 @@ public class PageDrawing {
                                     }
                                 }
                                 if (flag2) {
-                                    if (altarTile.slotClicked == i) {
+                                    if (altarTile.slotClicked == slot.getIndex()) {
                                         if (altarTile.slotClickedTick < 20) {
                                             //click the same bookmark
                                             boolean flag3 = false;
                                             if (bookmark_id != null) {
                                                 for (BookChapter chapter : BookManager.getBookEntries().chapterList) {
                                                     for (BookPageEntry pageEntry : chapter.pages) {
-                                                        if (new ResourceLocation(pageEntry.location).equals(bookmark_id)) {
+                                                        if (ResourceLocation.parse(pageEntry.location).equals(bookmark_id)) {
                                                             flag3 = true;
                                                             altarTile.setTurnPage(-1, pageEntry.chapterNum, pageEntry.chapterPageNum);
                                                             break;
@@ -3129,12 +3041,12 @@ public class PageDrawing {
                                         }
                                     } else {
                                         //drag the bookmark to another slot
-                                        altarTile.swapBookmarks(altarTile.slotClicked, i);
-                                        altarTile.bookmarkHoverAmount[i] = 0;
+                                        altarTile.swapBookmarks(altarTile.slotClicked, slot.getIndex());
+                                        altarTile.bookmarkHoverAmount[slot.getIndex()] = 0;
                                         altarTile.bookmarkHoverAmount[altarTile.slotClicked] = 0;
                                     }
 
-                                    int_slot = i;
+                                    int_slot = slot.getIndex();
                                     break;
                                 }
 
@@ -3173,15 +3085,11 @@ public class PageDrawing {
 
 
     public String getModNameForModId(String modId) {
-        ModList modList = ModList.get();
-        return modList.getModContainerById(modId)
-                .map(ModContainer::getModInfo)
-                .map(IModInfo::getDisplayName)
-                .orElseGet(() -> StringUtils.capitalize(modId));
+        return HexereiUtil.getModNameForModId(modId);
     }
 
     public List<BlockPos> getAltars(Player playerIn) {
-        double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+        double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
 
         List<BlockPos> altars = new ArrayList<>();
 
@@ -3251,7 +3159,7 @@ public class PageDrawing {
             if ((Minecraft.getInstance().screen instanceof IRecipesGui))
                 return;
 
-            double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+            double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
 
             List<BlockPos> altars = getAltars(playerIn);
 
@@ -3261,138 +3169,136 @@ public class PageDrawing {
 
                 if (blockEntity instanceof BookOfShadowsAltarTile altarTile && altarTile.turnPage == 0) {
 
-                    CompoundTag tag = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
+                    BookData bookData = altarTile.itemHandler.getStackInSlot(0).get(ModDataComponents.BOOK);
 
-                    if (tag.contains("opened") && tag.getBoolean("opened")) {
+                    if (bookData != null && bookData.isOpened()) {
                         Vec3 planeNormalRight = planeNormal(altarTile, PageOn.RIGHT_PAGE);
                         Vec3 planeNormalLeft = planeNormal(altarTile, PageOn.LEFT_PAGE);
-                        if (tag.contains("chapter")) {
 
-                            String location1 = "";
-                            String location2 = "";
-                            BookEntries bookEntries = BookManager.getBookEntries();
-                            if (bookEntries != null) {
-                                int chapter = tag.getInt("chapter");
-                                int page = tag.getInt("page");
-                                if (page % 2 == 1)
-                                    page--;
+                        String location1 = "";
+                        String location2 = "";
+                        BookEntries bookEntries = BookManager.getBookEntries();
+                        if (bookEntries != null) {
+                            int chapter = bookData.getChapter();
+                            int page = bookData.getPage();
+                            if (page % 2 == 1)
+                                page--;
 
-                                int start = bookEntries.chapterList.get(chapter).startPage;
-                                int end = bookEntries.chapterList.get(chapter).endPage;
+                            int start = bookEntries.chapterList.get(chapter).startPage;
+                            int end = bookEntries.chapterList.get(chapter).endPage;
 
-                                if (page < bookEntries.chapterList.get(chapter).pages.size() && page >= 0)
-                                    location1 = bookEntries.chapterList.get(chapter).pages.get(page).location;
-                                if (end - start > page + 1)
-                                    location2 = bookEntries.chapterList.get(chapter).pages.get(page + 1).location;
+                            if (page < bookEntries.chapterList.get(chapter).pages.size() && page >= 0)
+                                location1 = bookEntries.chapterList.get(chapter).pages.get(page).location;
+                            if (end - start > page + 1)
+                                location2 = bookEntries.chapterList.get(chapter).pages.get(page + 1).location;
 
-                                BookPage page1 = BookManager.getBookPages(new ResourceLocation(location1));
-                                BookPage page2 = BookManager.getBookPages(new ResourceLocation(location2));
+                            BookPage page1 = BookManager.getBookPages(ResourceLocation.parse(location1));
+                            BookPage page2 = BookManager.getBookPages(ResourceLocation.parse(location2));
 
 
-                                if (page1 != null) {
-                                    for (int i = 0; i < page1.itemList.size(); i++) {
+                            if (page1 != null) {
+                                for (int i = 0; i < page1.itemList.size(); i++) {
 
-                                        BookItemsAndFluids bookItemStackInSlot = ((BookItemsAndFluids) (page1.itemList.toArray()[i]));
+                                    BookItemsAndFluids bookItemStackInSlot = ((BookItemsAndFluids) (page1.itemList.toArray()[i]));
 
-                                        if (bookItemStackInSlot.item != null && bookItemStackInSlot.item.isEmpty())
-                                            continue;
+                                    if (bookItemStackInSlot.item != null && bookItemStackInSlot.item.isEmpty())
+                                        continue;
 
-                                        Vector3f vector3f = new Vector3f(0, 0, 0);
-                                        Vector3f vector3f_1 = new Vector3f(0.35f - bookItemStackInSlot.x * 0.06f, 0.5f - bookItemStackInSlot.y * 0.061f, -0.03f);
+                                    Vector3f vector3f = new Vector3f(0, 0, 0);
+                                    Vector3f vector3f_1 = new Vector3f(0.35f - bookItemStackInSlot.x * 0.06f, 0.5f - bookItemStackInSlot.y * 0.061f, -0.03f);
 
-                                        BlockPos blockPos = altarTile.getBlockPos();
+                                    BlockPos blockPos = altarTile.getBlockPos();
 
-                                        vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
-                                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+                                    vector3f_1.rotate(Axis.YP.rotationDegrees(10 + altarTile.degreesOpened / 1.12f));
+                                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
 
-                                        vector3f.add(vector3f_1);
+                                    vector3f.add(vector3f_1);
 
-                                        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
+                                    vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
 
-                                        Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
-                                                vector3f.y() + blockPos.getY() + 18 / 16f,
-                                                vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
+                                    Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
+                                            vector3f.y() + blockPos.getY() + 18 / 16f,
+                                            vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
 
-                                        float size = 0.03f;
-                                        AABB aabb = new AABB(vec.add(-size, -size, -size), vec.add(size, size, size));
+                                    float size = 0.03f;
+                                    AABB aabb = new AABB(vec.add(-size, -size, -size), vec.add(size, size, size));
 
-                                        Vec3 intersectionVec = intersectPoint(bookItemStackInSlot.x, bookItemStackInSlot.y, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, altarTile, PageOn.LEFT_PAGE);
+                                    Vec3 intersectionVec = intersectPoint(bookItemStackInSlot.x, bookItemStackInSlot.y, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, altarTile, PageOn.LEFT_PAGE);
 
-                                        if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
+                                    if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
 
-                                            if (event.getKey() == ModKeyBindings.bookJEIShowUses.getKey().getValue()) {
-                                                if (bookItemStackInSlot.item != null) {
-                                                    HexereiJei.showUses(bookItemStackInSlot.item);
-                                                } else {
-                                                    HexereiJei.showUses(bookItemStackInSlot.fluid);
-                                                }
+                                        if (event.getKey() == ModKeyBindings.bookJEIShowUses.getKey().getValue()) {
+                                            if (bookItemStackInSlot.item != null) {
+                                                HexereiJei.showUses(bookItemStackInSlot.item);
+                                            } else {
+                                                HexereiJei.showUses(bookItemStackInSlot.fluid);
                                             }
-                                            if (event.getKey() == ModKeyBindings.bookJEIShowRecipe.getKey().getValue()) {
-                                                if (bookItemStackInSlot.item != null) {
-                                                    HexereiJei.showRecipe(bookItemStackInSlot.item);
-                                                } else {
-                                                    HexereiJei.showRecipe(bookItemStackInSlot.fluid);
-                                                }
-                                            }
-
-                                            break;
                                         }
-                                    }
-                                }
-                                if (page2 != null) {
-
-                                    for (int i = 0; i < page2.itemList.size(); i++) {
-
-                                        BookItemsAndFluids bookItemStackInSlot = ((BookItemsAndFluids) (page2.itemList.toArray()[i]));
-
-                                        if (bookItemStackInSlot.item == null || bookItemStackInSlot.item.isEmpty())
-                                            continue;
-
-                                        Vector3f vector3f = new Vector3f(0, 0, 0);
-                                        Vector3f vector3f_1 = new Vector3f(-0.05f - bookItemStackInSlot.x * 0.06f, 0.5f - bookItemStackInSlot.y * 0.061f, -0.03f);
-
-                                        BlockPos blockPos = altarTile.getBlockPos();
-
-                                        vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
-                                        vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
-
-                                        vector3f.add(vector3f_1);
-
-                                        vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
-
-                                        Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
-                                                vector3f.y() + blockPos.getY() + 18 / 16f,
-                                                vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
-
-                                        float size = 0.03f;
-                                        AABB aabb = new AABB(vec.add(-size, -size, -size), vec.add(size, size, size));
-
-                                        Vec3 intersectionVec = intersectPoint(bookItemStackInSlot.x, bookItemStackInSlot.y, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalRight, altarTile, PageOn.RIGHT_PAGE);
-
-                                        if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
-
-                                            if (event.getKey() == ModKeyBindings.bookJEIShowUses.getKey().getValue()) {
-                                                if (bookItemStackInSlot.item != null) {
-                                                    HexereiJei.showUses(bookItemStackInSlot.item);
-                                                } else {
-                                                    HexereiJei.showUses(bookItemStackInSlot.fluid);
-                                                }
+                                        if (event.getKey() == ModKeyBindings.bookJEIShowRecipe.getKey().getValue()) {
+                                            if (bookItemStackInSlot.item != null) {
+                                                HexereiJei.showRecipe(bookItemStackInSlot.item);
+                                            } else {
+                                                HexereiJei.showRecipe(bookItemStackInSlot.fluid);
                                             }
-                                            if (event.getKey() == ModKeyBindings.bookJEIShowRecipe.getKey().getValue()) {
-                                                if (bookItemStackInSlot.item != null) {
-                                                    HexereiJei.showRecipe(bookItemStackInSlot.item);
-                                                } else {
-                                                    HexereiJei.showRecipe(bookItemStackInSlot.fluid);
-                                                }
-                                            }
-
-                                            break;
                                         }
+
+                                        break;
                                     }
                                 }
                             }
+                            if (page2 != null) {
 
+                                for (int i = 0; i < page2.itemList.size(); i++) {
+
+                                    BookItemsAndFluids bookItemStackInSlot = ((BookItemsAndFluids) (page2.itemList.toArray()[i]));
+
+                                    if (bookItemStackInSlot.item == null || bookItemStackInSlot.item.isEmpty())
+                                        continue;
+
+                                    Vector3f vector3f = new Vector3f(0, 0, 0);
+                                    Vector3f vector3f_1 = new Vector3f(-0.05f - bookItemStackInSlot.x * 0.06f, 0.5f - bookItemStackInSlot.y * 0.061f, -0.03f);
+
+                                    BlockPos blockPos = altarTile.getBlockPos();
+
+                                    vector3f_1.rotate(Axis.YP.rotationDegrees(-(10 + altarTile.degreesOpened / 1.12f)));
+                                    vector3f_1.rotate(Axis.XP.rotationDegrees(45 - altarTile.degreesOpened / 2f));
+
+                                    vector3f.add(vector3f_1);
+
+                                    vector3f.rotate(Axis.YP.rotationDegrees(altarTile.degreesSpun));
+
+                                    Vec3 vec = new Vec3(vector3f.x() + blockPos.getX() + 0.5f + (float) Math.sin((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f),
+                                            vector3f.y() + blockPos.getY() + 18 / 16f,
+                                            vector3f.z() + blockPos.getZ() + 0.5f + (float) Math.cos((altarTile.degreesSpun) / 57.1f) / 32f * (altarTile.degreesOpened / 5f - 12f));
+
+                                    float size = 0.03f;
+                                    AABB aabb = new AABB(vec.add(-size, -size, -size), vec.add(size, size, size));
+
+                                    Vec3 intersectionVec = intersectPoint(bookItemStackInSlot.x, bookItemStackInSlot.y, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalRight, altarTile, PageOn.RIGHT_PAGE);
+
+                                    if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
+
+                                        if (event.getKey() == ModKeyBindings.bookJEIShowUses.getKey().getValue()) {
+                                            if (bookItemStackInSlot.item != null) {
+                                                HexereiJei.showUses(bookItemStackInSlot.item);
+                                            } else {
+                                                HexereiJei.showUses(bookItemStackInSlot.fluid);
+                                            }
+                                        }
+                                        if (event.getKey() == ModKeyBindings.bookJEIShowRecipe.getKey().getValue()) {
+                                            if (bookItemStackInSlot.item != null) {
+                                                HexereiJei.showRecipe(bookItemStackInSlot.item);
+                                            } else {
+                                                HexereiJei.showRecipe(bookItemStackInSlot.fluid);
+                                            }
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
                         }
+
                     }
                 }
             }
@@ -3581,7 +3487,7 @@ public class PageDrawing {
     public int checkClick(Player playerIn, BookOfShadowsAltarTile altarTile) {
         int clicked = 0;
 
-        double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+        double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
         Vec3 planeNormalRight = planeNormal(altarTile, PageOn.RIGHT_PAGE);
         Vec3 planeNormalLeft = planeNormal(altarTile, PageOn.LEFT_PAGE);
         if (!this.isRightPressedOld) {
@@ -3633,33 +3539,21 @@ public class PageDrawing {
 
         if (!this.isRightPressedOld) {
 
-            CompoundTag tag = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
+            BookData bookData = altarTile.itemHandler.getStackInSlot(0).get(ModDataComponents.BOOK);
 
-            if (tag.contains("bookmarks")) {
+            if (bookData != null) {
 
-                int bookmark_color = 0;
-                int bookmark_chapter = 0;
-                int bookmark_page = 0;
-                boolean flag = false;
-                CompoundTag bookmarks = tag.getCompound("bookmarks");
-                for (int i = 0; i < 20; i++) {
-                    if (bookmarks.contains("slot_" + i)) {
+                for (BookData.Bookmarks.Slot slot : bookData.getBookmarks().getSlots()) {
+                    if (!slot.getId().isEmpty()) {
 
                         boolean flag2 = false;
 
-
-                        CompoundTag slot = bookmarks.getCompound("slot_" + i);
-                        bookmark_color = slot.getInt("color");
-                        bookmark_chapter = slot.getInt("chapter");
-                        bookmark_page = slot.getInt("page");
-
-
                         ArrayList<BookImageEffect> effectsBookmark = new ArrayList<>();
-                        if (i < 5) {
+                        if (slot.getIndex() < 5) {
 
 
                             float xIn = -0.4f - altarTile.buttonScale - 0.15f;
-                            float yIn = i * 1.5f;
+                            float yIn = slot.getIndex() * 1.5f;
                             Vector3f vector3f = new Vector3f(0, 0, 0);
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
 
@@ -3676,15 +3570,15 @@ public class PageDrawing {
 
                             AABB aabb = new AABB(vec.add(-0.03, -0.03, -0.03), vec.add(0.03, 0.03, 0.03));
 
-                            Vec3 intersectionVec = intersectPoint(xIn - altarTile.bookmarkHoverAmount[i] / 3, yIn, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, altarTile, PageOn.LEFT_PAGE);
+                            Vec3 intersectionVec = intersectPoint(xIn - altarTile.bookmarkHoverAmount[slot.getIndex()] / 3, yIn, playerIn.getLookAngle(), playerIn.getEyePosition(), planeNormalLeft, altarTile, PageOn.LEFT_PAGE);
                             if (aabb.contains(intersectionVec) && intersectionVec.subtract(playerIn.getEyePosition()).length() <= reach) {
                                 flag2 = true;
                             }
                         }
-                        if (i >= 5 && i < 10) {
+                        if (slot.getIndex() >= 5 && slot.getIndex() < 10) {
 
 
-                            float xIn = -5.5f + i * 1.15f;
+                            float xIn = -5.5f + slot.getIndex() * 1.15f;
                             float yIn = -0.95f - altarTile.buttonScale - 0.25f;
                             Vector3f vector3f = new Vector3f(0, 0, 0);
                             Vector3f vector3f_1 = new Vector3f(0.35f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
@@ -3706,9 +3600,9 @@ public class PageDrawing {
                                 flag2 = true;
                             }
                         }
-                        if (i >= 10 && i < 15) {
+                        if (slot.getIndex() >= 10 && slot.getIndex() < 15) {
 
-                            float xIn = -11.25f + i * 1.15f;
+                            float xIn = -11.25f + slot.getIndex() * 1.15f;
                             float yIn = -0.95f - altarTile.buttonScale - 0.25f;
                             Vector3f vector3f = new Vector3f(0, 0, 0);
                             Vector3f vector3f_1 = new Vector3f(-0.05f - xIn * 0.06f, 0.5f - yIn * 0.061f, -0.03f);
@@ -3730,10 +3624,10 @@ public class PageDrawing {
                                 flag2 = true;
                             }
                         }
-                        if (i >= 15) {
+                        if (slot.getIndex() >= 15) {
 
                             float xIn = 5.5f + altarTile.buttonScale + 0.15f;
-                            float yIn = (i - 15) * 1.5f;
+                            float yIn = (slot.getIndex() - 15) * 1.5f;
 //                            float xIn = -11.25f + i * 1.15f;
 //                            float yIn = -0.95f - altarTile.buttonScale/1.5f;
                             Vector3f vector3f = new Vector3f(0, 0, 0);
@@ -3757,7 +3651,7 @@ public class PageDrawing {
                             }
                         }
                         if (flag2) {
-                            altarTile.slotClicked = i;
+                            altarTile.slotClicked = slot.getIndex();
                             clicked = -1;
 //                            altarTile.setTurnPage(clicked, bookmark_chapter, bookmark_page);
 //                            return clicked;
@@ -3769,15 +3663,15 @@ public class PageDrawing {
 
 
         ItemStack stack = altarTile.itemHandler.getStackInSlot(0);
-        CompoundTag tag = stack.getOrCreateTag();
-        if (tag.contains("chapter")) {
+        BookData bookData = stack.get(ModDataComponents.BOOK);
+        if (bookData != null) {
 
             String location1 = "";
             String location2 = "";
             BookEntries bookEntries = BookManager.getBookEntries();
 
-            int chapter = tag.getInt("chapter");
-            int page = tag.getInt("page");
+            int chapter = bookData.getChapter();
+            int page = bookData.getPage();
             if (page % 2 == 1)
                 page--;
 
@@ -3791,8 +3685,8 @@ public class PageDrawing {
                 if (end - start > page + 1)
                     location2 = bookEntries.chapterList.get(chapter).pages.get(page + 1).location;
 
-                BookPage page1 = BookManager.getBookPages(new ResourceLocation(location1));
-                BookPage page2 = BookManager.getBookPages(new ResourceLocation(location2));
+                BookPage page1 = BookManager.getBookPages(ResourceLocation.parse(location1));
+                BookPage page2 = BookManager.getBookPages(ResourceLocation.parse(location2));
 
                 if (page1 != null) {
 
@@ -3888,7 +3782,7 @@ public class PageDrawing {
                                 for (int j = 1; j < bookEntries.chapterList.size(); j++) {
                                     for (int k = 0; k < bookEntries.chapterList.get(j).pages.size(); k++) {
                                         String location3 = bookEntries.chapterList.get(j).pages.get(k).location;
-                                        BookPage page_check = BookManager.getBookPages(new ResourceLocation(location3));
+                                        BookPage page_check = BookManager.getBookPages(ResourceLocation.parse(location3));
                                         if (page_check != null && page_check.itemHyperlink.equals(itemRegistryName)) {
                                             if (!(chapter == j && (page == k || page == k - 1)))
                                                 altarTile.setTurnPage(clicked, j, k);
@@ -4081,7 +3975,7 @@ public class PageDrawing {
                                     for (int j = 1; j < bookEntries.chapterList.size(); j++) {
                                         for (int k = 0; k < bookEntries.chapterList.get(j).pages.size(); k++) {
                                             String location3 = bookEntries.chapterList.get(j).pages.get(k).location;
-                                            BookPage page_check = BookManager.getBookPages(new ResourceLocation(location3));
+                                            BookPage page_check = BookManager.getBookPages(ResourceLocation.parse(location3));
                                             if (page_check != null && page_check.itemHyperlink.equals(itemRegistryName)) {
                                                 if (!(chapter == j && (page == k || page == k - 1)))
                                                     altarTile.setTurnPage(clicked, j, k);
@@ -4196,9 +4090,9 @@ public class PageDrawing {
     @OnlyIn(Dist.CLIENT)
     public boolean clickedBack(BookOfShadowsAltarTile altarTile) {
 
-        CompoundTag tag2 = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
-        int currentPage = tag2.getInt("page");
-        int currentChapter = tag2.getInt("chapter");
+        BookData bookData = altarTile.itemHandler.getStackInSlot(0).get(ModDataComponents.BOOK);
+        int currentPage = bookData.getPage();
+        int currentChapter = bookData.getChapter();
         return currentChapter > 0 || currentPage > 1;
 
     }
@@ -4206,9 +4100,9 @@ public class PageDrawing {
     @OnlyIn(Dist.CLIENT)
     public boolean clickedNext(BookOfShadowsAltarTile altarTile) {
 
-        CompoundTag tag2 = altarTile.itemHandler.getStackInSlot(0).getOrCreateTag();
-        int currentPage = tag2.getInt("page");
-        int currentChapter = tag2.getInt("chapter");
+        BookData bookData = altarTile.itemHandler.getStackInSlot(0).get(ModDataComponents.BOOK);
+        int currentPage = bookData.getPage();
+        int currentChapter = bookData.getChapter();
         return currentChapter < BookManager.getBookEntries().chapterList.size() - 1 || currentPage < BookManager.getBookEntries().chapterList.get(currentChapter).pages.size() - 2;
 
     }
@@ -4256,10 +4150,10 @@ public class PageDrawing {
         RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
         Matrix4f matrix = matrixStack.last().pose();
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/slot.png")));
+        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(ResourceLocation.parse("hexerei:textures/book/slot.png")));
 
 //        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
-        Matrix3f normal = matrixStack.last().normal();
+        PoseStack.Pose normal = matrixStack.last();
         int u = 0;
         int v = 0;
         int imageWidth = 32;
@@ -4271,10 +4165,10 @@ public class PageDrawing {
         float v1 = (v + 0.0F) / (float) imageHeight;
         float v2 = (v + (float) height) / (float) imageHeight;
 
-        buffer.vertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).color(255, 255, 255, 255).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).color(255, 255, 255, 255).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).color(255, 255, 255, 255).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).color(255, 255, 255, 255).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+        buffer.addVertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
 
         if (bufferSource instanceof MultiBufferSource.BufferSource source)
             source.endBatch();
@@ -4318,10 +4212,10 @@ public class PageDrawing {
 
         Matrix4f matrix = matrixStack.last().pose();
         if (showSlot) {
-            VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/slot.png")));
+            VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(ResourceLocation.parse("hexerei:textures/book/slot.png")));
 
 //            matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
-            Matrix3f normal = matrixStack.last().normal();
+            PoseStack.Pose normal = matrixStack.last();
             int u = 0;
             int v = 0;
             int imageWidth = 18;
@@ -4333,10 +4227,10 @@ public class PageDrawing {
             float v1 = (v + 0.0F) / (float) imageHeight;
             float v2 = (v + (float) height) / (float) imageHeight;
 
-            buffer.vertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).color(255, 255, 255, 255).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).color(255, 255, 255, 255).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).color(255, 255, 255, 255).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).color(255, 255, 255, 255).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+            buffer.addVertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
         }
         drawFluid(matrixStack, bufferSource, (int) bookItemsAndFluids.fluid_width, (int) bookItemsAndFluids.fluid_height, stack, capacity, light, overlay, bookItemsAndFluids.fluid_offset_x, bookItemsAndFluids.fluid_offset_y, bookItemsAndFluids.fluid_width, bookItemsAndFluids.fluid_height);
 
@@ -4441,15 +4335,15 @@ public class PageDrawing {
         poseStack.translate(0.001f, 0.0485f + (y_offset * 0.005975f), (x_offset * 0.005975f));
         poseStack.mulPose(Axis.XP.rotationDegrees(90));
         Matrix4f matrix = poseStack.last().pose();
-        Matrix3f normal = poseStack.last().normal();
+        PoseStack.Pose normal = poseStack.last();
         poseStack.popPose();
 
 
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.cutout());
-        buffer.vertex(matrix, 0, -0.055f / 18 * (width), 0).color(red, green, blue, alpha).uv(uMin, vMax).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * (width), 0).color(red, green, blue, alpha).uv(uMax, vMax).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * (width), 0.055f / 9 * (height - maskTop)).color(red, green, blue, alpha).uv(uMax, vMin).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, -0.055f / 18 * (width), 0.055f / 9 * (height - maskTop)).color(red, green, blue, alpha).uv(uMin, vMin).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+        buffer.addVertex(matrix, 0, -0.055f / 18 * (width), 0).setColor(red, green, blue, alpha).setUv(uMin, vMax).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * (width), 0).setColor(red, green, blue, alpha).setUv(uMax, vMax).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * (width), 0.055f / 9 * (height - maskTop)).setColor(red, green, blue, alpha).setUv(uMax, vMin).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, -0.055f / 18 * (width), 0.055f / 9 * (height - maskTop)).setColor(red, green, blue, alpha).setUv(uMin, vMin).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
 
     }
 
@@ -4500,7 +4394,7 @@ public class PageDrawing {
 
         this.tooltipStack = stack;
         if (!this.tooltipStack.isEmpty()) {
-            List<Component> tooltip = stack.getTooltipLines(Hexerei.proxy.getPlayer(), Minecraft.getInstance().options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
+            List<Component> tooltip = stack.getTooltipLines(Item.TooltipContext.EMPTY, Hexerei.proxy.getPlayer(), Minecraft.getInstance().options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
 
             if (tooltip.size() > 0)
                 tooltip.addAll(this.tooltipText);
@@ -4526,11 +4420,8 @@ public class PageDrawing {
         int amount = bookItemStackInSlot.amount;
         List<Component> tooltip = new ArrayList<>();
         Fluid fluidType = fluidStack.getFluid();
-        if (fluidType == null) {
-            return tooltip;
-        }
 
-        MutableComponent displayName = (MutableComponent) fluidStack.getDisplayName();
+        MutableComponent displayName = (MutableComponent) fluidStack.getHoverName();
         displayName.withStyle(ChatFormatting.WHITE);
         tooltip.add(displayName);
         if (capacity != 0) {
@@ -4541,7 +4432,7 @@ public class PageDrawing {
             tooltip.add(amountString.withStyle(ChatFormatting.GRAY));
         }
 
-        if (bookItemStackInSlot.extra_tooltips.size() > 0)
+        if (!bookItemStackInSlot.extra_tooltips.isEmpty())
             tooltip.addAll(bookItemStackInSlot.extra_tooltips);
 
 
@@ -4586,12 +4477,12 @@ public class PageDrawing {
 
     @OnlyIn(Dist.CLIENT)
     public void renderTooltip(ItemStack stack, MultiBufferSource buffer, PoseStack p_169389_, List<Component> components, Optional<TooltipComponent> p_169391_, int p_169392_, int p_169393_, int overlay, int light) {
-        List<ClientTooltipComponent> list = ForgeHooksClient.gatherTooltipComponents(stack, components, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font);
+        List<ClientTooltipComponent> list = ClientHooks.gatherTooltipComponents(stack, components, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font);
         List<Component> newComponentList = new ArrayList<>();
         for (Component component : components) {
             newComponentList.add(Component.translatable(component.getString()).withStyle(component.getStyle().withColor(0x292929)));
         }
-        List<ClientTooltipComponent> list2 = ForgeHooksClient.gatherTooltipComponents(stack, newComponentList, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font);
+        List<ClientTooltipComponent> list2 = ClientHooks.gatherTooltipComponents(stack, newComponentList, p_169391_, p_169392_, 300, 750, Minecraft.getInstance().font);
         this.renderTooltipInternal(buffer, p_169389_, list, list2, p_169392_, p_169393_, overlay, light);
     }
 
@@ -4600,7 +4491,7 @@ public class PageDrawing {
     private void renderTooltipInternal(MultiBufferSource bufferSource, PoseStack matrixStack, List<ClientTooltipComponent> clientTooltipComponentList, List<ClientTooltipComponent> clientTooltipComponentList2, int p_169386_, int p_169387_, int overlay, int light) {
         if (!clientTooltipComponentList.isEmpty()) {
 
-            RenderTooltipEvent.Pre preEvent = ForgeHooksClient.onRenderTooltipPre(this.tooltipStack, new GuiGraphics(Minecraft.getInstance(), (MultiBufferSource.BufferSource) bufferSource), p_169386_, p_169387_, 750, 750, clientTooltipComponentList, Minecraft.getInstance().font, DefaultTooltipPositioner.INSTANCE);
+            RenderTooltipEvent.Pre preEvent = ClientHooks.onRenderTooltipPre(this.tooltipStack, new GuiGraphics(Minecraft.getInstance(), (MultiBufferSource.BufferSource) bufferSource), p_169386_, p_169387_, 750, 750, clientTooltipComponentList, Minecraft.getInstance().font, DefaultTooltipPositioner.INSTANCE);
             if (preEvent.isCanceled()) {
                 return;
             }
@@ -4628,28 +4519,28 @@ public class PageDrawing {
                 k2 = 750 - j - 6;
             }
 
-            VertexConsumer buffer = bufferSource.getBuffer(RenderType.itemEntityTranslucentCull(new ResourceLocation("hexerei:textures/book/blank.png")));
+            VertexConsumer buffer = bufferSource.getBuffer(RenderType.itemEntityTranslucentCull(ResourceLocation.parse("hexerei:textures/book/blank.png")));
 
             matrixStack.mulPose(Axis.YP.rotationDegrees(-90));
             matrixStack.scale(0.003f, 0.003f, 0.003f);
             matrixStack.translate(-(i + 15) / 2f, -(j + 15) / 2f, -10);
 
 
-            RenderTooltipEvent.Color colorEvent = ForgeHooksClient.onRenderTooltipColor(this.tooltipStack, new GuiGraphics(Minecraft.getInstance(), (MultiBufferSource.BufferSource) bufferSource), j2, k2, preEvent.getFont(), clientTooltipComponentList);
+            RenderTooltipEvent.Color colorEvent = ClientHooks.onRenderTooltipColor(this.tooltipStack, new GuiGraphics(Minecraft.getInstance(), (MultiBufferSource.BufferSource) bufferSource), j2, k2, preEvent.getFont(), clientTooltipComponentList);
             fillGradient(matrixStack, buffer, j2 - 3, k2 - 3, j2 + i + 3, k2 + j + 3, 0.2f, colorEvent.getBackgroundStart(), colorEvent.getBackgroundEnd(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 3, k2 - 4, j2 + i + 3, k2 - 2, 0.1f, colorEvent.getBackgroundStart(), colorEvent.getBackgroundStart(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 3, k2 + j + 2, j2 + i + 3, k2 + j + 4, 0.1f, colorEvent.getBackgroundEnd(), colorEvent.getBackgroundEnd(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 4, k2 - 3, j2 - 2, k2 + j + 3, 0.1f, colorEvent.getBackgroundStart(), colorEvent.getBackgroundEnd(), overlay, light);
             fillGradient(matrixStack, buffer, j2 + i + 2, k2 - 3, j2 + i + 4, k2 + j + 3, 0.1f, colorEvent.getBackgroundStart(), colorEvent.getBackgroundEnd(), overlay, light);
             ((MultiBufferSource.BufferSource) bufferSource).endBatch();
-            buffer = bufferSource.getBuffer(RenderType.itemEntityTranslucentCull(new ResourceLocation("hexerei:textures/book/blank.png")));
+            buffer = bufferSource.getBuffer(RenderType.itemEntityTranslucentCull(ResourceLocation.parse("hexerei:textures/book/blank.png")));
             fillGradient(matrixStack, buffer, j2 - 3, k2 - 3 + 1, j2 - 3 + 1, k2 + j + 3 - 1, 0, colorEvent.getBorderStart(), colorEvent.getBorderEnd(), overlay, light);
             fillGradient(matrixStack, buffer, j2 + i + 2, k2 - 3 + 1, j2 + i + 3, k2 + j + 3 - 1, 0, colorEvent.getBorderStart(), colorEvent.getBorderEnd(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 3, k2 - 3, j2 + i + 3, k2 - 3 + 1, 0, colorEvent.getBorderStart(), colorEvent.getBorderStart(), overlay, light);
             fillGradient(matrixStack, buffer, j2 - 3, k2 + j + 2, j2 + i + 3, k2 + j + 3, 0, colorEvent.getBorderEnd(), colorEvent.getBorderEnd(), overlay, light);
             RenderSystem.enableDepthTest();
 
-            MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+            MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
             matrixStack.translate(0.0D, 0.0D, 0.01D);
 
             matrixStack.scale(1, 1, 0.00001f);
@@ -4701,12 +4592,10 @@ public class PageDrawing {
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     private static int adjustColor(int p_92720_) {
         return (p_92720_ & -67108864) == 0 ? p_92720_ | -16777216 : p_92720_;
     }
 
-    @OnlyIn(Dist.CLIENT)
     protected static void fillGradient(PoseStack poseStack, VertexConsumer buffer, int p_93126_, int p_93127_, int p_93128_, int p_93129_, float p_93130_, int pColorFrom, int pColorTo, int overlay, int light) {
 
         float fromAlpha = (float) FastColor.ARGB32.alpha(pColorFrom) / 255.0F * 0.9f;
@@ -4718,7 +4607,7 @@ public class PageDrawing {
         float f6 = (float)FastColor.ARGB32.green(pColorTo) / 255.0F;
         float f7 = (float)FastColor.ARGB32.blue(pColorTo) / 255.0F;
 
-        Matrix3f normal = poseStack.last().normal();
+        PoseStack.Pose normal = poseStack.last();
         Matrix4f matrix4f = poseStack.last().pose();
 
 
@@ -4733,10 +4622,10 @@ public class PageDrawing {
         float v1 = (v + 0.0F) / (float) imageHeight;
         float v2 = (v + (float) height) / (float) imageHeight;
 
-        buffer.vertex(matrix4f, p_93128_, p_93127_, p_93130_).color(f1, f2, f3, fromAlpha).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix4f, p_93126_, p_93127_, p_93130_).color(f1, f2, f3, fromAlpha).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix4f, p_93126_, p_93129_, p_93130_).color(f5, f6, f7, toAlpha).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix4f, p_93128_, p_93129_, p_93130_).color(f5, f6, f7, toAlpha).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+        buffer.addVertex(matrix4f, p_93128_, p_93127_, p_93130_).setColor(f1, f2, f3, fromAlpha).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix4f, p_93126_, p_93127_, p_93130_).setColor(f1, f2, f3, fromAlpha).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix4f, p_93126_, p_93129_, p_93130_).setColor(f5, f6, f7, toAlpha).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix4f, p_93128_, p_93129_, p_93130_).setColor(f5, f6, f7, toAlpha).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
 
 
     }
@@ -4796,10 +4685,10 @@ public class PageDrawing {
 
 
         Matrix4f matrix = matrixStack.last().pose();
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(bookImage.imageLoc)));
+        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(ResourceLocation.parse(bookImage.imageLoc)));
 
 //        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
-        Matrix3f normal = matrixStack.last().normal();
+        PoseStack.Pose normal = matrixStack.last();
         int u = (int) bookImage.u;
         int v = (int) bookImage.v;
         int imageWidth = (int) bookImage.imageWidth;
@@ -4824,20 +4713,20 @@ public class PageDrawing {
 
 
         if (transformType != ItemDisplayContext.NONE) {
-            buffer.vertex(matrix, 0, -0.055f / 9 * height, -0.055f / 18 * width).color(r, g, b, a).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0, -0.055f / 18 * width).color(r, g, b, a).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0, 0.055f / 18 * width).color(r, g, b, a).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, -0.055f / 9 * height, 0.055f / 18 * width).color(r, g, b, a).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+            buffer.addVertex(matrix, 0, -0.055f / 9 * height, -0.055f / 18 * width).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0, -0.055f / 18 * width).setColor(r, g, b, a).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0, 0.055f / 18 * width).setColor(r, g, b, a).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, -0.055f / 9 * height, 0.055f / 18 * width).setColor(r, g, b, a).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
 
-            buffer.vertex(matrix, 0, -0.055f / 9 * height, 0.055f / 18 * width).color(r, g, b, a).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0, 0.055f / 18 * width).color(r, g, b, a).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0, -0.055f / 18 * width).color(r, g, b, a).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, -0.055f / 9 * height, -0.055f / 18 * width).color(r, g, b, a).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+            buffer.addVertex(matrix, 0, -0.055f / 9 * height, 0.055f / 18 * width).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0, 0.055f / 18 * width).setColor(r, g, b, a).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0, -0.055f / 18 * width).setColor(r, g, b, a).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, -0.055f / 9 * height, -0.055f / 18 * width).setColor(r, g, b, a).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
         } else {
-            buffer.vertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).color(r, g, b, a).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).color(r, g, b, a).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).color(r, g, b, a).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer.vertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).color(r, g, b, a).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+            buffer.addVertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).setColor(r, g, b, a).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).setColor(r, g, b, a).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer.addVertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).setColor(r, g, b, a).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
         }
         matrixStack.popPose();
 
@@ -4918,7 +4807,7 @@ public class PageDrawing {
 
                 LocalPlayer playerIn = (LocalPlayer) Hexerei.proxy.getPlayer();
 
-                double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+                double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
                 Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
                 Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
 
@@ -4978,7 +4867,7 @@ public class PageDrawing {
 
                 LocalPlayer playerIn = (LocalPlayer) Hexerei.proxy.getPlayer();
 
-                double reach = playerIn.getAttribute(ForgeMod.BLOCK_REACH.get()).getValue();
+                double reach = playerIn.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue();
                 Vec3 planeNormalRight = planeNormal(tileEntityIn, PageOn.RIGHT_PAGE);
                 Vec3 planeNormalLeft = planeNormal(tileEntityIn, PageOn.LEFT_PAGE);
 
@@ -5061,10 +4950,10 @@ public class PageDrawing {
         }));
 
         Matrix4f matrix = matrixStack.last().pose();
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(loc.get())));
+        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(ResourceLocation.parse(loc.get())));
 
 //        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
-        Matrix3f normal = matrixStack.last().normal();
+        PoseStack.Pose normal = matrixStack.last();
 
         float u1 = (u.get() + 0.0F) / (float) imageWidth.get();
         float u2 = (u.get() + (float) width.get()) / (float) imageWidth.get();
@@ -5083,15 +4972,15 @@ public class PageDrawing {
         }
 
 
-        buffer.vertex(matrix, 0, -0.055f / 18 * height.get(), -0.055f / 18 * width.get()).color(r, g, b, a).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * height.get(), -0.055f / 18 * width.get()).color(r, g, b, a).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * height.get(), 0.055f / 18 * width.get()).color(r, g, b, a).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, -0.055f / 18 * height.get(), 0.055f / 18 * width.get()).color(r, g, b, a).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+        buffer.addVertex(matrix, 0, -0.055f / 18 * height.get(), -0.055f / 18 * width.get()).setColor(r, g, b, a).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * height.get(), -0.055f / 18 * width.get()).setColor(r, g, b, a).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * height.get(), 0.055f / 18 * width.get()).setColor(r, g, b, a).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, -0.055f / 18 * height.get(), 0.055f / 18 * width.get()).setColor(r, g, b, a).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
 
 
         if (overlay_draw.get()) {
             BookImage ov_img = overlay_image.get();
-            VertexConsumer buffer2 = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation(ov_img.imageLoc)));
+            VertexConsumer buffer2 = bufferSource.getBuffer(RenderType.entityCutout(ResourceLocation.parse(ov_img.imageLoc)));
 
             float overlay_u1 = (ov_img.u + 0.0F) / ov_img.imageWidth;
             float overlay_u2 = (ov_img.u + ov_img.width) / ov_img.imageWidth;
@@ -5110,10 +4999,10 @@ public class PageDrawing {
             }
 
             matrixStack.pushPose();
-            buffer2.vertex(matrix, ov_img.z / 2000f, -0.055f / 18 * ov_img.height, -0.055f / 18 * ov_img.width).color(overlay_r, overlay_g, overlay_b, overlay_a).uv(overlay_u1, overlay_v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer2.vertex(matrix, ov_img.z / 2000f, 0.055f / 18 * ov_img.height, -0.055f / 18 * ov_img.width).color(overlay_r, overlay_g, overlay_b, overlay_a).uv(overlay_u1, overlay_v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer2.vertex(matrix, ov_img.z / 2000f, 0.055f / 18 * ov_img.height, 0.055f / 18 * ov_img.width).color(overlay_r, overlay_g, overlay_b, overlay_a).uv(overlay_u2, overlay_v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-            buffer2.vertex(matrix, ov_img.z / 2000f, -0.055f / 18 * ov_img.height, 0.055f / 18 * ov_img.width).color(overlay_r, overlay_g, overlay_b, overlay_a).uv(overlay_u2, overlay_v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+            buffer2.addVertex(matrix, ov_img.z / 2000f, -0.055f / 18 * ov_img.height, -0.055f / 18 * ov_img.width).setColor(overlay_r, overlay_g, overlay_b, overlay_a).setUv(overlay_u1, overlay_v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer2.addVertex(matrix, ov_img.z / 2000f, 0.055f / 18 * ov_img.height, -0.055f / 18 * ov_img.width).setColor(overlay_r, overlay_g, overlay_b, overlay_a).setUv(overlay_u1, overlay_v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer2.addVertex(matrix, ov_img.z / 2000f, 0.055f / 18 * ov_img.height, 0.055f / 18 * ov_img.width).setColor(overlay_r, overlay_g, overlay_b, overlay_a).setUv(overlay_u2, overlay_v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+            buffer2.addVertex(matrix, ov_img.z / 2000f, -0.055f / 18 * ov_img.height, 0.055f / 18 * ov_img.width).setColor(overlay_r, overlay_g, overlay_b, overlay_a).setUv(overlay_u2, overlay_v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
             matrixStack.popPose();
         }
 
@@ -5153,10 +5042,10 @@ public class PageDrawing {
         RenderSystem.setShader(GameRenderer::getRendertypeEntityCutoutNoCullShader);
 
         Matrix4f matrix = matrixStack.last().pose();
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(new ResourceLocation("hexerei:textures/book/title.png")));
+        VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityCutout(ResourceLocation.parse("hexerei:textures/book/title.png")));
 
 //        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
-        Matrix3f normal = matrixStack.last().normal();
+        PoseStack.Pose normal = matrixStack.last();
         int u = 0;
         int v = 0;
         int imageWidth = 128;
@@ -5168,10 +5057,10 @@ public class PageDrawing {
         float v1 = (v + 0.0F) / (float) imageHeight;
         float v2 = (v + (float) height) / (float) imageHeight;
 
-        buffer.vertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).color(255, 255, 255, 255).uv(u1, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).color(255, 255, 255, 255).uv(u1, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).color(255, 255, 255, 255).uv(u2, v2).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
-        buffer.vertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).color(255, 255, 255, 255).uv(u2, v1).overlayCoords(overlay).uv2(light).normal(normal, 1F, 0F, 0F).endVertex();
+        buffer.addVertex(matrix, 0, -0.055f / 18 * height, -0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u1, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * height, -0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u1, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, 0.055f / 18 * height, 0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u2, v2).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
+        buffer.addVertex(matrix, 0, -0.055f / 18 * height, 0.055f / 18 * width).setColor(255, 255, 255, 255).setUv(u2, v1).setOverlay(overlay).setLight(light).setNormal(normal, 1F, 0F, 0F);
 
         matrixStack.popPose();
 
@@ -5216,19 +5105,19 @@ public class PageDrawing {
 
 
 //        matrixStack.last().normal().rotate(ITEM_LIGHT_ROTATION_FLAT);
-        Matrix3f normal = matrixStack.last().normal();
-        buffer.vertex(matrix, -0.032f, -0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU0(), sprite.getV0()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
-        buffer.vertex(matrix, 0.032f, -0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU0(), sprite.getV1()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
-        buffer.vertex(matrix, 0.032f, 0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU1(), sprite.getV1()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
-        buffer.vertex(matrix, -0.032f, 0.032f, 0.0f).color(0.12f, 0.12f, 0.12f, 1.0f).uv(sprite.getU1(), sprite.getV0()).overlayCoords(overlay).uv2(light).normal(normal, 1, 0, 0).endVertex();
+        PoseStack.Pose normal = matrixStack.last();
+        buffer.addVertex(matrix, -0.032f, -0.032f, 0.0f).setColor(0.12f, 0.12f, 0.12f, 1.0f).setUv(sprite.getU0(), sprite.getV0()).setOverlay(overlay).setLight(light).setNormal(normal, 1, 0, 0);
+        buffer.addVertex(matrix, 0.032f, -0.032f, 0.0f).setColor(0.12f, 0.12f, 0.12f, 1.0f).setUv(sprite.getU0(), sprite.getV1()).setOverlay(overlay).setLight(light).setNormal(normal, 1, 0, 0);
+        buffer.addVertex(matrix, 0.032f, 0.032f, 0.0f).setColor(0.12f, 0.12f, 0.12f, 1.0f).setUv(sprite.getU1(), sprite.getV1()).setOverlay(overlay).setLight(light).setNormal(normal, 1, 0, 0);
+        buffer.addVertex(matrix, -0.032f, 0.032f, 0.0f).setColor(0.12f, 0.12f, 0.12f, 1.0f).setUv(sprite.getU1(), sprite.getV0()).setOverlay(overlay).setLight(light).setNormal(normal, 1, 0, 0);
 
         //shadow for special font
 //        matrixStack.translate(0.001,0.001,-0.001);
 //        normal = matrixStack.last().normal();
-//        buffer.vertex(matrix, -0.032f, -0.032f, 0.0f).color(0.03f,0.03f,0.03f, 1.0f).uv(sprite.getU0(), sprite.getV0()).overlayCoords(overlay).uv2(light).normal(normal, 1,0,0).endVertex();
-//        buffer.vertex(matrix, 0.032f, -0.032f, 0.0f) .color(0.03f,0.03f,0.03f, 1.0f).uv(sprite.getU0(), sprite.getV1()).overlayCoords(overlay).uv2(light).normal(normal, 1,0,0).endVertex();
-//        buffer.vertex(matrix, 0.032f, 0.032f, 0.0f)  .color(0.03f,0.03f,0.03f, 1.0f).uv(sprite.getU1(), sprite.getV1()).overlayCoords(overlay).uv2(light).normal(normal, 1,0,0).endVertex();
-//        buffer.vertex(matrix, -0.032f, 0.032f, 0.0f) .color(0.03f,0.03f,0.03f, 1.0f).uv(sprite.getU1(), sprite.getV0()).overlayCoords(overlay).uv2(light).normal(normal, 1,0,0).endVertex();
+//        buffer.addVertex(matrix, -0.032f, -0.032f, 0.0f).setColor(0.03f,0.03f,0.03f, 1.0f).setUv(sprite.getU0(), sprite.getV0()).setOverlay()(overlay).setLight()(light).setNormal()(normal, 1,0,0);
+//        buffer.addVertex(matrix, 0.032f, -0.032f, 0.0f) .setColor(0.03f,0.03f,0.03f, 1.0f).setUv(sprite.getU0(), sprite.getV1()).setOverlay()(overlay).setLight()(light).setNormal()(normal, 1,0,0);
+//        buffer.addVertex(matrix, 0.032f, 0.032f, 0.0f)  .setColor(0.03f,0.03f,0.03f, 1.0f).setUv(sprite.getU1(), sprite.getV1()).setOverlay()(overlay).setLight()(light).setNormal()(normal, 1,0,0);
+//        buffer.addVertex(matrix, -0.032f, 0.032f, 0.0f) .setColor(0.03f,0.03f,0.03f, 1.0f).setUv(sprite.getU1(), sprite.getV0()).setOverlay()(overlay).setLight()(light).setNormal()(normal, 1,0,0);
         matrixStack.popPose();
 
     }
@@ -5540,7 +5429,8 @@ public class PageDrawing {
         matrixStack.scale(0.00272f, 0.00272f, 0.00272f);
         matrixStack.mulPose(Axis.ZP.rotationDegrees(-90));
 
-        MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+        MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+//        MultiBufferSource.BufferSource multibuffersource$buffersource = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
 //            font.drawInBatch(s1, (activeElement.x * 9f) - 24, (activeElement.y * 9f) - 4, 16777216, false, matrixStack.last().pose(), bufferSource, false, 0, light);
 
 
@@ -5587,7 +5477,7 @@ public class PageDrawing {
 
 //            font.drawInBatch(pageText, (xIn * 9f) - 24, (yIn * 9f) - 4, 16777216, false, matrixStack.last().pose(), bufferSource, false, 0, light);
 
-        multibuffersource$buffersource.endBatch();
+        buffer.endBatch();
         matrixStack.popPose();
 
         resetLines();

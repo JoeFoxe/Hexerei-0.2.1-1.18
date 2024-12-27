@@ -1,5 +1,11 @@
 package net.joefoxe.hexerei.fluid;
 
+import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
@@ -7,37 +13,73 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.ForgeFlowingFluid;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.Collection;
 import java.util.List;
 
-public class PotionFluid extends ForgeFlowingFluid {
-    protected PotionFluid(Properties properties) {
-        super(properties);
+public class PotionFluid extends FlowingFluid {
+
+
+    @Override
+    protected boolean canConvertToSource(Level level) {
+        return false;
     }
 
     @Override
-    public Fluid getSource() {
-        return super.getSource();
+    protected void beforeDestroyingBlock(LevelAccessor level, BlockPos pos, BlockState state) {
+
+    }
+
+    @Override
+    protected int getSlopeFindDistance(LevelReader level) {
+        return 0;
+    }
+
+    @Override
+    protected int getDropOff(LevelReader level) {
+        return 0;
     }
 
     @Override
     public Fluid getFlowing() {
         return this;
     }
+    @Override
+    public Fluid getSource() {
+        return this;
+    }
 
     @Override
     public Item getBucket() {
         return Items.AIR;
+    }
+
+    @Override
+    protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluid, Direction direction) {
+        return false;
+    }
+
+    @Override
+    public int getTickDelay(LevelReader level) {
+        return 0;
+    }
+
+    @Override
+    protected float getExplosionResistance() {
+        return 0;
     }
 
     @Override
@@ -55,51 +97,83 @@ public class PotionFluid extends ForgeFlowingFluid {
         return 0;
     }
 
-    public static FluidStack of(int amount, Potion potion) {
+    public static FluidStack of(int amount, PotionContents potion) {
         FluidStack fluidStack = new FluidStack(ModFluids.POTION.get()
                 .getSource(), amount);
         addPotionToFluidStack(fluidStack, potion);
         return fluidStack;
     }
 
-    public static FluidStack withEffects(int amount, Potion potion, List<MobEffectInstance> customEffects) {
-        FluidStack fluidStack = of(amount, potion);
-        appendEffects(fluidStack, customEffects);
-        return fluidStack;
-    }
-
-    public static FluidStack addPotionToFluidStack(FluidStack fs, Potion potion) {
-        ResourceLocation resourcelocation = getKeyOrThrow(potion);
-        if (potion == Potions.EMPTY) {
-            fs.removeChildTag("Potion");
-            return fs;
-        }
-        fs.getOrCreateTag()
-                .putString("Potion", resourcelocation.toString());
+    public static FluidStack addPotionToFluidStack(FluidStack fs, PotionContents potion) {
+        if (potion != null && potion != PotionContents.EMPTY)
+            fs.set(DataComponents.POTION_CONTENTS, potion);
+//        ResourceLocation resourcelocation = getKeyOrThrow(potion);
+//        if (potion == Potions.WATER) {
+//            fs.removeChildTag("Potion");
+//            return fs;
+//        }
+//        fs.getOrCreateTag()
+//                .putString("Potion", resourcelocation.toString());
         return fs;
     }
-
-    public static FluidStack appendEffects(FluidStack fs, Collection<MobEffectInstance> customEffects) {
-        if (customEffects.isEmpty())
-            return fs;
-        CompoundTag compoundnbt = fs.getOrCreateTag();
-        ListTag listnbt = compoundnbt.getList("CustomPotionEffects", 9);
-        for (MobEffectInstance effectinstance : customEffects)
-            listnbt.add(effectinstance.save(new CompoundTag()));
-        compoundnbt.put("CustomPotionEffects", listnbt);
-        return fs;
-    }
+//
+//    public static FluidStack appendEffects(FluidStack fs, Collection<MobEffectInstance> customEffects) {
+//        if (customEffects.isEmpty())
+//            return fs;
+//        CompoundTag compoundnbt = fs.getOrCreateTag();
+//        ListTag listnbt = compoundnbt.getList("CustomPotionEffects", 9);
+//        for (MobEffectInstance effectinstance : customEffects)
+//            listnbt.add(effectinstance.save(new CompoundTag()));
+//        compoundnbt.put("CustomPotionEffects", listnbt);
+//        return fs;
+//    }
 
     public enum BottleType {
-        REGULAR, SPLASH, LINGERING
+        REGULAR, SPLASH, LINGERING;
+
+        public static BottleType byId(int id) {
+            BottleType[] type = values();
+            return type[id < 0 || id >= type.length ? 0 : id];
+        }
     }
 
     public static <V> ResourceLocation getKeyOrThrow(Potion value) {
-        IForgeRegistry<Potion> registry = ForgeRegistries.POTIONS;
-        ResourceLocation key = registry.getKey(value);
+        ResourceLocation key = BuiltInRegistries.POTION.getKey(value);
         if (key == null) {
             throw new IllegalArgumentException("Could not get key for value " + value + "!");
         }
         return key;
+    }
+
+
+
+    public static class Flowing extends PotionFluid {
+        @Override
+        protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> builder) {
+            super.createFluidStateDefinition(builder);
+            builder.add(LEVEL);
+        }
+
+        @Override
+        public int getAmount(FluidState state) {
+            return state.getValue(LEVEL);
+        }
+
+        @Override
+        public boolean isSource(FluidState state) {
+            return false;
+        }
+    }
+
+    public static class Source extends PotionFluid {
+        @Override
+        public int getAmount(FluidState state) {
+            return 8;
+        }
+
+        @Override
+        public boolean isSource(FluidState state) {
+            return true;
+        }
     }
 }

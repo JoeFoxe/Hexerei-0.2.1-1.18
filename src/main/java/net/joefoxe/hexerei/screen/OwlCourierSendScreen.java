@@ -3,40 +3,29 @@ package net.joefoxe.hexerei.screen;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.logging.LogUtils;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
 import net.joefoxe.hexerei.data.owl.ClientOwlCourierDepotData;
 import net.joefoxe.hexerei.data.owl.OwlCourierDepotData;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.SendOwlCourierPacket;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.font.TextFieldHelper;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.renderer.*;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import org.joml.Vector3f;
-import org.slf4j.Logger;
-
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class OwlCourierSendScreen extends Screen {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/owl_courier_delivery_gui.png");
 
     public final OwlEntity owl;
@@ -69,11 +58,10 @@ public class OwlCourierSendScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (OwlCourierSendScreen.this.listButtons.size() > 6)
-            this.scrollTarget = (float)(this.scrollTarget + ((float)(this.button_height + button_space) + ((this.button_height + button_space) * Mth.abs(this.scrollTarget - this.scroll))) / ((OwlCourierSendScreen.this.listButtons.size()) * OwlCourierSendScreen.this.button_height - scissorArea.height) * -pDelta);
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
+            this.scrollTarget = (float)(this.scrollTarget + ((float)(this.button_height + button_space) + ((this.button_height + button_space) * Mth.abs(this.scrollTarget - this.scroll))) / ((OwlCourierSendScreen.this.listButtons.size()) * OwlCourierSendScreen.this.button_height - scissorArea.height) * -scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -233,7 +221,7 @@ public class OwlCourierSendScreen extends Screen {
         float scrollLerp = Mth.lerp(pPartialTick, this.scrollOld, this.scroll);
 
         Lighting.setupForFlatItems();
-        this.renderBackground(pGuiGraphics);
+        this.renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         pGuiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.top + 4, 0x333333);
 
         for (ListButton button : listButtons)
@@ -423,7 +411,8 @@ public class OwlCourierSendScreen extends Screen {
             pGuiGraphics.setColor(1.0f, isPlayerButton ? 0.75F : 1.0F, 1.0F, alpha);
             RenderSystem.enableBlend();
             RenderSystem.enableDepthTest();
-            pGuiGraphics.blitNineSliced(GUI, this.getX(), this.getY(pPartialTick), this.getWidth(), this.getHeight(), 3, 3, 74, button_height, 1, this.getTextureY());
+            // nine slice?
+            pGuiGraphics.blit(GUI, this.getX(), this.getY(pPartialTick), this.getWidth(), this.getHeight(), 3, 3, 74, button_height, 1, this.getTextureY());
             if (this.isDisabled())
                 pGuiGraphics.setColor( 0.5f, 0.5F, 0.5F, 0.5F);
             else

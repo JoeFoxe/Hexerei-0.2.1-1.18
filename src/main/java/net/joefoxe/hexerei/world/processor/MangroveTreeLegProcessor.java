@@ -1,23 +1,16 @@
 package net.joefoxe.hexerei.world.processor;
 
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.world.structure.structures.HexereiMahoganyTreeFeature;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.LevelSimulatedReader;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -34,8 +27,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @MethodsReturnNonnullByDefault
 public class MangroveTreeLegProcessor extends StructureProcessor {
-    public static final MangroveTreeLegProcessor INSTANCE = new MangroveTreeLegProcessor();
-    public static final Codec<MangroveTreeLegProcessor> CODEC = Codec.unit(() -> INSTANCE);
+    public static final MapCodec<MangroveTreeLegProcessor> CODEC = MapCodec.unit(MangroveTreeLegProcessor::new);
 
 
     public static boolean isAirOrLeavesOrLogsAt(ChunkAccess currentChunk, BlockPos pos) {

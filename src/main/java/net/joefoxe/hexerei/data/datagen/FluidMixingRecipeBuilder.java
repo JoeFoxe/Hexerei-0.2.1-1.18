@@ -25,8 +25,8 @@
 //import net.minecraft.world.item.crafting.Ingredient;
 //import net.minecraft.world.item.crafting.RecipeSerializer;
 //import net.minecraft.world.level.ItemLike;
-//import net.minecraftforge.fluids.FluidStack;
-//import net.minecraftforge.registries.ForgeRegistries;
+//import net.neoforged.neoforge.fluids.FluidStack;
+//import net.minecraft.core.registries.BuiltInRegistries;
 //
 //import javax.annotation.Nullable;
 //import java.util.ArrayList;
@@ -114,7 +114,7 @@
 //        @Override
 //        public ResourceLocation getId() {
 //
-//            return new ResourceLocation(Hexerei.MOD_ID,
+//            return HexereiUtil.getResource(
 //                    Registry.POTION.getKey(PotionFluidHandler.getPotionFromFluidStack(this.result)).getPath() + "_from_fluid_mixing");
 //        }
 //

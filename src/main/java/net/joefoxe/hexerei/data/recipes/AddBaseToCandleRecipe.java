@@ -1,30 +1,24 @@
 package net.joefoxe.hexerei.data.recipes;
 
-import com.google.gson.JsonObject;
 import net.joefoxe.hexerei.data.candle.CandleData;
 import net.joefoxe.hexerei.item.ModItems;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraftforge.registries.ForgeRegistries;
-
-import javax.annotation.Nullable;
 
 
 public class AddBaseToCandleRecipe extends CustomRecipe {
 
-    public AddBaseToCandleRecipe(ResourceLocation pId) {
-        super(pId, CraftingBookCategory.MISC);
+    public AddBaseToCandleRecipe(CraftingBookCategory category) {
+        super(category);
 
     }
     @Override
@@ -35,11 +29,12 @@ public class AddBaseToCandleRecipe extends CustomRecipe {
     /**
      * Used to check if a recipe matches current crafting inventory
      */
-    public boolean matches(CraftingContainer pInv, Level pLevel) {
+
+    public boolean matches(CraftingInput pInv, Level pLevel) {
         ItemStack itemstack = ItemStack.EMPTY;
         BlockItem block = null;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(ModItems.CANDLE.get())) {
@@ -64,12 +59,12 @@ public class AddBaseToCandleRecipe extends CustomRecipe {
     /**
      * Returns an Item that is the result of this recipe
      */
-    public ItemStack assemble(CraftingContainer pInv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput pInv, HolderLookup.Provider registries) {
         int i = 0;
         ItemStack candle = ItemStack.EMPTY;
         BlockItem block = null;
 
-        for(int j = 0; j < pInv.getContainerSize(); ++j) {
+        for(int j = 0; j < pInv.size(); ++j) {
             ItemStack itemstack1 = pInv.getItem(j);
             if (!itemstack1.isEmpty()) {
                 if (itemstack1.is(ModItems.CANDLE.get())) {
@@ -97,8 +92,8 @@ public class AddBaseToCandleRecipe extends CustomRecipe {
             itemstack2.setCount(1);
 
             CandleData data = new CandleData();
-            data.load(itemstack2.getOrCreateTag());
-            ResourceLocation loc = ForgeRegistries.BLOCKS.getKey(block.getBlock());
+            data.load(itemstack2.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(), registries);
+            ResourceLocation loc = BuiltInRegistries.BLOCK.getKey(block.getBlock());
 
             if (loc != null) {
                 CompoundTag tag = new CompoundTag();
@@ -106,7 +101,7 @@ public class AddBaseToCandleRecipe extends CustomRecipe {
                 tag.putString("layer", loc.toString());
                 data.base.load(tag);
             }
-            data.save(itemstack2.getOrCreateTag(), true);
+            data.save(itemstack2.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag(), registries, true);
 
             return itemstack2;
         } else {
@@ -115,7 +110,7 @@ public class AddBaseToCandleRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
         return getOutput();
     }
 
@@ -144,25 +139,4 @@ public class AddBaseToCandleRecipe extends CustomRecipe {
         return pWidth * pHeight >= 2;
     }
 
-
-    // for Serializing the recipe into/from a json
-    public static class Serializer implements RecipeSerializer<AddBaseToCandleRecipe> {
-        public static final AddBaseToCandleRecipe.Serializer INSTANCE = new AddBaseToCandleRecipe.Serializer();
-
-        @Override
-        public AddBaseToCandleRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            return new AddBaseToCandleRecipe(recipeId);
-        }
-
-        @Nullable
-        @Override
-        public AddBaseToCandleRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            return new AddBaseToCandleRecipe(recipeId);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, AddBaseToCandleRecipe recipe) {
-        }
-
-    }
 }

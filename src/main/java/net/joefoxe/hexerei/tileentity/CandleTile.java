@@ -1,21 +1,17 @@
 package net.joefoxe.hexerei.tileentity;
 
 import net.joefoxe.hexerei.block.custom.Candle;
-import net.joefoxe.hexerei.data.candle.AbstractCandleEffect;
-import net.joefoxe.hexerei.data.candle.BonemealingCandleEffect;
 import net.joefoxe.hexerei.data.candle.CandleData;
 import net.joefoxe.hexerei.item.ModItems;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
-import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -24,21 +20,16 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.Random;
-
-import static net.joefoxe.hexerei.util.HexereiUtil.moveTo;
 
 public class CandleTile extends BlockEntity {
 
@@ -65,21 +56,21 @@ public class CandleTile extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag nbt) {
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 
 
-        if (nbt.contains("candle0", Tag.TAG_COMPOUND)){
-            if (nbt.contains("candle0")) {
-                candles.get(0).load(nbt.getCompound("candle0"));
+        if (tag.contains("candle0", Tag.TAG_COMPOUND)){
+            if (tag.contains("candle0")) {
+                candles.get(0).load(tag.getCompound("candle0"), registries);
             }
-            if (nbt.contains("candle1")) {
-                candles.get(1).load(nbt.getCompound("candle1"));
+            if (tag.contains("candle1")) {
+                candles.get(1).load(tag.getCompound("candle1"), registries);
             }
-            if (nbt.contains("candle2")) {
-                candles.get(2).load(nbt.getCompound("candle2"));
+            if (tag.contains("candle2")) {
+                candles.get(2).load(tag.getCompound("candle2"), registries);
             }
-            if (nbt.contains("candle3")) {
-                candles.get(3).load(nbt.getCompound("candle3"));
+            if (tag.contains("candle3")) {
+                candles.get(3).load(tag.getCompound("candle3"), registries);
             }
         }
 //        for(int i = 0; i < 4; i++){
@@ -90,28 +81,18 @@ public class CandleTile extends BlockEntity {
 //            }
 //        }
         setOffsetPos(true);
-        super.load(nbt);
+        super.loadAdditional(tag, registries);
 
     }
 
     @Override
-    public void saveAdditional(CompoundTag compound) {
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
         compound.putInt("effectCooldown", candles.get(0).cooldown);
-        compound.put("candle0", candles.get(0).save());
-        compound.put("candle1", candles.get(1).save());
-        compound.put("candle2", candles.get(2).save());
-        compound.put("candle3", candles.get(3).save());
-    }
-
-//    @Override
-    public CompoundTag save(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.putInt("effectCooldown", candles.get(0).cooldown);
-        tag.put("candle0", candles.get(0).save());
-        tag.put("candle1", candles.get(1).save());
-        tag.put("candle2", candles.get(2).save());
-        tag.put("candle3", candles.get(3).save());
-        return tag;
+        compound.put("candle0", candles.get(0).save(registries));
+        compound.put("candle1", candles.get(1).save(registries));
+        compound.put("candle2", candles.get(2).save(registries));
+        compound.put("candle3", candles.get(3).save(registries));
     }
 
     public int getNumberOfCandles() {
@@ -141,23 +122,18 @@ public class CandleTile extends BlockEntity {
         return customName != null;
     }
 
-
     @Override
-    public CompoundTag getUpdateTag()
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries)
     {
-        return this.save(new CompoundTag());
+        CompoundTag tag = new CompoundTag();
+        this.saveAdditional(tag, registries);
+        return tag;
     }
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
 
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
-    }
-
-    @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt)
-    {
-        this.deserializeNBT(pkt.getTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
 
@@ -170,16 +146,14 @@ public class CandleTile extends BlockEntity {
     }
 
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(25, 25, 25);
-    }
-
     public void sync() {
 
         if(level != null){
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+            if (!level.isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
+            }
 
             if (this.level != null)
                 this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
@@ -817,7 +791,7 @@ public class CandleTile extends BlockEntity {
 
     public void updateCandleSlot(int slot){
         CandleData newData = new CandleData();
-        newData.load(candles.get(slot + 1).save());
+        newData.load(candles.get(slot + 1).save(this.level.registryAccess()), this.level.registryAccess());
 
         candles.set(slot, newData);
         candles.set(slot + 1, new CandleData());

@@ -12,71 +12,37 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.data.recipes.BookOfShadowsRecipe;
 import net.joefoxe.hexerei.item.ModItems;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import java.util.List;
 import java.util.Optional;
 
 public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadowsRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "book_of_shadows_dye");
+    public final static ResourceLocation UID = HexereiUtil.getResource("book_of_shadows_dye");
     public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/crow_flute_dye_gui_jei.png");
+            HexereiUtil.getResource("textures/gui/crow_flute_dye_gui_jei.png");
     private IDrawable background;
     private final IDrawable icon;
 
-    @Override
-    public List<Component> getTooltipStrings(BookOfShadowsRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
-        //79, 59       24 x 18
-
-//        if(recipe.getHeatCondition() != BookOfShadowsRecipe.HeatCondition.NONE && isHovering(mouseX, mouseY, 79, 59, 24, 18)){
-//            List<Component> tooltip = new ArrayList<>();
-//            tooltip.add(Component.translatable("tooltip.hexerei.heat_source"));
-//
-//            if(Screen.hasShiftDown()) {
-//                tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//                tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_1").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//                tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_2").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//                tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_3").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//                tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated_4").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//                tooltip.add(Component.translatable("Heat source shown: - %s", Component.translatable(heatSource.getDescriptionId()).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCC5522)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//            } else {
-//                tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//                tooltip.add(Component.translatable("tooltip.hexerei.recipe_heated").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-//            }
-//
-//
-//
-//            return tooltip;
-//        }
-
-
-        return IRecipeCategory.super.getTooltipStrings(recipe, recipeSlotsView, mouseX, mouseY);
-    }
     public boolean isHovering(double mouseX, double mouseY, double x, double y, double width, double height)
     {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
@@ -89,7 +55,7 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
 
     @Override
     public RecipeType<BookOfShadowsRecipe> getRecipeType() {
-        return new RecipeType<>(new ResourceLocation(Hexerei.MOD_ID, "book_of_shadows_dye"), BookOfShadowsRecipe.class);
+        return new RecipeType<>(HexereiUtil.getResource("book_of_shadows_dye"), BookOfShadowsRecipe.class);
     }
 
     @Override
@@ -97,10 +63,10 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
         return Component.translatable("Book of Shadows Crafting");
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -145,6 +111,8 @@ public class BookOfShadowsRecipeCategory implements IRecipeCategory<BookOfShadow
         Minecraft minecraft = Minecraft.getInstance();
 
         Component outputName = recipe.getOutput().getHoverName();// Component.translatable("Crow Flute");
+
+        background.draw(guiGraphics);
 
         int width = minecraft.font.width(outputName);
         float lineHeight = minecraft.font.lineHeight / 2f;

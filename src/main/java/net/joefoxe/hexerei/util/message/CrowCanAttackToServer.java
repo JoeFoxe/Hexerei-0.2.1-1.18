@@ -1,15 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class CrowCanAttackToServer extends AbstractPacket {
 
-public class CrowCanAttackToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrowCanAttackToServer> CODEC  = StreamCodec.ofMember(CrowCanAttackToServer::encode, CrowCanAttackToServer::new);
+    public static final Type<CrowCanAttackToServer> TYPE = new Type<>(HexereiUtil.getResource("crow_interaction_range_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     boolean canAttack;
 
@@ -28,26 +38,9 @@ public class CrowCanAttackToServer {
         buffer.writeBoolean(object.canAttack);
     }
 
-    public static CrowCanAttackToServer decode(FriendlyByteBuf buffer) {
-        return new CrowCanAttackToServer(buffer);
-    }
-
-    public static void consume(CrowCanAttackToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-
-            if(world.getEntity(packet.sourceId) instanceof CrowEntity crowEntity)
-                crowEntity.canAttack = packet.canAttack;
-
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(player.level().getEntity(sourceId) instanceof CrowEntity crowEntity)
+            crowEntity.canAttack = canAttack;
     }
 }

@@ -1,20 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class ClientboundOpenCourierLetterScreenPacket extends AbstractPacket {
 
-public class ClientboundOpenCourierLetterScreenPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundOpenCourierLetterScreenPacket> CODEC  = StreamCodec.ofMember(ClientboundOpenCourierLetterScreenPacket::encode, ClientboundOpenCourierLetterScreenPacket::new);
+    public static final CustomPacketPayload.Type<ClientboundOpenCourierLetterScreenPacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("open_courier_letter_screen"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int slotIndex;
     InteractionHand hand;
 
@@ -22,39 +27,21 @@ public class ClientboundOpenCourierLetterScreenPacket {
         this.slotIndex = slotIndex;
         this.hand = hand;
     }
+    public ClientboundOpenCourierLetterScreenPacket(RegistryFriendlyByteBuf buf) {
+        this(buf.readInt(), buf.readBoolean() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
+    }
 
-    public static void encode(ClientboundOpenCourierLetterScreenPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.slotIndex);
-        buffer.writeBoolean(object.hand == InteractionHand.MAIN_HAND);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(slotIndex);
+        buffer.writeBoolean(hand == InteractionHand.MAIN_HAND);
     }
 
     public static ClientboundOpenCourierLetterScreenPacket decode(FriendlyByteBuf buffer) {
         return new ClientboundOpenCourierLetterScreenPacket(buffer.readInt(), buffer.readBoolean() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND);
     }
 
-    public static void consume(ClientboundOpenCourierLetterScreenPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-                if (Minecraft.getInstance().player != null)
-                    setScreen(packet.slotIndex, packet.hand, packet.slotIndex > 0 ? Minecraft.getInstance().player.getInventory().getItem(packet.slotIndex) : Minecraft.getInstance().player.getItemInHand(InteractionHand.OFF_HAND));
-            });
-
-        });
-        ctx.get().setPacketHandled(true);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void setScreen(int slotIndex, InteractionHand hand, ItemStack stack) {
-        Minecraft.getInstance().setScreen(new net.joefoxe.hexerei.screen.CourierLetterScreen(slotIndex, hand, stack));
-
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        minecraft.setScreen(new net.joefoxe.hexerei.screen.CourierLetterScreen(slotIndex, hand, slotIndex > 0 ? player.getInventory().getItem(slotIndex) : player.getItemInHand(InteractionHand.OFF_HAND)));
     }
 }

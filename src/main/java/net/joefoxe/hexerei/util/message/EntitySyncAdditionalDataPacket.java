@@ -1,18 +1,27 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class EntitySyncAdditionalDataPacket extends AbstractPacket {
 
-public class EntitySyncAdditionalDataPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, EntitySyncAdditionalDataPacket> CODEC  = StreamCodec.ofMember(EntitySyncAdditionalDataPacket::encode, EntitySyncAdditionalDataPacket::new);
+    public static final Type<EntitySyncAdditionalDataPacket> TYPE = new Type<>(HexereiUtil.getResource("entity_sync_additional"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     CompoundTag tag;
 
@@ -20,38 +29,24 @@ public class EntitySyncAdditionalDataPacket {
         this.sourceId = entity.getId();
         this.tag = tag;
     }
-    public EntitySyncAdditionalDataPacket(FriendlyByteBuf buf) {
+    public EntitySyncAdditionalDataPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.tag = buf.readNbt();
     }
 
-    public static void encode(EntitySyncAdditionalDataPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeNbt(object.tag);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeNbt(tag);
     }
 
-    public static EntitySyncAdditionalDataPacket decode(FriendlyByteBuf buffer) {
-        return new EntitySyncAdditionalDataPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(EntitySyncAdditionalDataPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) instanceof CrowEntity crow) {
-                crow.readAdditionalSaveDataNoSuper(packet.tag);
-            }
-            if(world.getEntity(packet.sourceId) instanceof OwlEntity owl) {
-                owl.readAdditionalSaveDataNoSuper(packet.tag);
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        if(player.level().getEntity(sourceId) instanceof CrowEntity crow) {
+            crow.readAdditionalSaveDataNoSuper(tag);
+        }
+        if(player.level().getEntity(sourceId) instanceof OwlEntity owl) {
+            owl.readAdditionalSaveDataNoSuper(tag);
+        }
     }
 }

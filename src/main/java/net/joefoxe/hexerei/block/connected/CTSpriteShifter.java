@@ -5,8 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 public class CTSpriteShifter {
 
@@ -18,7 +18,12 @@ public class CTSpriteShifter {
             return (CTSpriteShiftEntry) ENTRY_CACHE.get(key);
 
         CTSpriteShiftEntry entry = new CTSpriteShiftEntry(type);
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> entry.set(blockTexture, connectedTexture));
+
+
+        if (FMLEnvironment.dist == Dist.CLIENT)
+            entry.set(blockTexture, connectedTexture);
+
+//        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> entry.set(blockTexture, connectedTexture));
         ENTRY_CACHE.put(key, entry);
         return entry;
     }

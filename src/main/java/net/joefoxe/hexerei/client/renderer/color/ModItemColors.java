@@ -8,16 +8,16 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.GrassColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.WaterlilyBlock;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(value = Dist.CLIENT)
 public class ModItemColors {
     private ModItemColors() {}
-    // FORGE: Use RegistryDelegates as non-Vanilla item ids are not constant
+    // FORGE: Use RegistryDelegates as non-Vanilla item crowList are not constant
 
     @SubscribeEvent
     public static void initItemColors(RegisterColorHandlersEvent.Item event) {
@@ -44,6 +44,9 @@ public class ModItemColors {
         items.register((s, t) -> t == 1 ? SatchelItem.getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, ModItems.SMALL_SATCHEL.get());
         items.register((s, t) -> t == 1 ? SatchelItem.getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, ModItems.MEDIUM_SATCHEL.get());
         items.register((s, t) -> t == 1 ? SatchelItem.getColorValue(SatchelItem.getDyeColorNamed(s), s) : -1, ModItems.LARGE_SATCHEL.get());
+
+
+        items.register((s, t) -> t == 1 ? CandleItem.getColorValue(CandleItem.getDyeColorNamed(s), s) : -1, ModItems.CANDLE.get());
 
     }
 

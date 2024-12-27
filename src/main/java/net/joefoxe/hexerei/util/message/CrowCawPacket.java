@@ -1,52 +1,47 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class CrowCawPacket extends AbstractPacket {
 
-public class CrowCawPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrowCawPacket> CODEC  = StreamCodec.ofMember(CrowCawPacket::encode, CrowCawPacket::new);
+    public static final Type<CrowCawPacket> TYPE = new Type<>(HexereiUtil.getResource("crow_caw"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
 
     public CrowCawPacket(Entity entity) {
         this.sourceId = entity.getId();
     }
-    public CrowCawPacket(FriendlyByteBuf buf) {
+    public CrowCawPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
     }
 
-    public static void encode(CrowCawPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
     }
 
-    public static CrowCawPacket decode(FriendlyByteBuf buffer) {
-        return new CrowCawPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(CrowCawPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if(player.level().getEntity(sourceId) != null) {
+            if((player.level().getEntity(sourceId)) instanceof CrowEntity crow) {
+                crow.caw = true;
+                crow.cawTimer = 15;
+                crow.cawTiltAngle = 80;
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) != null) {
-                if((world.getEntity(packet.sourceId)) instanceof CrowEntity crow) {
-                    crow.caw = true;
-                    crow.cawTimer = 15;
-                    crow.cawTiltAngle = 80;
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+        }
     }
 }

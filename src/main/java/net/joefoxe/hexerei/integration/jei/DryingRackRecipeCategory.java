@@ -12,6 +12,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.recipes.DryingRackRecipe;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,9 +22,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecipe> {
-    public final static ResourceLocation UID = new ResourceLocation(Hexerei.MOD_ID, "drying_rack");
-    public final static ResourceLocation TEXTURE =
-            new ResourceLocation(Hexerei.MOD_ID, "textures/gui/drying_rack_jei.png");
+    public final static ResourceLocation UID = HexereiUtil.getResource("drying_rack");
+    public final static ResourceLocation TEXTURE = HexereiUtil.getResource("textures/gui/drying_rack_jei.png");
     private final IDrawable background;
     private final IDrawable icon;
 
@@ -43,10 +43,10 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecip
         return ModBlocks.HERB_DRYING_RACK.get().getName();
     }
 
-    @Override
-    public IDrawable getBackground() {
-        return this.background;
-    }
+//    @Override
+//    public IDrawable getBackground() {
+//        return this.background;
+//    }
 
     @Override
     public IDrawable getIcon() {
@@ -62,6 +62,8 @@ public class DryingRackRecipeCategory implements IRecipeCategory<DryingRackRecip
 
     @Override
     public void draw(DryingRackRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+
+        background.draw(guiGraphics);
 
         int dryingTime = recipe.getDryingTime();
         Minecraft minecraft = Minecraft.getInstance();

@@ -6,7 +6,6 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.PickableDoublePlant;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.ai.owl.quirks.FavoriteBlockQuirk;
@@ -15,7 +14,6 @@ import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
@@ -29,27 +27,22 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -64,9 +57,9 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
     private final static int FRONT_BLIT_LAYER = 2;
     private final static int BACK_OVERLAY_BLIT_LAYER = 1;
     private final static int BACK_BLIT_LAYER = 0;
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/owl_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
     public final OwlEntity owlEntity;
@@ -89,7 +82,7 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
 
     @Override
     public void render(GuiGraphics guiGraphics, int x, int y, float partialTicks) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, x, y, partialTicks);
         super.render(guiGraphics, x, y, partialTicks);
         int i = this.leftPos;
         int j = this.topPos;
@@ -98,7 +91,7 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
 
         List<FavoriteBlockQuirk> list = FavoriteBlockQuirk.fromController(this.owlEntity.quirkController);
         if (this.quirkSideBarHidden) {
-            if (list.size() > 0) {
+            if (!list.isEmpty()) {
                 if (hovering(x, y, 9, 12, 160, 44))
                     guiGraphics.blit(GUI, i + 161, j + 45, FRONT_BLIT_LAYER, 215, 12, 7, 10, 256, 256);
                 else
@@ -124,7 +117,7 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
             guiGraphics.pose().translate(i + 169.5, j + 63, 200.0F);
             guiGraphics.pose().translate(8.0F, -8.0F, 0.0F);
             guiGraphics.pose().scale(11.0F, 11.0F, 11.0F);
-            guiGraphics.pose().mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+            guiGraphics.pose().mulPose(new Matrix4f().scale(1, -1, 1));
             Vec3 rotationOffset = new Vec3(0.5f, 0, 0.5f);
             float zRot = 0;
             float xRot = 20;
@@ -139,8 +132,8 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
 
             Lighting.setupFor3DItems();
             guiGraphics.pose().last().normal().rotate(Axis.YP.rotationDegrees((float) -45));
-            if (list.size() > 0 && minecraft != null && minecraft.level != null && minecraft.player != null) {
-                BlockState state = list.get(0).getFavoriteBlock().defaultBlockState();
+            if (!list.isEmpty() && minecraft != null && minecraft.level != null && minecraft.player != null) {
+                BlockState state = list.getFirst().getFavoriteBlock().defaultBlockState();
 
                 int col = minecraft.getBlockColors().getColor(state, minecraft.level, minecraft.player.blockPosition());
                 renderBlock(guiGraphics.pose(), buffer, LightTexture.FULL_BRIGHT, state, col);
@@ -157,7 +150,7 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
 
         }
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 94, j - 9, 20, (float)(i + 51) - x, (float)(j + 75 - 50) - y, owlEntity);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, this.leftPos + 94 - 20, j - 9 - 20, this.leftPos + 94 + 20, j - 9 + 20, 20, 0.0625F, (float)(i + 51) - x, (float)(j + 75 - 50) - y, owlEntity);
 
 
         this.renderTooltip(guiGraphics, x, y);
@@ -187,7 +180,7 @@ public class OwlScreen extends AbstractContainerScreen<OwlContainer> {
                     components.add(Component.translatable("tooltip.hexerei.owl_favorite_block2").withStyle(ChatFormatting.GRAY));
                     components.add(Component.literal(""));
                     if (minecraft != null)
-                        components.addAll(list.get(0).getFavoriteBlock().asItem().getDefaultInstance().getTooltipLines(minecraft.player, minecraft.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL));
+                        components.addAll(list.get(0).getFavoriteBlock().asItem().getDefaultInstance().getTooltipLines(Item.TooltipContext.EMPTY, minecraft.player, minecraft.options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL));
                 }
                 else if (hovering(mouseX, mouseY, 8D, 8D, 161, 46)) {
                     components.add(Component.translatable("tooltip.hexerei.owl_close_quirks_tab"));

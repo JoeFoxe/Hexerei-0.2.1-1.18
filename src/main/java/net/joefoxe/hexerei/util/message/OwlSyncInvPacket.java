@@ -1,18 +1,26 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
-import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.client.renderer.entity.custom.OwlEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class OwlSyncInvPacket extends AbstractPacket {
 
-public class OwlSyncInvPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, OwlSyncInvPacket> CODEC  = StreamCodec.ofMember(OwlSyncInvPacket::encode, OwlSyncInvPacket::new);
+    public static final Type<OwlSyncInvPacket> TYPE = new Type<>(HexereiUtil.getResource("owl_sync_inv"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     CompoundTag tag;
 
@@ -20,35 +28,20 @@ public class OwlSyncInvPacket {
         this.sourceId = entity.getId();
         this.tag = tag;
     }
-    public OwlSyncInvPacket(FriendlyByteBuf buf) {
+    public OwlSyncInvPacket(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.tag = buf.readNbt();
     }
 
-    public static void encode(OwlSyncInvPacket object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeNbt(object.tag);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeNbt(tag);
     }
 
-    public static OwlSyncInvPacket decode(FriendlyByteBuf buffer) {
-        return new OwlSyncInvPacket(buffer);
-    }
-
-    public static void consume(OwlSyncInvPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) instanceof OwlEntity owl) {
-                owl.itemHandler.deserializeNBT(packet.tag);
-            }
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
+        if(player.level().getEntity(sourceId) instanceof OwlEntity owl) {
+            owl.itemHandler.deserializeNBT(minecraft.level.registryAccess(), tag);
+        }
     }
 }

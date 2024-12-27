@@ -86,11 +86,11 @@ public class AllSpriteShifts {
         return getCT(AllCTTypes.OMNIDIRECTIONAL, name);
     }
     private static CTSpriteShiftEntry omni(String blockTextureName, String connectedTextureName) {
-        return CTSpriteShifter.getCT(AllCTTypes.OMNIDIRECTIONAL, new ResourceLocation(Hexerei.MOD_ID,"block/" + blockTextureName), new ResourceLocation(Hexerei.MOD_ID, "block/" + connectedTextureName));
+        return CTSpriteShifter.getCT(AllCTTypes.OMNIDIRECTIONAL, ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"block/" + blockTextureName), ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/" + connectedTextureName));
     }
 
     private static CTSpriteShiftEntry omniRandom(String blockTextureName, String connectedTextureName) {
-        return CTSpriteShifter.getCT(AllCTTypes.OMNIDIRECTIONAL_RANDOM_7_50P, new ResourceLocation(Hexerei.MOD_ID,"block/" + blockTextureName), new ResourceLocation(Hexerei.MOD_ID, "block/" + connectedTextureName));
+        return CTSpriteShifter.getCT(AllCTTypes.OMNIDIRECTIONAL_RANDOM_7_50P, ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"block/" + blockTextureName), ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/" + connectedTextureName));
     }
     private static CTSpriteShiftEntry omniRandom(String name) {
         return getCT(AllCTTypes.OMNIDIRECTIONAL_RANDOM_7_50P, name);
@@ -100,22 +100,22 @@ public class AllSpriteShifts {
     }
 
     private static CTSpriteShiftEntry pillar(String blockTextureName, String connectedTextureName) {
-        return CTSpriteShifter.getCT(AllCTTypes.RECTANGLE, new ResourceLocation(Hexerei.MOD_ID,"block/" + blockTextureName), new ResourceLocation(Hexerei.MOD_ID, "block/" + connectedTextureName));
+        return CTSpriteShifter.getCT(AllCTTypes.RECTANGLE, ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"block/" + blockTextureName), ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/" + connectedTextureName));
     }
     private static CTSpriteShiftEntry layered(String name) {
         return getCT(AllCTTypes.HORIZONTAL_KRYPPERS, name);
     }
 
     private static CTSpriteShiftEntry layered(String blockTextureName, String connectedTextureName) {
-        return CTSpriteShifter.getCT(AllCTTypes.HORIZONTAL_KRYPPERS, new ResourceLocation(Hexerei.MOD_ID,"block/" + blockTextureName), new ResourceLocation(Hexerei.MOD_ID, "block/" + connectedTextureName));
+        return CTSpriteShifter.getCT(AllCTTypes.HORIZONTAL_KRYPPERS, ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"block/" + blockTextureName), ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/" + connectedTextureName));
     }
 
     private static CTSpriteShiftEntry type(CTType type, String blockTextureName, String connectedTextureName) {
-        return CTSpriteShifter.getCT(type, new ResourceLocation(Hexerei.MOD_ID,"block/" + blockTextureName), new ResourceLocation(Hexerei.MOD_ID, "block/" + connectedTextureName));
+        return CTSpriteShifter.getCT(type, ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"block/" + blockTextureName), ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/" + connectedTextureName));
     }
 
     private static CTSpriteShiftEntry getCT(CTType type, String blockTextureName, String connectedTextureName) {
-        return CTSpriteShifter.getCT(type, new ResourceLocation(Hexerei.MOD_ID,"block/" + blockTextureName), new ResourceLocation(Hexerei.MOD_ID, "block/" + connectedTextureName + "_connected"));
+        return CTSpriteShifter.getCT(type, ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID,"block/" + blockTextureName), ResourceLocation.fromNamespaceAndPath(Hexerei.MOD_ID, "block/" + connectedTextureName + "_connected"));
     }
 
     private static CTSpriteShiftEntry getCT(CTType type, String blockTextureName) {

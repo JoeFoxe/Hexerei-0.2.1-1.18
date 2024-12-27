@@ -3,20 +3,22 @@ package net.joefoxe.hexerei.tileentity;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.config.HexConfig;
 import net.joefoxe.hexerei.container.CofferContainer;
+import net.joefoxe.hexerei.item.ModDataComponents;
 import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.joefoxe.hexerei.util.message.CofferSyncCrowButtonToServer;
 import net.joefoxe.hexerei.util.message.TESyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Clearable;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.Entity;
@@ -24,40 +26,35 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Random;
 import java.util.stream.IntStream;
 
 public class CofferTile extends RandomizableContainerBlockEntity implements WorldlyContainer, Clearable {
 
     public final ItemStackHandler itemStackHandler = createHandler();
-    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemStackHandler);
+//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemStackHandler);
 
 //    protected NonNullList<ItemStack> items = NonNullList.withSize(8, ItemStack.EMPTY);
+    public static final int DEFAULT_COLOR = 0x422F1E;
 
     public int degreesOpened;
     public int buttonToggled = 0;
     public static final int lidOpenAmount = 112;
     public int degreesOpenedPrev = 0;
-    public int dyeColor = 0x422F1E;
+    public int dyeColor = DEFAULT_COLOR;
 
     public Component customName;
 
@@ -86,8 +83,8 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
         return super.getType();
     }
 
-    public void readInventory(CompoundTag compound) {
-        itemStackHandler.deserializeNBT(compound);
+    public void readInventory(HolderLookup.Provider provider, CompoundTag compound) {
+        itemStackHandler.deserializeNBT(provider, compound);
     }
 
     public void setDyeColor(int dyeColor){
@@ -161,8 +158,9 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
 
         if(this.self != null){
 
-            CompoundTag tag = this.self.getOrCreateTag();
-            CompoundTag inv = this.itemStackHandler.serializeNBT();
+            CompoundTag tag = this.self.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+
+            CompoundTag inv = this.itemStackHandler.serializeNBT(this.level.registryAccess());
 
 //            boolean flag = false;
 //            for(int i = 0; i < 36; i++)
@@ -175,8 +173,7 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
 //            }
             tag.put("Inventory", inv);
 
-            if(self.getItem() instanceof DyeableLeatherItem dyeableLeatherItem)
-                dyeableLeatherItem.setColor(this.self, this.dyeColor);
+            this.self.set(DataComponents.DYED_COLOR, new DyedItemColor(this.dyeColor, true));
 
             tag.putInt("ButtonToggled", this.buttonToggled);
 
@@ -184,10 +181,11 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
             Component customName = getCustomName();
 
             if (customName != null)
-                if(customName.getString().length() > 0)
-                    this.self.setHoverName(customName);
+                if(!customName.getString().isEmpty())
+                    this.self.set(DataComponents.CUSTOM_NAME, customName);
 
 
+            this.self.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
     }
 
@@ -228,124 +226,58 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
     @Override
     public void clearContent() {
         super.clearContent();
-//        this.items.clear();
 
         for(int i = 0; i < this.itemStackHandler.getSlots(); i++)
             this.itemStackHandler.setStackInSlot(i, ItemStack.EMPTY);
     }
 
-//    @Override
-//    public double getMaxRenderDistanceSquared() {
-//        return 4096D;
-//    }
 
     @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
-    }
-
-    @Override
-    public void requestModelDataUpdate() {
-        super.requestModelDataUpdate();
-    }
-
-    @NotNull
-    @Override
-    public ModelData getModelData() {
-        return super.getModelData();
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        super.handleUpdateTag(tag);
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
-    }
-
-    @Override
-    public void deserializeNBT(CompoundTag nbt) {
-        super.deserializeNBT(nbt);
-    }
-
-    @Override
-    public CompoundTag serializeNBT() {
-        return super.serializeNBT();
-    }
-
-//    @Override
-    public CompoundTag save(CompoundTag tag) {
-        super.saveAdditional(tag);
-
-        if (!this.trySaveLootTable(tag))
-            tag.put("inv", itemStackHandler.serializeNBT());
-        tag.putInt("ButtonToggled", this.buttonToggled);
-        tag.putInt("DyeColor", this.dyeColor);
-        return tag;
-    }
-
-
-    @Override
-    public void saveAdditional(CompoundTag compound) {
+    public void saveAdditional(CompoundTag compound, HolderLookup.Provider reg) {
         if (!this.trySaveLootTable(compound))
-            compound.put("inv", itemStackHandler.serializeNBT());
+            compound.put("inv", itemStackHandler.serializeNBT(reg));
         if (this.customName != null)
-            compound.putString("CustomName", Component.Serializer.toJson(this.customName));
+            compound.putString("CustomName", Component.Serializer.toJson(this.customName, reg));
         compound.putInt("ButtonToggled", this.buttonToggled);
         compound.putInt("DyeColor", this.dyeColor);
 
     }
 
-
-
     @Override
-    public void load(CompoundTag compoundTag) {
-        super.load(compoundTag);
-        if (!tryLoadLootTable(compoundTag)){
-            itemStackHandler.deserializeNBT(compoundTag.getCompound("inv"));
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);;
+        if (!tryLoadLootTable(tag)){
+            itemStackHandler.deserializeNBT(registries, tag.getCompound("inv"));
         }
-        if (compoundTag.contains("CustomName", 8))
-            this.customName = Component.Serializer.fromJson(compoundTag.getString("CustomName"));
-        if(compoundTag.contains("ButtonToggled"))
-            this.buttonToggled = compoundTag.getInt("ButtonToggled");
-        if(compoundTag.contains("DyeColor")) {
-            this.dyeColor = compoundTag.getInt("DyeColor");
+        if (tag.contains("CustomName", 8))
+            this.customName = Component.Serializer.fromJson(tag.getString("CustomName"), registries);
+        if(tag.contains("ButtonToggled"))
+            this.buttonToggled = tag.getInt("ButtonToggled");
+        if(tag.contains("DyeColor")) {
+            this.dyeColor = tag.getInt("DyeColor");
 
             //this fixes the coffers having a black outline when loaded from the old village
             if(this.dyeColor == 0)
                 this.dyeColor = 4337438;
         }
-
     }
 
-
-
-    @Override
-    public CompoundTag getUpdateTag()
-    {
-        return this.save(new CompoundTag());
-    }
 
     @Nullable
     public Packet<ClientGamePacketListener> getUpdatePacket() {
 
-        return ClientboundBlockEntityDataPacket.create(this, (tag) -> this.getUpdateTag());
-    }
-
-    @Override
-    public void onDataPacket(final Connection net, final ClientboundBlockEntityDataPacket pkt)
-    {
-        this.deserializeNBT(pkt.getTag());
+        return ClientboundBlockEntityDataPacket.create(this, (tag, registryAccess) -> this.getUpdateTag(registryAccess));
     }
 
     public void sync() {
         setChanged();
 
         if(level != null){
-            if (!level.isClientSide)
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new TESyncPacket(worldPosition, save(new CompoundTag())));
+            if (!level.isClientSide) {
+                CompoundTag tag = new CompoundTag();
+                this.saveAdditional(tag, level.registryAccess());
+                HexereiPacketHandler.sendToNearbyClient(level, worldPosition, new TESyncPacket(worldPosition, tag));
+            }
 
             if (this.level != null)
                 this.level.sendBlockUpdated(this.worldPosition, this.level.getBlockState(this.worldPosition), this.level.getBlockState(this.worldPosition),
@@ -387,23 +319,24 @@ public class CofferTile extends RandomizableContainerBlockEntity implements Worl
         };
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return handler.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @NotNull
-    @Override
-    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return handler.cast();
-        }
-        return super.getCapability(cap);
-    }
+    //TODO do capabilities
+//    @Nonnull
+//    @Override
+//    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+//        if (cap == ForgeCapabilities.ITEM_HANDLER) {
+//            return handler.cast();
+//        }
+//        return super.getCapability(cap, side);
+//    }
+//
+//    @NotNull
+//    @Override
+//    public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap) {
+//        if (cap == ForgeCapabilities.ITEM_HANDLER) {
+//            return handler.cast();
+//        }
+//        return super.getCapability(cap);
+//    }
 
     public ItemStack getItemStackInSlot(int slot) {
         return this.itemStackHandler.getStackInSlot(slot);

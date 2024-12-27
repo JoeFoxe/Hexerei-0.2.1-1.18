@@ -8,8 +8,11 @@ import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.custom.PickableDoublePlant;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -20,6 +23,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -28,29 +32,61 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
-@OnlyIn(Dist.CLIENT)
-public class CrowWhitelistRenderer implements IGuiOverlay {
-    private static final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
-            "textures/gui/crow_gui.png");
+public class CrowWhitelistRenderer implements LayeredDraw.Layer {
+    private static final ResourceLocation GUI = HexereiUtil.getResource("textures/gui/crow_gui.png");
+
     @Override //(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight)
-    public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         PoseStack poseStack = guiGraphics.pose();
         if(CrowWhitelistEvent.whiteListingCrow != null) {
-            gui.setupOverlayRenderState(true, false);
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             RenderSystem.setShaderTexture(0, GUI);
             guiGraphics.blit(GUI, screenWidth / 2 - 9, screenHeight - 42, 238, 178, 18, 18, 256, 256);
 
-            InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, screenWidth / 2, screenHeight - 78, 40, (float)Math.toRadians(-50), (float)Math.toRadians(10), CrowWhitelistEvent.whiteListingCrow);
+
+//            public static void renderEntityInInventoryFollowsMouse(
+//                    GuiGraphics guiGraphics,
+//            int x1,
+//            int y1,
+//            int x2,
+//            int y2,
+//            int scale,
+//            float yOffset,
+//            float mouseX,
+//            float mouseY,
+//            LivingEntity entity
+//    ) {
+//                float f = (float)(x1 + x2) / 2.0F;
+//                float f1 = (float)(y1 + y2) / 2.0F;
+//                float f2 = (float)Math.atan((double)((f - mouseX) / 40.0F));
+//                float f3 = (float)Math.atan((double)((f1 - mouseY) / 40.0F));
+//                // Forge: Allow passing in direct angle components instead of mouse position
+//                renderEntityInInventoryFollowsAngle(guiGraphics, x1, y1, x2, y2, scale, yOffset, f2, f3, entity);
+//            }
+//
+//            public static void renderEntityInInventoryFollowsAngle(
+//                    GuiGraphics p_282802_,
+//            int p_275688_,
+//            int p_275245_,
+//            int p_275535_,
+//            int p_294406_,
+//            int p_294663_,
+//            float p_275604_,
+//            float angleXComponent,
+//            float angleYComponent,
+//            LivingEntity p_275689_
+//    )
+
+
+
+            InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, screenWidth / 2 - 16, screenHeight - 94, screenWidth / 2 + 16, screenHeight - 62, 40, 0.0625F, (float)Math.toRadians(-50), (float)Math.toRadians(10), CrowWhitelistEvent.whiteListingCrow);
 
             if(!CrowWhitelistEvent.whiteListingCrow.harvestWhitelist.isEmpty()){
                 RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
@@ -61,7 +97,7 @@ public class CrowWhitelistRenderer implements IGuiOverlay {
                 poseStack.translate(screenWidth / 2f - 14 - ((CrowWhitelistEvent.whiteListingCrow.harvestWhitelist.size() - 1) / 2f * 21), screenHeight - 40, 100.0F);
                 poseStack.translate(8.0F, -8.0F, 0.0F);
                 poseStack.scale(12.0F, 12.0F, 12.0F);
-                poseStack.mulPoseMatrix(new Matrix4f().scale(1, -1, 1));
+                poseStack.mulPose(new Matrix4f().scale(1, -1, 1));
                 Vec3 rotationOffset = new Vec3(0.5f, 0, 0.5f);
 
                 MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -113,13 +149,11 @@ public class CrowWhitelistRenderer implements IGuiOverlay {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     private void renderBlock(PoseStack matrixStack, MultiBufferSource bufferIn, int combinedLightIn, BlockState state, int color) {
         renderSingleBlock(state, matrixStack, bufferIn, combinedLightIn, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, color);
 
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void renderSingleBlock(BlockState p_110913_, PoseStack poseStack, MultiBufferSource p_110915_, int p_110916_, int p_110917_, ModelData modelData, int color) {
         RenderShape rendershape = p_110913_.getRenderShape();
         if (rendershape != RenderShape.INVISIBLE) {

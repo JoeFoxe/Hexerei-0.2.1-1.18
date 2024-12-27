@@ -7,11 +7,11 @@ import com.mojang.math.Axis;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
 import net.joefoxe.hexerei.events.CrowWhitelistEvent;
+import net.joefoxe.hexerei.item.ModDataComponents;
 import net.joefoxe.hexerei.item.custom.CrowFluteItem;
+import net.joefoxe.hexerei.item.data_components.FluteData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -20,31 +20,26 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import org.joml.Matrix3f;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@OnlyIn(Dist.CLIENT)
 public class CrowPerchRenderer {
     private static final float BOX_SIZE = 0.5f;
     private static final float BOX_START = (1f - BOX_SIZE) / 2f;
 
     private static ItemStack lastStackMain = ItemStack.EMPTY;
     private static ItemStack lastStackOff = ItemStack.EMPTY;
-    public static final ResourceLocation BEAM_LOCATION = new ResourceLocation("textures/entity/beacon_beam.png");
+    public static final ResourceLocation BEAM_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/beacon_beam.png");
 
     @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START && Hexerei.proxy.getPlayer() != null) {
+    public static void clientTick(ClientTickEvent.Pre event) {
+        if (Hexerei.proxy.getPlayer() != null) {
             ItemStack curItemMain = Hexerei.proxy.getPlayer().getMainHandItem();
             ItemStack curItemOff = Hexerei.proxy.getPlayer().getOffhandItem();
             if (!ItemStack.matches(curItemMain, lastStackMain)) {
@@ -73,7 +68,8 @@ public class CrowPerchRenderer {
             }
 
             if (lastStackMain.getItem() instanceof CrowFluteItem) {
-                int command = lastStackMain.getOrCreateTag().getInt("commandMode");
+                FluteData fluteData = lastStackMain.getOrDefault(ModDataComponents.FLUTE, FluteData.empty());
+                int command = fluteData.commandMode();
                 if (command == 2) { // Perch
                     MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
                     PoseStack matrixStack = event.getPoseStack();
@@ -101,7 +97,8 @@ public class CrowPerchRenderer {
                 }
             }
             if (lastStackOff.getItem() instanceof CrowFluteItem) {
-                int command = lastStackOff.getOrCreateTag().getInt("commandMode");
+                FluteData fluteData = lastStackOff.getOrDefault(ModDataComponents.FLUTE, FluteData.empty());
+                int command = fluteData.commandMode();
                 if (command == 2) { // Perch
                     MultiBufferSource.BufferSource buffer = Minecraft.getInstance().renderBuffers().bufferSource();
                     PoseStack matrixStack = event.getPoseStack();
@@ -141,40 +138,40 @@ public class CrowPerchRenderer {
         int b = color & 0xFF;
         int alpha = 40;
 // Front face
-        faceBuilder.vertex(posMat,xOffset, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
+        faceBuilder.addVertex(posMat,xOffset, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
 
 // Back face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
 
 // Left face
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
 
 // Right face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
 
 // Bottom face
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
 
 // Top face
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset + BOX_SIZE * .1f).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * .1f, yOffset + BOX_SIZE, zOffset).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
 
         RenderSystem.disableDepthTest();
         buffer.endBatch(ModRenderTypes.BLOCK_HILIGHT_FACE);
@@ -191,40 +188,40 @@ public class CrowPerchRenderer {
         int b = color & 0xFF;
         int alpha = 40;
 // Front face
-        faceBuilder.vertex(posMat,xOffset + BOX_SIZE * 0.9f, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
+        faceBuilder.addVertex(posMat,xOffset + BOX_SIZE * 0.9f, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
 
 // Back face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
 
 // Left face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
 
 // Right face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
 
 // Bottom face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
 
 // Top face
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0, 1).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1, 1).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset).color(r, g, b, alpha).uv(1, 0).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset).color(r, g, b, alpha).uv(0, 0).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0, 1).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1, 1).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset).setColor(r, g, b, alpha).setUv(1, 0).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE * 0.9f, yOffset + BOX_SIZE * 0.1f, zOffset).setColor(r, g, b, alpha).setUv(0, 0).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
 
         RenderSystem.disableDepthTest();
         buffer.endBatch(ModRenderTypes.BLOCK_HILIGHT_FACE);
@@ -240,35 +237,35 @@ public class CrowPerchRenderer {
         int alpha = 40;
 
 
-        faceBuilder.vertex(posMat,xOffset, yOffset, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
+        faceBuilder.addVertex(posMat,xOffset, yOffset, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
 
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
 
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
 
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
 
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
 
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        faceBuilder.vertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset + BOX_SIZE, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        faceBuilder.addVertex(posMat, xOffset, yOffset + BOX_SIZE * 0.1f, zOffset + BOX_SIZE * 0.9f).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
 
         RenderSystem.disableDepthTest();
         buffer.endBatch(ModRenderTypes.BLOCK_HILIGHT_FACE);
@@ -276,19 +273,17 @@ public class CrowPerchRenderer {
 
     private static void renderPerch(MultiBufferSource.BufferSource buffer, PoseStack matrixStack, ItemStack stack) {
 
-        ListTag id = stack.getOrCreateTag().getList("crowList", CompoundTag.TAG_COMPOUND);
+        FluteData data = stack.getOrDefault(ModDataComponents.FLUTE, FluteData.EMPTY);
         BlockPos pos;
         Map<BlockPos, Integer> map = new HashMap<>();
 
-        for(int i = 0; i < id.size(); i++){
-            CompoundTag tag = id.getCompound(i);
-
-            int crowId = tag.getInt("ID");
+        for(int i = 0; i < data.crowList().size(); i++){
+            int crowId = data.crowList().get(i).id();
             Level level = Hexerei.proxy.getPlayer().level();
             if ((level).getEntity(crowId) instanceof CrowEntity crow && ((CrowEntity) (level).getEntity(crowId)).getPerchPos() != null) {
 
                 pos = crow.getPerchPos();
-                double topOffset = level.getBlockState(pos).getBlock().getOcclusionShape(level.getBlockState(pos), level, pos).max(Direction.Axis.Y);
+                double topOffset = level.getBlockState(pos).getOcclusionShape(level, pos).max(Direction.Axis.Y);
                 int amount;
                 if (!map.containsKey(pos)) {
                     amount = 1;
@@ -341,40 +336,40 @@ public class CrowPerchRenderer {
                 VertexConsumer lineBuilder = buffer.getBuffer(ModRenderTypes.BLOCK_HILIGHT_FACE);
 //                VertexConsumer lineBuilder = buffer.getBuffer(RenderType.beaconBeam(BEAM_LOCATION, true));
 
-                lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
 
 // Back face
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+                lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
 
 // Left face
-                lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
 
 // Right face
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
 
 // Bottom face
-                lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
 
 // Top face
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
 
                 RenderSystem.disableDepthTest();
                 buffer.endBatch(ModRenderTypes.BLOCK_HILIGHT_FACE);
@@ -390,13 +385,11 @@ public class CrowPerchRenderer {
 
     private static void renderSelect(MultiBufferSource.BufferSource buffer, PoseStack matrixStack, ItemStack stack) {
 
-        ListTag id = stack.getOrCreateTag().getList("crowList", CompoundTag.TAG_COMPOUND);
+        FluteData data = stack.getOrDefault(ModDataComponents.FLUTE, FluteData.EMPTY);
         Vec3 pos;
 
-        for(int i = 0; i < id.size(); i++){
-            CompoundTag tag = id.getCompound(i);
-
-            int crowId = tag.getInt("ID");
+        for(int i = 0; i < data.crowList().size(); i++){
+            int crowId = data.crowList().get(i).id();
 
             if ((Hexerei.proxy.getPlayer().level()).getEntity(crowId) instanceof CrowEntity crow) {
 
@@ -458,40 +451,40 @@ public class CrowPerchRenderer {
 
                 VertexConsumer lineBuilder = buffer.getBuffer(ModRenderTypes.BLOCK_HILIGHT_FACE);
 
-                lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
 
 // Back face
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+                lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
 
 // Left face
-                lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
 
 // Right face
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
 
 // Bottom face
-                lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
 
 // Top face
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-                lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+                lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
 
                 RenderSystem.disableDepthTest();
                 buffer.endBatch(ModRenderTypes.BLOCK_HILIGHT_FACE);
@@ -525,40 +518,40 @@ public class CrowPerchRenderer {
 
         VertexConsumer lineBuilder = buffer.getBuffer(ModRenderTypes.BLOCK_HILIGHT_FACE);
 
-        lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, -1.0F).endVertex();
+        lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, -1.0F);
 
 // Back face
-        lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 0.0F, 1.0F).endVertex();
+        lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
+        lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 0.0F, 1.0F);
 
 // Left face
-        lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(-1.0F, 0.0F, 0.0F).endVertex();
+        lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
+        lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(-1.0F, 0.0F, 0.0F);
 
 // Right face
-        lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(1.0F, 0.0F, 0.0F).endVertex();
+        lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(1.0F, 0.0F, 0.0F);
 
 // Bottom face
-        lineBuilder.vertex(posMat, 0, 0, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, 0, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, 0, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, 0, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, -1.0F, 0.0F).endVertex();
+        lineBuilder.addVertex(posMat, 0, 0, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, 0, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
+        lineBuilder.addVertex(posMat, 0, 0, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, -1.0F, 0.0F);
 
 // Top face
-        lineBuilder.vertex(posMat, 0, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(0.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).color(r, g, b, alpha).uv(1.0F, 1.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, BOX_SIZE, BOX_SIZE, 0).color(r, g, b, alpha).uv(1.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
-        lineBuilder.vertex(posMat, 0, BOX_SIZE, 0).color(r, g, b, alpha).uv(0.0F, 0.0F).uv2(0, 10).normal(0.0F, 1.0F, 0.0F).endVertex();
+        lineBuilder.addVertex(posMat, 0, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(0.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, BOX_SIZE).setColor(r, g, b, alpha).setUv(1.0F, 1.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        lineBuilder.addVertex(posMat, BOX_SIZE, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(1.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
+        lineBuilder.addVertex(posMat, 0, BOX_SIZE, 0).setColor(r, g, b, alpha).setUv(0.0F, 0.0F).setUv2(0, 10).setNormal(0.0F, 1.0F, 0.0F);
 
         RenderSystem.disableDepthTest();
         buffer.endBatch(ModRenderTypes.BLOCK_HILIGHT_FACE);

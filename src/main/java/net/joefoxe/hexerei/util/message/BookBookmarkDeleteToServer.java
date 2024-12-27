@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.BookOfShadowsAltarTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.function.Supplier;
+public class BookBookmarkDeleteToServer extends AbstractPacket {
 
-public class BookBookmarkDeleteToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BookBookmarkDeleteToServer> CODEC  = StreamCodec.ofMember(BookBookmarkDeleteToServer::encode, BookBookmarkDeleteToServer::new);
+    public static final Type<BookBookmarkDeleteToServer> TYPE = new Type<>(HexereiUtil.getResource("book_bookmark_delete_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos bookAltar;
     int slot;
 
@@ -18,34 +27,21 @@ public class BookBookmarkDeleteToServer {
         this.bookAltar = bookAltar.getBlockPos();
         this.slot = slot;
     }
-    public BookBookmarkDeleteToServer(FriendlyByteBuf buf) {
+    public BookBookmarkDeleteToServer(RegistryFriendlyByteBuf buf) {
         this.bookAltar = buf.readBlockPos();
         this.slot = buf.readInt();
 
     }
 
-    public static void encode(BookBookmarkDeleteToServer object, FriendlyByteBuf buffer) {
-        buffer.writeBlockPos(object.bookAltar);
-        buffer.writeInt(object.slot);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeBlockPos(bookAltar);
+        buffer.writeInt(slot);
     }
 
-    public static BookBookmarkDeleteToServer decode(FriendlyByteBuf buffer) {
-        return new BookBookmarkDeleteToServer(buffer);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if (player.level().getBlockEntity(bookAltar) instanceof  BookOfShadowsAltarTile book)
+            book.deleteBookmark(slot);
     }
 
-    public static void consume(BookBookmarkDeleteToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((BookOfShadowsAltarTile)world.getBlockEntity(packet.bookAltar)).deleteBookmark(packet.slot);
-        });
-        ctx.get().setPacketHandled(true);
-    }
 }

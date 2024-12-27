@@ -1,21 +1,32 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
-public class CrowWhitelistSyncToServer {
+public class CrowWhitelistSyncToServer extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrowWhitelistSyncToServer> CODEC  = StreamCodec.ofMember(CrowWhitelistSyncToServer::encode, CrowWhitelistSyncToServer::new);
+    public static final Type<CrowWhitelistSyncToServer> TYPE = new Type<>(HexereiUtil.getResource("crow_whitelist_sync_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     List<ResourceLocation> whitelist;
 
@@ -23,11 +34,11 @@ public class CrowWhitelistSyncToServer {
         List<ResourceLocation> list = new ArrayList<>();
         this.sourceId = entity.getId();
         for (Block block : whitelist) {
-            list.add(ForgeRegistries.BLOCKS.getKey(block));
+            list.add(BuiltInRegistries.BLOCK.getKey(block));
         }
         this.whitelist = list;
     }
-    public CrowWhitelistSyncToServer(FriendlyByteBuf buf) {
+    public CrowWhitelistSyncToServer(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         List<ResourceLocation> list = new ArrayList<>();
         int size = buf.readInt();
@@ -37,38 +48,23 @@ public class CrowWhitelistSyncToServer {
         this.whitelist = list;
     }
 
-    public static void encode(CrowWhitelistSyncToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.whitelist.size());
-        for(int i = 0; i < object.whitelist.size(); i++){
-            buffer.writeResourceLocation(object.whitelist.get(i));
+    public void encode(FriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(whitelist.size());
+        for (ResourceLocation resourceLocation : whitelist) {
+            buffer.writeResourceLocation(resourceLocation);
         }
     }
 
-    public static CrowWhitelistSyncToServer decode(FriendlyByteBuf buffer) {
-        return new CrowWhitelistSyncToServer(buffer);
-    }
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
 
-    public static void consume(CrowWhitelistSyncToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
+        if(player.level().getEntity(sourceId) instanceof CrowEntity crowEntity) {
+            List<Block> blockList = new ArrayList<>();
+            for (ResourceLocation resourceLocation : whitelist) {
+                blockList.add(BuiltInRegistries.BLOCK.get(resourceLocation));
             }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) instanceof CrowEntity crowEntity) {
-                List<Block> blockList = new ArrayList<>();
-                for(int i = 0; i < packet.whitelist.size(); i++){
-                    blockList.add(ForgeRegistries.BLOCKS.getValue(packet.whitelist.get(i)));
-                }
-                crowEntity.harvestWhitelist = blockList;
-            }
-
-        });
-        ctx.get().setPacketHandled(true);
+            crowEntity.harvestWhitelist = blockList;
+        }
     }
 }

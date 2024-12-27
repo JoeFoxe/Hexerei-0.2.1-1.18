@@ -8,15 +8,15 @@ import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ComputeFovModifierEvent;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(value = Dist.CLIENT)
 public class GlassesZoomKeyPressEvent {
 
     public boolean zoomToggled = false;
@@ -39,7 +39,7 @@ public class GlassesZoomKeyPressEvent {
                     if (Hexerei.curiosLoaded) {
                         curioFlag = CurioCompat.hasGlasses(player);
                     }
-                    if (player.inventory.getArmor(3).getItem() instanceof GlassesItem || curioFlag) {
+                    if (player.getInventory().getArmor(3).getItem() instanceof GlassesItem || curioFlag) {
                         zoomWithKeyToggled = !zoomWithKeyToggled;
                         if (zoomWithKeyToggled)
                             zoomAmount = Minecraft.getInstance().gameRenderer.fov;
@@ -65,7 +65,7 @@ public class GlassesZoomKeyPressEvent {
         if (zoomWithKeyToggled) {
             Player player = Hexerei.proxy.getPlayer();
             if (player == null) return;
-            Item item = player.inventory.getArmor(3).getItem();
+            Item item = player.getInventory().getArmor(3).getItem();
             boolean curioFlag = false;
             if (Hexerei.curiosLoaded) {
                 curioFlag = CurioCompat.hasGlasses(player);

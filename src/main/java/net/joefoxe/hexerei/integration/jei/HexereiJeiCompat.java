@@ -1,6 +1,6 @@
 package net.joefoxe.hexerei.integration.jei;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class HexereiJeiCompat {
     public static boolean LOADED;

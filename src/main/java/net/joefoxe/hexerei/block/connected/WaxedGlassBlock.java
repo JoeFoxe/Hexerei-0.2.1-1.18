@@ -2,35 +2,27 @@ package net.joefoxe.hexerei.block.connected;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.block.GlassBlock;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ToolAction;
+import net.neoforged.neoforge.common.ItemAbility;
 
 import javax.annotation.Nullable;
 
-public class WaxedGlassBlock extends GlassBlock implements Waxed {
+public class WaxedGlassBlock extends TransparentBlock implements Waxed {
 
-	public WaxedGlassBlock(Properties p_55926_) {
-		super(p_55926_);
+	public WaxedGlassBlock(Properties properties) {
+		super(properties);
 	}
 
-
-
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
-//        if (side.getAxis()
-//                .isVertical())
-//            return adjacentBlockState == state;
 		return super.skipRendering(state, adjacentBlockState, side);
 	}
 
 	@Nullable
 	@Override
-	public BlockState getToolModifiedState(BlockState state, UseOnContext context, ToolAction toolAction, boolean simulate) {
-		return getUnWaxed(state, context, toolAction);
+	public BlockState getToolModifiedState(BlockState state, UseOnContext context, ItemAbility itemAbility, boolean simulate) {
+		return getUnWaxed(state, context, itemAbility);
 	}
 
 }

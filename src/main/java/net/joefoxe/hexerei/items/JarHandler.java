@@ -1,12 +1,12 @@
 package net.joefoxe.hexerei.items;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import java.util.stream.IntStream;
@@ -86,10 +86,11 @@ public class JarHandler extends ItemStackHandler {
             //there is more than requested
         } else {
             if (!simulate) {
-                this.stacks.set(slot, ItemHandlerHelper.copyStackWithSize(existing, existing.getCount() - toExtract));
+
+                this.stacks.set(slot, existing.copyWithCount(existing.getCount() - toExtract));
                 onContentsChanged(slot);
             }
-            return ItemHandlerHelper.copyStackWithSize(existing, toExtract);
+            return existing.copyWithCount(toExtract);
         }
     }
 
@@ -98,14 +99,14 @@ public class JarHandler extends ItemStackHandler {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
         ListTag nbtTagList = new ListTag();
         for (int i = 0; i < getContents().size(); i++) {
             if (!getContents().get(i).isEmpty()) {
                 int realCount = Math.min(stacklimit, getContents().get(i).getCount());
                 CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", i);
-                getContents().get(i).save(itemTag);
+                getContents().get(i).save(provider, itemTag);
                 itemTag.putInt("ExtendedCount", realCount);
                 nbtTagList.add(itemTag);
             }
@@ -117,7 +118,7 @@ public class JarHandler extends ItemStackHandler {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         setSize(nbt.contains("Size", Tag.TAG_INT) ? nbt.getInt("Size") : getContents().size());
         ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
         for (int i = 0; i < tagList.size(); i++) {
@@ -130,7 +131,7 @@ public class JarHandler extends ItemStackHandler {
                     ListTag stackTagList = itemTags.getList("StackList", Tag.TAG_COMPOUND);
                     for (int j = 0; j < stackTagList.size(); j++) {
                         CompoundTag itemTag = stackTagList.getCompound(j);
-                        ItemStack temp = ItemStack.of(itemTag);
+                        ItemStack temp = ItemStack.parseOptional(provider, itemTag);
                         if (!temp.isEmpty()) {
                             if (stack.isEmpty()) stack = temp;
                             else stack.grow(temp.getCount());
@@ -144,7 +145,7 @@ public class JarHandler extends ItemStackHandler {
                         stacks.set(slot, stack);
                     }
                 } else {
-                    ItemStack stack = ItemStack.of(itemTags);
+                    ItemStack stack = ItemStack.parseOptional(provider, itemTags);
                     if (itemTags.contains("ExtendedCount", Tag.TAG_INT)) {
                         stack.setCount(itemTags.getInt("ExtendedCount"));
                     }

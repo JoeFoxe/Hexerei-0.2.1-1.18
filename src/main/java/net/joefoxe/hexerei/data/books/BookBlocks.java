@@ -3,6 +3,8 @@ package net.joefoxe.hexerei.data.books;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -13,11 +15,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 public class BookBlocks {
     public float x;
@@ -62,10 +64,11 @@ public class BookBlocks {
         this.type = "tag";
         this.blockState = Blocks.AIR.defaultBlockState();
         this.show_slot = show_slot;
-        this.key = TagKey.create(Registries.BLOCK, new ResourceLocation(tag));
-        if (ForgeRegistries.BLOCKS.tags() != null){
-            Optional<Block> optional = ForgeRegistries.BLOCKS.tags().getTag(key).getRandomElement(RandomSource.create());
-            this.blockState = (optional.orElse(Blocks.AIR)).defaultBlockState();
+        this.key = TagKey.create(Registries.BLOCK, ResourceLocation.parse(tag));
+        if (BuiltInRegistries.BLOCK.getTag(key).isPresent()){
+            BuiltInRegistries.BLOCK.getRandomElementOf(key, RandomSource.create()).ifPresentOrElse(
+                    (blockHolder) -> this.blockState = blockHolder.value().defaultBlockState(),
+                    () -> this.blockState = Blocks.AIR.defaultBlockState());
         }
         this.extra_tooltips = new ArrayList<>();
         this.extra_tooltips_raw = new ArrayList<>();
@@ -78,10 +81,11 @@ public class BookBlocks {
         this.type = "tag";
         this.show_slot = show_slot;
         this.blockState = Blocks.AIR.defaultBlockState();
-        this.key = TagKey.create(Registries.BLOCK, new ResourceLocation(tag));
-        if (ForgeRegistries.BLOCKS.tags() != null){
-            Optional<Block> optional = ForgeRegistries.BLOCKS.tags().getTag(key).getRandomElement(RandomSource.create());
-            this.blockState = (optional.orElse(Blocks.AIR)).defaultBlockState();
+        this.key = TagKey.create(Registries.BLOCK, ResourceLocation.parse(tag));
+        if (BuiltInRegistries.BLOCK.getTag(key).isPresent()){
+            BuiltInRegistries.BLOCK.getRandomElementOf(key, RandomSource.create()).ifPresentOrElse(
+                    (blockHolder) -> this.blockState = blockHolder.value().defaultBlockState(),
+                    () -> this.blockState = Blocks.AIR.defaultBlockState());
         }
         this.extra_tooltips = extra_tooltips;
         this.extra_tooltips_raw = extra_tooltips_raw;
@@ -95,8 +99,7 @@ public class BookBlocks {
         boolean show_slot = GsonHelper.getAsBoolean(object, "show_slot", false);
         switch (type) {
             case "block" -> {
-                Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(GsonHelper.getAsString(object, "name")));
-                block = block != null ? block : Blocks.AIR;
+                Block block = BuiltInRegistries.BLOCK.containsKey(ResourceLocation.parse(GsonHelper.getAsString(object, "name"))) ? BuiltInRegistries.BLOCK.get(ResourceLocation.parse(GsonHelper.getAsString(object, "name"))) : Blocks.AIR;
 
                 BlockState state = block.defaultBlockState();
 //                if (object.has("tag")) {

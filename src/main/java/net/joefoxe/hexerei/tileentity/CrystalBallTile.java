@@ -1,8 +1,5 @@
 package net.joefoxe.hexerei.tileentity;
 
-import net.joefoxe.hexerei.block.custom.CrystalBall;
-import net.joefoxe.hexerei.util.HexereiUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -10,17 +7,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import static net.joefoxe.hexerei.util.HexereiUtil.moveTo;
 
 
 public class CrystalBallTile extends BlockEntity {
-
-//    public final ItemStackHandler itemHandler = createHandler();
-//    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
-//    protected NonNullList<ItemStack> items = NonNullList.withSize(8, ItemStack.EMPTY);
 
     public float degreesSpun;
     public float degreesSpunOld;
@@ -67,11 +59,6 @@ public class CrystalBallTile extends BlockEntity {
         double deltaZ = entity.position().z - pos.getZ();
 
         return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY) + (deltaZ * deltaZ));
-    }
-
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(5, 5, 5);
     }
 
     public float updateIncrement(float currentAngle, float targetAngle, float lastIncrement) {

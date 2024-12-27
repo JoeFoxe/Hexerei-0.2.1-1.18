@@ -1,15 +1,13 @@
 package net.joefoxe.hexerei.block.custom;
 
 
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.GrowingPlantHeadBlock;
-import net.minecraft.world.level.block.LeavesBlock;
-import net.minecraft.world.level.block.NetherVines;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -19,6 +17,12 @@ public class WillowVinesBlock extends GrowingPlantHeadBlock {
 
     public WillowVinesBlock(BlockBehaviour.Properties p_154966_) {
         super(p_154966_, Direction.DOWN, SHAPE, false, 0.1D);
+    }
+
+    public static final MapCodec<WillowVinesBlock> CODEC = simpleCodec(WillowVinesBlock::new);
+    @Override
+    protected MapCodec<? extends WillowVinesBlock> codec() {
+        return CODEC;
     }
 
     protected int getBlocksToGrowWhenBonemealed(RandomSource p_154968_) {

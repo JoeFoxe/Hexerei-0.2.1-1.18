@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.container;
 
 import com.google.common.collect.Lists;
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.joefoxe.hexerei.data.recipes.ModRecipeTypes;
 import net.joefoxe.hexerei.data.recipes.WoodcutterRecipe;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -13,6 +14,8 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -23,8 +26,8 @@ public class WoodcutterContainer extends AbstractContainerMenu {
     /** The index of the selected recipe in the GUI. */
     private final DataSlot selectedRecipeIndex = DataSlot.standalone();
     private final Level level;
-    private List<WoodcutterRecipe> recipes = Lists.newArrayList();
-    private WoodcutterRecipe lastUsedRecipe = null;
+    private List<RecipeHolder<WoodcutterRecipe>> recipes = Lists.newArrayList();
+    private RecipeHolder<WoodcutterRecipe> lastUsedRecipe = null;
     private int recipesSize = 0;
     /** The {@plainlink ItemStack} set in the input slot by the player. */
     private ItemStack input = ItemStack.EMPTY;
@@ -73,7 +76,7 @@ public class WoodcutterContainer extends AbstractContainerMenu {
 
             @Override
             public boolean mayPickup(Player pPlayer) {
-                if(WoodcutterContainer.this.selectedRecipeIndex.get() == -1 || recipes.isEmpty() || recipes.size() < WoodcutterContainer.this.selectedRecipeIndex.get() || WoodcutterContainer.this.container.getItem(0).getCount() < recipes.get(WoodcutterContainer.this.selectedRecipeIndex.get()).ingredientCount)
+                if(WoodcutterContainer.this.selectedRecipeIndex.get() == -1 || recipes.isEmpty() || recipes.size() < WoodcutterContainer.this.selectedRecipeIndex.get() || WoodcutterContainer.this.container.getItem(0).getCount() < recipes.get(WoodcutterContainer.this.selectedRecipeIndex.get()).value().ingredientCount)
                     return false;
 
                 return super.mayPickup(pPlayer);
@@ -81,7 +84,7 @@ public class WoodcutterContainer extends AbstractContainerMenu {
 
             public void onTake(Player p_150672_, ItemStack p_150673_) {
                 p_150673_.onCraftedBy(p_150672_.level(), p_150672_, p_150673_.getCount());
-                ItemStack itemstack = WoodcutterContainer.this.inputSlot.remove(recipes.get(WoodcutterContainer.this.selectedRecipeIndex.get()).ingredientCount);
+                ItemStack itemstack = WoodcutterContainer.this.inputSlot.remove(recipes.get(WoodcutterContainer.this.selectedRecipeIndex.get()).value().ingredientCount);
                 if (!itemstack.isEmpty()) {
                     WoodcutterContainer.this.setupResultSlot();
                 }
@@ -120,7 +123,7 @@ public class WoodcutterContainer extends AbstractContainerMenu {
         return this.selectedRecipeIndex.get();
     }
 
-    public List<WoodcutterRecipe> getRecipes() {
+    public List<RecipeHolder<WoodcutterRecipe>> getRecipes() {
         return this.recipes;
     }
 
@@ -165,6 +168,10 @@ public class WoodcutterContainer extends AbstractContainerMenu {
 
     }
 
+    private static SingleRecipeInput createRecipeInput(Container container) {
+        return new SingleRecipeInput(container.getItem(0));
+    }
+
     private void setupRecipeList(Container pContainer, ItemStack pStack) {
         this.recipes = new ArrayList<>();
 
@@ -175,9 +182,9 @@ public class WoodcutterContainer extends AbstractContainerMenu {
                 this.lastInput = this.input;
         }
         if (!pStack.isEmpty()) {
-            this.recipes = this.level.getRecipeManager().getRecipesFor(WoodcutterRecipe.Type.INSTANCE, pContainer, this.level);
+            this.recipes = this.level.getRecipeManager().getRecipesFor(ModRecipeTypes.WOODCUTTING_TYPE.get(), createRecipeInput(container), this.level);
             this.recipes = this.recipes.stream().filter((craftingRecipe) -> {
-                return container.getItem(0).getCount() >= craftingRecipe.ingredientCount;
+                return container.getItem(0).getCount() >= craftingRecipe.value().ingredientCount;
             }).toList();
         }
         if(this.recipesSize != this.recipes.size() && this.selectedRecipeIndex.get() != -1)
@@ -201,10 +208,10 @@ public class WoodcutterContainer extends AbstractContainerMenu {
 
     void setupResultSlot() {
         if (!this.recipes.isEmpty() && this.isValidRecipeIndex(this.selectedRecipeIndex.get())) {
-            WoodcutterRecipe woodcutterrecipe = this.recipes.get(this.selectedRecipeIndex.get());
+            RecipeHolder<WoodcutterRecipe> woodcutterrecipe = this.recipes.get(this.selectedRecipeIndex.get());
             this.resultContainer.setRecipeUsed(woodcutterrecipe);
             this.lastUsedRecipe = woodcutterrecipe;
-            this.resultSlot.set(woodcutterrecipe.assemble(this.container, this.level.registryAccess()));
+            this.resultSlot.set(woodcutterrecipe.value().assemble(createRecipeInput(this.container), this.level.registryAccess()));
         } else {
             this.resultSlot.set(ItemStack.EMPTY);
         }
@@ -251,7 +258,7 @@ public class WoodcutterContainer extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(itemstack1, 2, 38, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (this.level.getRecipeManager().getRecipeFor(WoodcutterRecipe.Type.INSTANCE, new SimpleContainer(itemstack1), this.level).isPresent()) {
+            } else if (this.level.getRecipeManager().getRecipeFor(ModRecipeTypes.WOODCUTTING_TYPE.get(), new SingleRecipeInput(itemstack1), this.level).isPresent()) {
                 if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
                     return ItemStack.EMPTY;
                 }

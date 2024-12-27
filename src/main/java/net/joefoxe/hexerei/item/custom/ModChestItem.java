@@ -5,9 +5,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -19,25 +16,6 @@ public class ModChestItem extends BlockItem {
     public ModChestItem(Block block , Properties properties) {
         super(block ,properties);
 //        this.type = chestType;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        super.initializeClient(consumer);
-        CustomItemRenderer renderer = createItemRenderer();
-        if (renderer != null) {
-            consumer.accept(new IClientItemExtensions() {
-                @Override
-                public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                    return renderer.getRenderer();
-                }
-            });
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public CustomItemRenderer createItemRenderer() {
-        return new ChestItemRenderer();
     }
 //
 //    @Override

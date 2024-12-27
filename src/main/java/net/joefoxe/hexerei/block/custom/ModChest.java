@@ -1,12 +1,18 @@
 package net.joefoxe.hexerei.block.custom;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.floats.Float2FloatFunction;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.tileentity.ModChestBlockEntity;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stat;
@@ -26,6 +32,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -40,8 +47,11 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.common.util.NeoForgeExtraCodecs;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -110,9 +120,14 @@ public class ModChest extends AbstractChestBlock<ModChestBlockEntity> implements
         }
     };
 
+    public static final MapCodec<ModChest> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    propertiesCodec(),
+                    WoodType.CODEC.fieldOf("type").forGetter(c -> c.type)
+    ).apply(instance, ModChest::new));
+
     public WoodType type;
-    public ModChest(BlockBehaviour.Properties pProperties, Supplier<BlockEntityType<? extends ModChestBlockEntity>> pBlockEntityType, WoodType type) {
-        super(pProperties, pBlockEntityType);
+    public ModChest(BlockBehaviour.Properties pProperties, WoodType type) {
+        super(pProperties, ModTileEntities.CHEST_TILE::get);
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(TYPE, ChestType.SINGLE).setValue(WATERLOGGED, false).setValue(WOOD_TYPE, type));
         this.type = type;
@@ -207,15 +222,15 @@ public class ModChest extends AbstractChestBlock<ModChestBlockEntity> implements
     /**
      * Called by BlockItem after this block has been placed.
      */
-    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, LivingEntity pPlacer, ItemStack pStack) {
-        if (pStack.hasCustomHoverName()) {
-            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
-            if (blockentity instanceof ModChestBlockEntity) {
-                ((ModChestBlockEntity)blockentity).setCustomName(pStack.getHoverName());
-            }
-        }
-
-    }
+//    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, LivingEntity pPlacer, ItemStack pStack) {
+//        if (pStack.has(DataComponents.CUSTOM_NAME)) {
+//            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
+//            if (blockentity instanceof ModChestBlockEntity modChestBlockEntity) {
+//                modChestBlockEntity.name = .getCustomName().setCustomName(pStack.getHoverName());
+//            }
+//        }
+//
+//    }
 
     public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         if (!pState.is(pNewState.getBlock())) {
@@ -255,6 +270,11 @@ public class ModChest extends AbstractChestBlock<ModChestBlockEntity> implements
     @Nullable
     public static Container getContainer(ModChest pChest, BlockState pState, Level pLevel, BlockPos pPos, boolean pOverride) {
         return pChest.combine(pState, pLevel, pPos, pOverride).apply(CHEST_COMBINER).orElse(null);
+    }
+
+    @Override
+    protected MapCodec<? extends AbstractChestBlock<ModChestBlockEntity>> codec() {
+        return CODEC;
     }
 
     public DoubleBlockCombiner.NeighborCombineResult<? extends ModChestBlockEntity> combine(BlockState pState, Level pLevel, BlockPos pPos, boolean pOverride) {
@@ -354,11 +374,11 @@ public class ModChest extends AbstractChestBlock<ModChestBlockEntity> implements
     }
 
     @Override
-    public ItemStack getCloneItemStack(BlockGetter pLevel, BlockPos pPos, BlockState pState) {
-        ItemStack stack = super.getCloneItemStack(pLevel, pPos, pState);
-        if(pLevel.getBlockEntity(pPos) instanceof ModChestBlockEntity modChestBlockEntity){
+    public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos, Player player) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state);
+        if(level.getBlockEntity(pos) instanceof ModChestBlockEntity modChestBlockEntity){
             if(modChestBlockEntity.hasCustomName())
-                stack.setHoverName(modChestBlockEntity.getCustomName());
+                stack.set(DataComponents.CUSTOM_NAME, modChestBlockEntity.getCustomName());
         }
         return stack;
     }
@@ -370,6 +390,8 @@ public class ModChest extends AbstractChestBlock<ModChestBlockEntity> implements
         POLISHED_WITCH_HAZEL("polished_witch_hazel", ModBlocks.POLISHED_WITCH_HAZEL_PLANKS),
         MAHOGANY("mahogany", ModBlocks.MAHOGANY_PLANKS),
         POLISHED_MAHOGANY("polished_mahogany", ModBlocks.POLISHED_MAHOGANY_PLANKS);
+
+        public static final StringRepresentable.EnumCodec<WoodType> CODEC = StringRepresentable.fromEnum(WoodType::values);
 
         private final String name;
         private final Supplier<Block> supplierPlanks;

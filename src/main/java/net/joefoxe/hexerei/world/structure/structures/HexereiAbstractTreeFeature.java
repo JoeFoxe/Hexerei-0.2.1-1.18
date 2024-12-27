@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.world.structure.structures;
 
 import com.mojang.serialization.Codec;
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -22,9 +23,9 @@ import java.util.Optional;
 
 public class HexereiAbstractTreeFeature extends Feature<TreeConfiguration> {
 
-    private static final ResourceLocation WILLOW_TREE1 = new ResourceLocation("hexerei:willow_tree1");
-    private static final ResourceLocation WILLOW_TREE2 = new ResourceLocation("hexerei:willow_tree2");
-    private static final ResourceLocation WILLOW_TREE3 = new ResourceLocation("hexerei:willow_tree3");
+    private static final ResourceLocation WILLOW_TREE1 = ResourceLocation.parse("hexerei:willow_tree1");
+    private static final ResourceLocation WILLOW_TREE2 = ResourceLocation.parse("hexerei:willow_tree2");
+    private static final ResourceLocation WILLOW_TREE3 = ResourceLocation.parse("hexerei:willow_tree3");
     private static final ResourceLocation[] WILLOW_TREE = new ResourceLocation[]{WILLOW_TREE1, WILLOW_TREE2, WILLOW_TREE3};
 
     public HexereiAbstractTreeFeature(Codec codec) {
@@ -131,7 +132,7 @@ public class HexereiAbstractTreeFeature extends Feature<TreeConfiguration> {
 
         StructurePlaceSettings placementsettings = (new StructurePlaceSettings()).setRotation(rotation).setRotationPivot(halfLengths).setIgnoreEntities(false);
         Optional<StructureProcessorList> processor = reader.getLevel().getServer().registryAccess().registry(Registries.PROCESSOR_LIST).get().getOptional(
-                new ResourceLocation(Hexerei.MOD_ID, "mangrove_tree/mangrove_tree_legs"));
+                HexereiUtil.getResource("mangrove_tree/mangrove_tree_legs"));
         processor.ifPresent(structureProcessorList -> structureProcessorList.list().forEach(placementsettings::addProcessor)); // add all processors
 
         BlockPos pos1 = mutable.set(pos).move(-halfLengths.getX(), 0, -halfLengths.getZ());

@@ -1,27 +1,16 @@
 package net.joefoxe.hexerei.item;
 
-import net.joefoxe.hexerei.block.ModBlocks;
-import net.joefoxe.hexerei.item.custom.CourierPackageItem;
 import net.joefoxe.hexerei.item.custom.DowsingRodItem;
-import net.minecraft.client.multiplayer.ClientLevel;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.renderer.item.ClampedItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-
-import javax.annotation.Nullable;
+import net.minecraft.world.item.component.CustomData;
 
 public class ModItemProperties {
 
@@ -33,7 +22,7 @@ public class ModItemProperties {
 
     public static void setup() {
 
-        ItemProperties.register(ModItems.DOWSING_ROD.get(), new ResourceLocation("angle"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
+        ItemProperties.register(ModItems.DOWSING_ROD.get(), HexereiUtil.getResource("angle"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
             Entity entity = p_174667_ != null ? p_174667_ : itemStack.getEntityRepresentation();
 
             if (!(entity instanceof Player) || ((DowsingRodItem)itemStack.getItem()).nearestPos == null) {
@@ -53,13 +42,14 @@ public class ModItemProperties {
 
         });
 
-        ItemProperties.register(ModItems.COURIER_PACKAGE.get(), new ResourceLocation("open"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
+        ItemProperties.register(ModItems.COURIER_PACKAGE.get(), HexereiUtil.getResource("open"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
 
-            if (itemStack.hasTag()) {
+            CustomData data = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+            if (data != null) {
 
-                CompoundTag tag = itemStack.getOrCreateTag();
-                if (tag.contains("BlockEntityTag") && tag.getCompound("BlockEntityTag").contains("Items") && !tag.getCompound("BlockEntityTag").getList("Items", Tag.TAG_COMPOUND).isEmpty()) {
-                    if (tag.getCompound("BlockEntityTag").contains("Sealed") && tag.getCompound("BlockEntityTag").getBoolean("Sealed"))
+                CompoundTag tag = data.copyTag();
+                if (tag.contains("Items") && !tag.getList("Items", Tag.TAG_COMPOUND).isEmpty()) {
+                    if (tag.contains("Sealed") && tag.getBoolean("Sealed"))
                         return 0.0f;
                     return 0.5f;
                 }
@@ -68,11 +58,12 @@ public class ModItemProperties {
 
         });
 
-        ItemProperties.register(ModItems.COURIER_LETTER.get(), new ResourceLocation("open"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
+        ItemProperties.register(ModItems.COURIER_LETTER.get(), HexereiUtil.getResource("open"), (ClampedItemPropertyFunction) (itemStack, level, p_174667_, p_174668_) -> {
 
-            if (itemStack.hasTag()) {
-                CompoundTag tag = BlockItem.getBlockEntityData(itemStack);
-                if (tag != null && tag.contains("Sealed") && tag.getBoolean("Sealed")) {
+            CustomData data = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+            if (data != null) {
+                CompoundTag tag = data.copyTag();
+                if (tag.contains("Sealed") && tag.getBoolean("Sealed")) {
                     return 0.0f;
                 }
             }

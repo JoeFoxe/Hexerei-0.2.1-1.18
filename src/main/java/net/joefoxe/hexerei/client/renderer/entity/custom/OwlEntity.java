@@ -27,14 +27,17 @@ import net.minecraft.Util;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.*;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -46,7 +49,6 @@ import net.minecraft.stats.Stats;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
@@ -78,31 +80,21 @@ import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.level.pathfinder.NodeEvaluator;
-import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.level.pathfinder.*;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.ITeleporter;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.event.entity.living.BabyEntitySpawnEvent;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class OwlEntity extends TamableAnimal implements ContainerListener, FlyingAnimal, ITargetsDroppedItems, Container, MenuProvider, PowerableMob {
@@ -152,7 +144,6 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
     public boolean sync;
     public final ItemStackHandler itemHandler = createHandler();
-    private final LazyOptional<IItemHandler> handler = LazyOptional.of(() -> itemHandler);
 
     private static final EntityDataAccessor<Optional<BlockPos>> PERCH_POS = SynchedEntityData.defineId(OwlEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
     private static final EntityDataAccessor<Integer> OWL_DYE_COLOR = SynchedEntityData.defineId(OwlEntity.class, EntityDataSerializers.INT);
@@ -190,8 +181,8 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         this.flyingNav = (FlyingPathNavigation) createFlyingNavigation(worldIn);
         this.groundNav = (GroundPathNavigation) createGroundNavigation(worldIn);
         this.moveControl = new OwlMoveController(this, 10);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, -1.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, -1.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_FIRE, -1.0F);
         this.animationCounter = 0;
         this.currentTask = OwlTask.NONE;
         this.targetingItem = null;
@@ -416,7 +407,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                     BlockPos blockpos = this.mob.blockPosition();
                     BlockState blockstate = this.mob.level().getBlockState(blockpos);
                     VoxelShape voxelshape = blockstate.getCollisionShape(this.mob.level(), blockpos);
-                    if (d2 > (double)this.mob.getStepHeight() && d0 * d0 + d1 * d1 < (double)Math.max(1.0F, this.mob.getBbWidth()) || !voxelshape.isEmpty() && this.mob.getY() < voxelshape.max(Direction.Axis.Y) + (double)blockpos.getY() && !blockstate.is(BlockTags.DOORS) && !blockstate.is(BlockTags.FENCES)) {
+                    if (d2 > (double)this.mob.maxUpStep() && d0 * d0 + d1 * d1 < (double)Math.max(1.0F, this.mob.getBbWidth()) || !voxelshape.isEmpty() && this.mob.getY() < voxelshape.max(Direction.Axis.Y) + (double)blockpos.getY() && !blockstate.is(BlockTags.DOORS) && !blockstate.is(BlockTags.FENCES)) {
                         this.mob.getJumpControl().jump();
                         this.operation = Operation.JUMPING;
                     }
@@ -436,7 +427,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             PathNavigation pathnavigation = this.mob.getNavigation();
             if (pathnavigation != null) {
                 NodeEvaluator nodeevaluator = pathnavigation.getNodeEvaluator();
-                if (nodeevaluator != null && nodeevaluator.getBlockPathType(this.mob.level(), Mth.floor(this.mob.getX() + (double)pRelativeX), this.mob.getBlockY(), Mth.floor(this.mob.getZ() + (double)pRelativeZ)) != BlockPathTypes.WALKABLE) {
+                if (nodeevaluator != null && nodeevaluator.getPathType(new PathfindingContext(this.mob.level(), this.mob), Mth.floor(this.mob.getX() + (double)pRelativeX), this.mob.getBlockY(), Mth.floor(this.mob.getZ() + (double)pRelativeZ)) != PathType.WALKABLE) {
                     return false;
                 }
             }
@@ -462,18 +453,17 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-
-        this.entityData.define(PERCH_POS, Optional.empty());
-        this.entityData.define(OWL_DYE_COLOR, -1);
-        this.entityData.define(DATA_ID_TYPE_VARIANT, 0);
-        this.entityData.define(DATA_FLYING, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(PERCH_POS, Optional.empty());
+        builder.define(OWL_DYE_COLOR, -1);
+        builder.define(DATA_ID_TYPE_VARIANT, 0);
+        builder.define(DATA_FLYING, true);
     }
 
     public void syncInv() {
         if (!level().isClientSide) {
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new OwlSyncInvPacket(this, itemHandler.serializeNBT()));
+            HexereiPacketHandler.sendToNearbyClient(this.level(), this, new OwlSyncInvPacket(this, itemHandler.serializeNBT(this.level().registryAccess())));
         }
 
     }
@@ -482,7 +472,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         setChanged();
         if (!level().isClientSide) {
 
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EntitySyncPacket(this, saveWithoutId(new CompoundTag())));
+            HexereiPacketHandler.sendToNearbyClient(this.level(), this, new EntitySyncPacket(this, saveWithoutId(new CompoundTag())));
             syncAdditionalData();
         }
 
@@ -494,7 +484,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
             CompoundTag tag = new CompoundTag();
             addAdditionalSaveDataNoSuper(tag);
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EntitySyncAdditionalDataPacket(this, tag));
+            HexereiPacketHandler.sendToNearbyClient(this.level(), this, new EntitySyncAdditionalDataPacket(this, tag));
         }
 
     }
@@ -640,23 +630,11 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         return aabb.move(renderCenter);
     }
 
-    private void removeFramedMap(ItemStack pStack) {
-        this.getFramedMapId().ifPresent((p_218864_) -> {
-            MapItemSavedData mapitemsaveddata = MapItem.getSavedData(p_218864_, this.level());
-            if (mapitemsaveddata != null) {
-                mapitemsaveddata.removedFromFrame(this.blockPosition(), this.getId());
-                mapitemsaveddata.setDirty(true);
-            }
-
-        });
-        pStack.setEntityRepresentation(null);
-    }
-
 
     public void setBrowPos(OwlEntity.BrowPositioning browPositioning) {
         this.browPositioning = browPositioning;
         if (!level().isClientSide)
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new BrowPositioningPacket(this, this.browPositioning));
+            HexereiPacketHandler.sendToNearbyClient(this.level(), this, new BrowPositioningPacket(this, this.browPositioning));
     }
     public void determineEmotionState() {
         EmotionState closestState = null;
@@ -714,7 +692,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
         if (!level().isClientSide) {
             int packedEmotion = (emotions.getHappiness() << 16) | (emotions.getDistress() << 8) | emotions.getAnger();
-            HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EmotionPacket(this, packedEmotion));
+            HexereiPacketHandler.sendToNearbyClient(level(), this, new EmotionPacket(this, packedEmotion));
 //            System.out.println("--");
 //            System.out.println("Happiness - " + emotions.getHappiness());
 //            System.out.println("Distress - " + emotions.getDistress());
@@ -892,7 +870,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             super.start();
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 5 + owl.getRandom().nextInt(10);
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> owl.level().getChunkAt(owl.blockPosition())), new BrowAnimPacket(owl, OwlEntity.BrowAnim.values()[this.owl.getRandom().nextInt(OwlEntity.BrowAnim.values().length)], this.activeTimer));
+                HexereiPacketHandler.sendToNearbyClient(owl.level(), owl, new BrowAnimPacket(owl, OwlEntity.BrowAnim.values()[this.owl.getRandom().nextInt(OwlEntity.BrowAnim.values().length)], this.activeTimer));
             }
         }
 
@@ -951,7 +929,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             super.start();
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 15 + owl.getRandom().nextInt(10);
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> owl.level().getChunkAt(owl.blockPosition())), new BrowAnimPacket(owl, OwlEntity.BrowAnim.values()[this.owl.getRandom().nextInt(OwlEntity.BrowAnim.values().length)], this.activeTimer, true));
+                HexereiPacketHandler.sendToNearbyClient(owl.level(), owl, new BrowAnimPacket(owl, OwlEntity.BrowAnim.values()[this.owl.getRandom().nextInt(OwlEntity.BrowAnim.values().length)], this.activeTimer, true));
             }
         }
 
@@ -993,7 +971,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             super.start();
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 5 + owl.getRandom().nextInt(10);
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> owl.level().getChunkAt(owl.blockPosition())), new TailWagPacket(this.owl, this.activeTimer));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new TailWagPacket(this.owl, this.activeTimer));
             }
         }
 
@@ -1035,7 +1013,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             super.start();
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 5 + owl.getRandom().nextInt(10);
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> owl.level().getChunkAt(owl.blockPosition())), new TailFanPacket(this.owl, this.activeTimer));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new TailFanPacket(this.owl, this.activeTimer));
             }
         }
 
@@ -1078,7 +1056,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 15;
 
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new OwlHootPacket(this.owl, this.activeTimer));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new OwlHootPacket(this.owl, this.activeTimer));
                 owl.playSound(ModSounds.OWL_HOOT.get(), owl.getSoundVolume(), owl.getVoicePitch());
             }
         }
@@ -1122,7 +1100,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 10;
 
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new PeckPacket(this.owl, this.activeTimer));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new PeckPacket(this.owl));
             }
         }
 
@@ -1174,7 +1152,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 this.xTiltTarget = random.nextInt(100) - 50;
                 this.zTiltTarget = random.nextInt(100) - 50;
 
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new HeadTiltPacket(this.owl, this.activeTimer, this.xTiltTarget, this.zTiltTarget));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new HeadTiltPacket(this.owl, this.activeTimer, this.xTiltTarget, this.zTiltTarget));
             }
         }
 
@@ -1216,7 +1194,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             if (!this.owl.level().isClientSide) {
                 this.activeTimer = 15;
 
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new HeadShakePacket(this.owl, this.activeTimer));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new HeadShakePacket(this.owl, this.activeTimer));
             }
         }
 
@@ -1243,11 +1221,19 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
     public static class MessageText {
         public static final int LINES = 12;
-        private static final Codec<Component[]> LINES_CODEC =
-            ExtraCodecs.FLAT_COMPONENT.listOf().comapFlatMap((p_277790_) ->
-            Util.fixedSize(p_277790_, LINES).map((components) -> components.toArray(value -> new Component[LINES])), Arrays::asList);
-        public static final Codec<MessageText> DIRECT_CODEC =
-            RecordCodecBuilder.create((codecBuilder) -> codecBuilder.group(LINES_CODEC.fieldOf("messages").forGetter((messageText) -> messageText.messages)).apply(codecBuilder, MessageText::load));
+        private static final Codec<Component[]> LINES_CODEC = ComponentSerialization.FLAT_CODEC
+                .listOf()
+                .comapFlatMap(
+                        p_337999_ -> Util.fixedSize((List<Component>)p_337999_, LINES)
+                                .map(components -> components.toArray(new Component[0])),
+                        components -> Arrays.stream(components).toList()
+                );
+        public static final Codec<MessageText> DIRECT_CODEC = RecordCodecBuilder.create(
+                p_338000_ -> p_338000_.group(
+                                LINES_CODEC.fieldOf("messages").forGetter(text -> text.messages)
+                        )
+                        .apply(p_338000_, MessageText::load)
+        );
         private final Component[] messages;
 
         public MessageText() {
@@ -1452,7 +1438,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             if (stage != null)
                 nbt.putInt("stage", stage.ordinal());
 
-            nbt.put("messageStack" ,messageStack.save(new CompoundTag()));
+            nbt.put("messageStack" ,messageStack.save(this.owl.registryAccess(), new CompoundTag()));
 
         }
 
@@ -1473,7 +1459,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 this.stage = Stage.byId(nbt.getInt("stage"));
 
             if (nbt.contains("messageStack"))
-                this.messageStack = ItemStack.of(nbt.getCompound("messageStack"));
+                this.messageStack = ItemStack.parseOptional(this.owl.registryAccess(), nbt.getCompound("messageStack"));
 
         }
 
@@ -1525,7 +1511,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             this.breedGiftGivenByPartnerTimer--;
             if(breedGiftGivenByPartnerTimer == 16){
                 this.peck();
-                HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new PeckPacket(this));
+                HexereiPacketHandler.sendToNearbyClient(this.level(), this, new PeckPacket(this));
             }
             if(this.breedGiftGivenByPartnerTimer == 0) {
                 if (level().getPlayerByUUID(this.breedGiftGivenByPlayerUUID) != null) {
@@ -1534,7 +1520,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                     this.heal(4);
 
                     if(!level().isClientSide) {
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EatParticlesPacket(this, this.itemHandler.getStackInSlot(1)));
+                        HexereiPacketHandler.sendToNearbyClient(this.level(), this, new EatParticlesPacket(this, this.itemHandler.getStackInSlot(1)));
                         OwlEntity.this.emotions.setDistress(OwlEntity.this.emotions.getDistress() - 25);
                         OwlEntity.this.emotions.setAnger(OwlEntity.this.emotions.getAnger() - 15 - this.random.nextInt(5));
                         OwlEntity.this.emotionChanged();
@@ -1685,7 +1671,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 this.heal(4);
 
                 if(!level().isClientSide) {
-                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EatParticlesPacket(this, this.itemHandler.getStackInSlot(1)));
+                    HexereiPacketHandler.sendToNearbyClient(this.level(), this, new EatParticlesPacket(this, this.itemHandler.getStackInSlot(1)));
                     OwlEntity.this.emotions.setDistress(OwlEntity.this.emotions.getDistress() - 25);
                     OwlEntity.this.emotions.setAnger(OwlEntity.this.emotions.getAnger() - 15 - this.random.nextInt(5));
                     OwlEntity.this.emotionChanged();
@@ -1694,8 +1680,8 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
                 this.playSound(SoundEvents.PARROT_EAT, this.getSoundVolume(), this.getVoicePitch());
                 if (TEMPTATION_ITEMS.test(this.itemHandler.getStackInSlot(1)) && fishThrowerID != null && !this.isTame()) {
-                    if (getRandom().nextFloat() < 0.5F && this.level().getPlayerByUUID(fishThrowerID) != null && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, this.level().getPlayerByUUID(fishThrowerID))) {
-                        this.setTame(true);
+                    if (getRandom().nextFloat() < 0.5F && this.level().getPlayerByUUID(fishThrowerID) != null && !EventHooks.onAnimalTame(this, this.level().getPlayerByUUID(fishThrowerID))) {
+                        this.setTame(true, true);
                         this.setOwnerUUID(this.fishThrowerID);
                         Player player = level().getPlayerByUUID(fishThrowerID);
                         if (player instanceof ServerPlayer) {
@@ -1812,7 +1798,8 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
     public ItemStack getItemBySlot(EquipmentSlot slot) {
         return switch (slot.getType()) {
             case HAND -> this.itemHandler.getStackInSlot(1);
-            case ARMOR -> this.itemHandler.getStackInSlot(0);
+            case HUMANOID_ARMOR -> this.itemHandler.getStackInSlot(0);
+            case ANIMAL_ARMOR -> ItemStack.EMPTY;
         };
     }
 
@@ -1833,7 +1820,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             this.interactionRange = (compound.getInt("InteractionRange"));
         if(compound.contains("CanAttack"))
             this.canAttack = (compound.getBoolean("CanAttack"));
-        itemHandler.deserializeNBT(compound.getCompound("inv"));
+        itemHandler.deserializeNBT(this.registryAccess(), compound.getCompound("inv"));
 
         if (compound.contains("PerchX") && compound.contains("PerchY") && compound.contains("PerchZ")) {
             this.setPerchPos(new BlockPos(compound.getInt("PerchX"), compound.getInt("PerchY"), compound.getInt("PerchZ")));
@@ -1860,12 +1847,16 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
+        addAdditionalSaveDataNoSuper(compound);
+    }
+
+    public void addAdditionalSaveDataNoSuper(CompoundTag compound) {
         compound.putInt("Variant", this.getTypeVariant());
         compound.putInt("InteractionRange", this.interactionRange);
         compound.putBoolean("CanAttack", this.canAttack);
         compound.putBoolean("IsFlying", this.isFlying());
         compound.putBoolean("IsFlyingNav", this.isFlyingNav());
-        compound.put("inv", itemHandler.serializeNBT());
+        compound.put("inv", itemHandler.serializeNBT(this.registryAccess()));
 
         if (this.getPerchPos() != null) {
             compound.putInt("PerchX", this.getPerchPos().getX());
@@ -1881,52 +1872,28 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         compound.putInt("task", this.currentTask.ordinal());
     }
 
-    public void addAdditionalSaveDataNoSuper(CompoundTag compound) {
-        compound.putInt("Variant", this.getTypeVariant());
-        compound.putInt("InteractionRange", this.interactionRange);
-        compound.putBoolean("CanAttack", this.canAttack);
-        compound.putBoolean("IsFlying", this.isFlying());
-        compound.putBoolean("IsFlyingNav", this.isFlyingNav());
-        compound.put("inv", itemHandler.serializeNBT());
-
-        if (this.getPerchPos() != null) {
-            compound.putInt("PerchX", this.getPerchPos().getX());
-            compound.putInt("PerchY", this.getPerchPos().getY());
-            compound.putInt("PerchZ", this.getPerchPos().getZ());
-        }
-        compound.putInt("DyeColor", this.getDyeColorId());
-
-        int packedEmotionScales = (emotions.getDistress() << 8) | emotions.getAnger();
-        compound.putInt("EmotionScales", packedEmotionScales);
-        quirkController.write(compound);
-        messagingController.write(compound);
-        compound.putInt("task", this.currentTask.ordinal());
-    }
-
-
     @Override
     @Nullable
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
-        RandomSource randomsource = pLevel.getRandom();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData) {
+        RandomSource randomsource = level.getRandom();
         OwlVariant variant;
-        if (pSpawnData instanceof OwlEntity.CrowGroupData) {
-            variant = ((OwlEntity.CrowGroupData)pSpawnData).variant;
+        if (spawnGroupData instanceof OwlEntity.CrowGroupData) {
+            variant = ((OwlEntity.CrowGroupData)spawnGroupData).variant;
         } else {
             boolean isVariant = randomsource.nextInt(5) == 0;
             variant = Util.getRandom(OwlVariant.values(), randomsource);
             if(!isVariant)
                 variant = OwlVariant.GREAT_HORNED;
-            pSpawnData = new OwlEntity.CrowGroupData(variant);
+            spawnGroupData = new OwlEntity.CrowGroupData(variant);
         }
 
         this.setTypeVariant(variant.getId() & 255);
 
-        Collection<Block> col = ForgeRegistries.BLOCKS.getValues();
+        List<Block> col = BuiltInRegistries.BLOCK.stream().toList();
         for(int i = 0; i < 25; i++) {
             if (col.toArray()[(int)(col.size() * new Random().nextFloat())] instanceof Block block) {
-                BlockState state = block.defaultBlockState();
                 try {
-                    if (Block.isFaceFull(block.getCollisionShape(state, pLevel, this.blockPosition(), CollisionContext.empty()), Direction.UP)) {
+                    if (Block.isFaceFull(block.defaultBlockState().getShape(level, this.blockPosition(), CollisionContext.empty()), Direction.UP)) {
                         if (block.asItem() != Items.AIR) {
                             //replace with a generateQuirks function once I add more quirks
                             this.quirkController.addQuirk(new FavoriteBlockQuirk(block, 20));
@@ -1941,8 +1908,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         }
 
 
-
-        return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
+        return super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);
     }
     public static class CrowGroupData extends AgeableMobGroupData {
         public final OwlVariant variant;
@@ -1973,7 +1939,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             }
         }
         else {
-            double topOffset = this.level().getBlockState(this.getPerchPos()).getBlock().getOcclusionShape(this.level().getBlockState(this.getPerchPos()), this.level(), this.getPerchPos()).max(Direction.Axis.Y);
+            double topOffset = this.level().getBlockState(this.getPerchPos()).getOcclusionShape(this.level(), this.getPerchPos()).max(Direction.Axis.Y);
             if(this.distanceTo(this.getPerchPos().getX(), this.getPerchPos().getZ()) < 1 && this.position().y() >= this.getPerchPos().getY() + topOffset && this.position().y() < this.getPerchPos().above().getY() + topOffset - 0.75f) {
                 if ((this.isOrderedToSit() || this.isInSittingPose()) && this.currentTask.isNone())
                 {
@@ -2009,22 +1975,10 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         return TEMPTATION_ITEMS.test(stack);
     }
 
-    @Override
-    public MobType getMobType() {
-        return MobType.UNDEFINED;
-    }
-
-    public OptionalInt getFramedMapId() {
-        ItemStack itemstack = this.getItem(2);
-        if (itemstack.is(Items.FILLED_MAP)) {
-            Integer integer = MapItem.getMapId(itemstack);
-            if (integer != null) {
-                return OptionalInt.of(integer);
-            }
-        }
-
-        return OptionalInt.empty();
-    }
+//    @Override
+//    public MobType getMobType() {
+//        return MobType.UNDEFINED;
+//    }
 
     public Map<String, Vector3f> getModelRotationValues() {
         return this.modelRotationValues;
@@ -2062,9 +2016,9 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
                     OwlEntity.this.heal(4);
                     if(!level().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EatParticlesPacket(this, particleCopy));
+                        HexereiPacketHandler.sendToNearbyClient(this.level(), this, new EatParticlesPacket(this, particleCopy));
 
-                    if (this.random.nextInt(5) == 0 && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, player)) {
+                    if (this.random.nextInt(5) == 0 && !EventHooks.onAnimalTame(this, player)) {
                         this.tame(player);
                         this.level().broadcastEntityEvent(this, (byte) 7);
                     } else {
@@ -2085,7 +2039,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
                     OwlEntity.this.heal(4);
                     if(!level().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new EatParticlesPacket(this, particleCopy));
+                        HexereiPacketHandler.sendToNearbyClient(this.level(), this, new EatParticlesPacket(this, particleCopy));
                 }
                 return InteractionResult.sidedSuccess(this.level().isClientSide);
             }
@@ -2114,7 +2068,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 if (!level().isClientSide()) {
                     MenuProvider containerProvider = createContainerProvider(level(), blockPosition());
 
-                    NetworkHooks.openScreen((ServerPlayer) player, containerProvider, b -> b.writeInt(this.getId()));
+                    player.openMenu(containerProvider, b -> b.writeInt(this.getId()));
 
                 }
                 return InteractionResult.sidedSuccess(this.level().isClientSide);
@@ -2128,7 +2082,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                         }
                     } else if (player instanceof ServerPlayer serverPlayer) {
                         if (CourierLetterItem.isSealed(itemstack)) {
-                            HexereiPacketHandler.instance.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new ClientboundOpenOwlCourierSendScreenPacket(this.getId(), hand, player.getInventory().selected));
+                            HexereiPacketHandler.sendToPlayerClient(new ClientboundOpenOwlCourierSendScreenPacket(this.getId(), hand, player.getInventory().selected), serverPlayer);
                         }
                     }
                 }
@@ -2144,7 +2098,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                         }
                     } else if (player instanceof ServerPlayer serverPlayer) {
                         if (!empty && wrapper.getSealed()) {
-                            HexereiPacketHandler.instance.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new ClientboundOpenOwlCourierSendScreenPacket(this.getId(), hand, player.getInventory().selected));
+                            HexereiPacketHandler.sendToPlayerClient(new ClientboundOpenOwlCourierSendScreenPacket(this.getId(), hand, player.getInventory().selected), serverPlayer);
                         }
                     }
                 }
@@ -2174,7 +2128,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
     }
 
     @Override
-    protected void dropAllDeathLoot(DamageSource p_21192_) {
+    protected void dropAllDeathLoot(ServerLevel p_level, DamageSource damageSource) {
         ItemStack hat = this.itemHandler.getStackInSlot(0);
         ItemStack itemstack = this.itemHandler.getStackInSlot(1);
         ItemStack messageStack = this.messagingController.getMessageStack();
@@ -2191,11 +2145,11 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             this.messagingController.messageStack = ItemStack.EMPTY;
         }
 
-        super.dropAllDeathLoot(p_21192_);
+        super.dropAllDeathLoot(p_level, damageSource);
     }
 
     private boolean isOwlEdible(ItemStack stack) {
-        return stack.getItem().isEdible() || isOwlTemptItem(stack);
+        return stack.has(DataComponents.FOOD) || isOwlTemptItem(stack);
     }
 
     private boolean isOwlTemptItem(ItemStack stack) {
@@ -2349,12 +2303,12 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 //        return null;
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable Direction facing) {
-        if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER)
-            return handler.cast();
-        return super.getCapability(capability, facing);
-    }
+//    @Override
+//    public <T> LazyOptional<T> getCapability(net.minecraftforge.common.capabilities.Capability<T> capability, @Nullable Direction facing) {
+//        if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER)
+//            return handler.cast();
+//        return super.getCapability(capability, facing);
+//    }
 
 
     private MenuProvider createContainerProvider(Level worldIn, BlockPos pos) {
@@ -2558,7 +2512,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                     this.isSittingOnShoulder = this.entity.startRiding(this.owner, true);
 
                     if(!level().isClientSide)
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level().getChunkAt(blockPosition())), new CrowStartRidingPacket(this.entity, this.owner));
+                        HexereiPacketHandler.sendToNearbyClient(this.entity.level(), this.entity, new StartRidingPacket(this.entity, this.owner));
                 }
 
             }
@@ -2625,8 +2579,8 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
         public void start() {
             this.timeToRecalcPath = 0;
-            this.oldWaterCost = this.owl.getPathfindingMalus(BlockPathTypes.WATER);
-            this.owl.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+            this.oldWaterCost = this.owl.getPathfindingMalus(PathType.WATER);
+            this.owl.setPathfindingMalus(PathType.WATER, 0.0F);
         }
 
         public void stop() {
@@ -2634,7 +2588,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             OwlEntity.this.currentTask = OwlTask.NONE;
             this.owner = null;
             this.navigation.stop();
-            this.owl.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
+            this.owl.setPathfindingMalus(PathType.WATER, this.oldWaterCost);
         }
 
         public void tick() {
@@ -2689,7 +2643,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         }
 
         private boolean canTeleportTo(BlockPos pos) {
-            BlockPathTypes blockpathtypes = WalkNodeEvaluator.getBlockPathTypeStatic(this.level, pos.mutable());
+//            PathType blockpathtypes = WalkNodeEvaluator.getPathTypeStatic(new PathfindingContext(this.level, this.owl), pos.mutable());
 
             if (pos.getY() <= -64)
                 return false;
@@ -3387,15 +3341,12 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 }
                 // if stuck for 20 seconds then teleport to the position its trying to get to
                 Vec3 oldPos = this.owl.position();
+                ResourceKey<Level> oldDim = this.owl.level().dimension();
                 teleportTo(this.wantedPos.x(), this.wantedPos.y(), this.wantedPos.z());
 
-                PacketDistributor.TargetPoint point = new PacketDistributor.TargetPoint(
-                        this.owl.position().x, this.owl.position().y, this.owl.position().z, 500, ((Level) this.owl.level()).dimension());
-                HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new OwlTeleportParticlePacket(((Level) this.owl.level()).dimension(), this.owl.position(), owl.getVariant()));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new OwlTeleportParticlePacket(this.owl.level().dimension(), this.owl.position(), owl.getVariant()));
+                HexereiPacketHandler.sendToNearbyClient(this.owl.level().getServer().getLevel(oldDim), this.owl, new OwlTeleportParticlePacket(this.owl.level().dimension(), oldPos, owl.getVariant()));
 
-                PacketDistributor.TargetPoint point2 = new PacketDistributor.TargetPoint(
-                        oldPos.x, oldPos.y, oldPos.z, 500, ((Level) this.owl.level()).dimension());
-                HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point2), new OwlTeleportParticlePacket(((Level) this.owl.level()).dimension(), oldPos, owl.getVariant()));
                 this.stuckStageTotal = 0;
                 this.stuck = 0;
                 this.stuckPath = null;
@@ -3468,25 +3419,18 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                                     }
                                     if (controller.forceLoadChunks()) {
                                         if (OwlEntity.this.distanceToSqr(wantedPos.x, wantedPos.y, wantedPos.z) < 4) {
+                                            ResourceKey<Level> oldDim = this.owl.level().dimension();
                                             Vec3 oldPos = new Vec3(this.owl.position().toVector3f());
                                             if (teleportToDest(controller.getDestination().dimension(), pos)) {
                                                 ServerLevel dimChange = this.owl.getServer().getLevel(controller.getDestination().dimension());
                                                 if (dimChange != null && !dimChange.equals(this.owl.level()))
-                                                    this.owl.changeDimension(dimChange, new ITeleporter() {
-                                                        @Override
-                                                        public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity) {
-                                                            return repositionEntity.apply(false);
-                                                        }
-                                                    });
+                                                    this.owl.changeDimension(new DimensionTransition(
+                                                            dimChange, pos.getCenter(), this.owl.getDeltaMovement(), this.owl.getYRot(), this.owl.getXRot(), DimensionTransition.DO_NOTHING
+                                                    ));
                                                 Vec3 newPos = new Vec3(this.owl.position().toVector3f());
 
-                                                PacketDistributor.TargetPoint point = new PacketDistributor.TargetPoint(
-                                                        oldPos.x, oldPos.y, oldPos.z, 500, controller.startPos.dimension());
-                                                HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new OwlTeleportParticlePacket(controller.startPos.dimension(), oldPos, owl.getVariant()));
-
-                                                PacketDistributor.TargetPoint point2 = new PacketDistributor.TargetPoint(
-                                                        newPos.x, newPos.y, newPos.z, 500, controller.getDestination().dimension());
-                                                HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point2), new OwlTeleportParticlePacket(controller.getDestination().dimension(), newPos, owl.getVariant()));
+                                                HexereiPacketHandler.sendToNearbyClient(this.owl.level(), this.owl, new OwlTeleportParticlePacket(this.owl.level().dimension(), this.owl.position(), owl.getVariant()));
+                                                HexereiPacketHandler.sendToNearbyClient(this.owl.level().getServer().getLevel(oldDim), this.owl, new OwlTeleportParticlePacket(this.owl.level().dimension(), oldPos, owl.getVariant()));
 
 
                                                 this.owl.hootAnimation.start();
@@ -3538,7 +3482,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                                             }
                                         }
                                     } else if (controller.destinationPlayer != null) {
-                                        if (ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(controller.destinationPlayer.getUUID()) != null && controller.destinationPlayer.isAlive()) {
+                                        if (this.owl.level().getServer().getPlayerList().getPlayer(controller.destinationPlayer.getUUID()) != null && controller.destinationPlayer.isAlive()) {
                                             if (!this.owl.messagingController.messageStack.isEmpty()) {
                                                 controller.destinationPlayer.getInventory().placeItemBackInInventory(this.owl.messagingController.messageStack.copy());
                                                 this.owl.messagingController.messageStack = ItemStack.EMPTY;
@@ -3597,21 +3541,12 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                                         if (teleportToDest(controller.startPos.dimension(), pos)) {
                                             Vec3 newPos = new Vec3(this.owl.position().toVector3f());
                                             if (dimChange != null && !dimChange.equals(this.owl.level()))
-                                                this.owl.changeDimension(dimChange, new ITeleporter() {
-                                                    @Override
-                                                    public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity) {
-                                                        return repositionEntity.apply(false);
-                                                    }
-                                                });
+                                                this.owl.changeDimension(new DimensionTransition(
+                                                        dimChange, pos.getCenter(), this.owl.getDeltaMovement(), this.owl.getYRot(), this.owl.getXRot(), DimensionTransition.DO_NOTHING
+                                                ));
 
-                                            PacketDistributor.TargetPoint point = new PacketDistributor.TargetPoint(
-                                                    newPos.x, newPos.y, newPos.z, 500, dim1);
-                                            HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point), new OwlTeleportParticlePacket(dim1, newPos, owl.getVariant()));
-
-                                            PacketDistributor.TargetPoint point2 = new PacketDistributor.TargetPoint(
-                                                    oldPos.x, oldPos.y, oldPos.z, 500, dim2);
-                                            HexereiPacketHandler.instance.send(PacketDistributor.NEAR.with(() -> point2), new OwlTeleportParticlePacket(dim2, oldPos, owl.getVariant()));
-
+                                            HexereiPacketHandler.sendToNearbyClient(this.owl.level().getServer().getLevel(dim1), this.owl, new OwlTeleportParticlePacket(this.owl.level().dimension(), newPos, owl.getVariant()));
+                                            HexereiPacketHandler.sendToNearbyClient(this.owl.level().getServer().getLevel(dim2), this.owl, new OwlTeleportParticlePacket(this.owl.level().dimension(), oldPos, owl.getVariant()));
 
                                             controller.stage = MessagingController.Stage.RETURN_TO_START;
                                             this.wantedPos = controller.startPos.pos().getCenter();
@@ -3862,8 +3797,8 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
                 for (FavoriteBlockQuirk quirk : quirks) {
                     if (blockstate.is(quirk.getFavoriteBlock())) {
-                        boolean collision = !quirk.getFavoriteBlock().getCollisionShape(quirk.getFavoriteBlock().defaultBlockState(), pLevel, BlockPos.ZERO, CollisionContext.empty()).isEmpty();
-                        boolean collisionBelow = !pLevel.getBlockState(pPos.below()).getBlock().getCollisionShape(quirk.getFavoriteBlock().defaultBlockState(), pLevel, BlockPos.ZERO, CollisionContext.empty()).isEmpty();
+                        boolean collision = !quirk.getFavoriteBlock().defaultBlockState().getCollisionShape(pLevel, BlockPos.ZERO, CollisionContext.empty()).isEmpty();
+                        boolean collisionBelow = !pLevel.getBlockState(pPos.below()).getBlock().defaultBlockState().getCollisionShape(pLevel, BlockPos.ZERO, CollisionContext.empty()).isEmpty();
                         if (collision || collisionBelow) {
                             if (this.ticks > 100) {
                                 if (posEqual(this.owl.getOnPos(0.5001f), pPos)) {
@@ -3908,7 +3843,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             if(!OwlEntity.this.currentTask.isNone())
                 return false;
             if(OwlEntity.this.getPerchPos() != null) {
-                double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getBlock().getOcclusionShape(OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()), OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getOcclusionShape(OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
                 if (!(this.distanceTo(OwlEntity.this.getPerchPos().getX(), OwlEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= OwlEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < OwlEntity.this.getPerchPos().above().getY() + topOffset)) {
                     OwlEntity.this.setOrderedToSit(false);
                     return false;
@@ -3946,7 +3881,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 } else {
                     if(OwlEntity.this.getPerchPos() != null)
                     {
-                        double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getBlock().getOcclusionShape(OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()), OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                        double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getOcclusionShape(OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
                         if (!(this.distanceTo(OwlEntity.this.getPerchPos().getX(), OwlEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= OwlEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < OwlEntity.this.getPerchPos().above().getY() + topOffset)) {
                             return false;
                         }
@@ -4098,7 +4033,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
             if (this.targetEntity != null && this.targetEntity.isAlive() && this.mob.distanceToSqr(this.targetEntity) < this.hunter.getMaxDistToItem() && OwlEntity.this.itemHandler.getStackInSlot(1).isEmpty()) {
                 if (!((OwlEntity) hunter).peckAnimation.active) {
                     hunter.peck();
-                    HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> ((OwlEntity) hunter).level().getChunkAt(((OwlEntity) hunter).blockPosition())), new PeckPacket(this.mob));
+                    HexereiPacketHandler.sendToNearbyClient(this.mob.level(), this.mob, new PeckPacket(this.mob));
                 }
 
 
@@ -4241,7 +4176,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                         OwlEntity.this.breedGiftGivenByPlayer = false;
 
                         OwlEntity.this.peck();
-                        HexereiPacketHandler.instance.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(blockPosition())), new PeckPacket(OwlEntity.this));
+                        HexereiPacketHandler.sendToNearbyClient(OwlEntity.this.level(), OwlEntity.this, new PeckPacket(OwlEntity.this));
 
                         ItemStack stack = ((OwlEntity) this.partner).itemHandler.getStackInSlot(1).copy();
                         ItemStack stack2 = OwlEntity.this.itemHandler.getStackInSlot(1).copy();
@@ -4324,8 +4259,8 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
         public void spawnChildFromBreeding(ServerLevel p_27564_, Animal p_27565_) {
             AgeableMob ageablemob = OwlEntity.this.getBreedOffspring(p_27564_, p_27565_);
-            final net.minecraftforge.event.entity.living.BabyEntitySpawnEvent event = new net.minecraftforge.event.entity.living.BabyEntitySpawnEvent(OwlEntity.this, p_27565_, ageablemob);
-            final boolean cancelled = net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+            final BabyEntitySpawnEvent event = new BabyEntitySpawnEvent(OwlEntity.this, p_27565_, ageablemob);
+            final boolean cancelled = net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event).isCanceled();
             ageablemob = event.getChild();
             if (cancelled) {
                 //Reset the "inLove" state for the animals
@@ -4355,7 +4290,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                 p_27564_.addFreshEntityWithPassengers(ageablemob);
 
                 ((OwlEntity)ageablemob).setOwnerUUID(OwlEntity.this.getOwnerUUID());
-                ((OwlEntity)ageablemob).setTame(true);
+                ((OwlEntity)ageablemob).setTame(true, false);
 //                if (OwlEntity.this.getOwner() != null)
 //                    ((OwlEntity)ageablemob).tame((Player) OwlEntity.this.getOwner());
                 ((OwlEntity)ageablemob).setOrderedToSit(true);
@@ -4494,7 +4429,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
 
             double topOffset = 0;
             if(OwlEntity.this.getPerchPos() != null)
-                topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getBlock().getOcclusionShape(OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()), OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getOcclusionShape(OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
             if(this.distanceTo(OwlEntity.this.getPerchPos().getX(), OwlEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= OwlEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < OwlEntity.this.getPerchPos().above().getY() + topOffset) {
                     return false;
             }
@@ -4539,7 +4474,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
                     if(OwlEntity.this.getPerchPos() == null)
                         return false;
 
-                    double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getBlock().getOcclusionShape(OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()), OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                    double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getOcclusionShape(OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
                     if(this.distanceTo(OwlEntity.this.getPerchPos().getX(), OwlEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= OwlEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < OwlEntity.this.getPerchPos().above().getY() + topOffset) {
                         if(OwlEntity.this.isInSittingPose())
                             return false;
@@ -4560,7 +4495,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         public void tick() {
             double topOffset = 0;
             if(OwlEntity.this.getPerchPos() != null)
-                topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getBlock().getOcclusionShape(OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()), OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getOcclusionShape(OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
 
             boolean isStuck = false;
 
@@ -4588,7 +4523,7 @@ public class OwlEntity extends TamableAnimal implements ContainerListener, Flyin
         public void stop() {
             OwlEntity.this.currentTask = OwlTask.NONE;
             if(OwlEntity.this.getPerchPos() != null){
-                double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getBlock().getOcclusionShape(OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()), OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
+                double topOffset = OwlEntity.this.level().getBlockState(OwlEntity.this.getPerchPos()).getOcclusionShape(OwlEntity.this.level(), OwlEntity.this.getPerchPos()).max(Direction.Axis.Y);
                 if (this.distanceTo(OwlEntity.this.getPerchPos().getX(), OwlEntity.this.getPerchPos().getZ()) < 1 && this.mob.position().y() >= OwlEntity.this.getPerchPos().getY() + topOffset && this.mob.position().y() < OwlEntity.this.getPerchPos().above().getY() + topOffset) {
 //                CrowEntity.this.setCommandSit();
                     OwlEntity.this.setInSittingPose(true);

@@ -1,5 +1,6 @@
 package net.joefoxe.hexerei.block.custom;
 
+import com.mojang.serialization.MapCodec;
 import net.joefoxe.hexerei.block.ITileEntity;
 import net.joefoxe.hexerei.tileentity.CrystalBallTile;
 import net.joefoxe.hexerei.tileentity.ModTileEntities;
@@ -13,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -49,6 +51,8 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
     public static final IntegerProperty ANGLE = IntegerProperty.create("angle", 0, 180);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
+    public static final MapCodec<CrystalBall> CODEC = simpleCodec(CrystalBall::new);
+
     @Override
     public RenderShape getRenderShape(BlockState iBlockState) {
         return RenderShape.MODEL;
@@ -62,7 +66,7 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
     }
 
     @Override
-    public boolean isPathfindable(BlockState pState, BlockGetter pLevel, BlockPos pPos, PathComputationType pType) {
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
         return false;
     }
 
@@ -79,63 +83,37 @@ public class CrystalBall extends BaseEntityBlock implements ITileEntity<CrystalB
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        BlockEntity tileEntity = level.getBlockEntity(pos);
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
 
-        if(player.getItemInHand(handIn).isEmpty()) {
-
-            if (level.isClientSide) {
-//                if (tileEntity instanceof CrystalBallTile crystalBallTile) {
-//                    crystalBallTile.centerYawIncrement = Mth.clamp(crystalBallTile.centerYawIncrement + (crystalBallTile.centerYawIncrement > 0 ? 1 : -1) + (crystalBallTile.centerYawIncrement / 10), -100, 100);
-//                    crystalBallTile.lastInteractedWith = level.getGameTime();
-//                }
-            } else {
-                level.gameEvent(player, GameEvent.BLOCK_ACTIVATE, pos);
-                level.blockEvent(pos, state.getBlock(), 1, 0);
-            }
-            return InteractionResult.SUCCESS;
+        if (!level.isClientSide) {
+            level.gameEvent(player, GameEvent.BLOCK_ACTIVATE, pos);
+            level.blockEvent(pos, state.getBlock(), 1, 0);
         }
-
-        return InteractionResult.PASS;
+        return InteractionResult.SUCCESS;
     }
-
-//    @SuppressWarnings("deprecation")
-//    @Override
-//    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-//        ItemStack itemstack = player.getItemInHand(handIn);
-//        if(!level.isClientSide()) {
-//
-//            BlockEntity tileEntity = level.getBlockEntity(pos);
-//
-//            if(tileEntity instanceof CofferTile) {
-//                MenuProvider containerProvider = createContainerProvider(level, pos);
-//
-//                NetworkHooks.openGui(((ServerPlayer)player), containerProvider, tileEntity.getPos());
-//
-//            } else {
-//                throw new IllegalStateException("Our Container provider is missing!");
-//            }
-//        }
-//        return InteractionResult.SUCCESS;
-//    }
 
     public CrystalBall(Properties properties) {
         super(properties.noOcclusion());
         this.registerDefaultState(this.stateDefinition.any().setValue(WATERLOGGED, Boolean.FALSE));
     }
 
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 
         if(Screen.hasShiftDown()) {
-            tooltip.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
-            tooltip.add(Component.translatable("tooltip.hexerei.crystal_ball_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("<%s>", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAA6600)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("tooltip.hexerei.crystal_ball_shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
         } else {
-            tooltip.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
+            tooltipComponents.add(Component.translatable("[%s]", Component.translatable("tooltip.hexerei.shift").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAA00)))).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x999999))));
 //            tooltip.add(Component.translatable("tooltip.hexerei.crystal_ball"));
         }
-        super.appendHoverText(stack, world, tooltip, flagIn);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
     @Override

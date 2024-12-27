@@ -1,20 +1,30 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.MixingCauldronTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public class RecipeToServer {
+public class RecipeToServer extends AbstractPacket {
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, RecipeToServer> CODEC  = StreamCodec.ofMember(RecipeToServer::encode, RecipeToServer::new);
+    public static final Type<RecipeToServer> TYPE = new Type<>(HexereiUtil.getResource("recipe_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     private List<ItemStack> stacks;
     private BlockPos pos;
 
@@ -25,11 +35,11 @@ public class RecipeToServer {
         this.pos = pos;
         this.uuid = uuid;
     }
-    public RecipeToServer(FriendlyByteBuf buf) {
+    public RecipeToServer(RegistryFriendlyByteBuf buf) {
         int num = buf.readInt();
         List<ItemStack> stacks1 = new ArrayList<>();
         for(int i = 0; i < num; i++)
-            stacks1.add(buf.readItem());
+            stacks1.add(ItemStack.STREAM_CODEC.decode(buf));
         this.stacks = stacks1;
         if (buf.readBoolean()) {
             this.pos = buf.readBlockPos();
@@ -39,36 +49,22 @@ public class RecipeToServer {
         this.uuid = buf.readUUID();
     }
 
-    public static void encode(RecipeToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.stacks.size());
-        for(int i = 0; i < object.stacks.size(); i++)
-            buffer.writeItem(object.stacks.get(i));
-        if (object.pos != null) {
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(stacks.size());
+        for (ItemStack stack : stacks)
+            ItemStack.STREAM_CODEC.encode(buffer, stack);
+        if (pos != null) {
             buffer.writeBoolean(true);
-            buffer.writeBlockPos(object.pos);
+            buffer.writeBlockPos(pos);
         } else {
             buffer.writeBoolean(false);
         }
-        buffer.writeUUID(object.uuid);
+        buffer.writeUUID(uuid);
     }
 
-    public static RecipeToServer decode(FriendlyByteBuf buffer) {
-        return new RecipeToServer(buffer);
-    }
-
-    public static void consume(RecipeToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            ((MixingCauldronTile)world.getBlockEntity(packet.pos)).setContents(packet.stacks, world.getPlayerByUUID(packet.uuid));
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(player.level().getBlockEntity(pos) instanceof MixingCauldronTile cauldron)
+            cauldron.setContents(stacks, player.level().getPlayerByUUID(uuid));
     }
 }

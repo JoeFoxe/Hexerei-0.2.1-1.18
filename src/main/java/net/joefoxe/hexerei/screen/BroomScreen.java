@@ -2,11 +2,10 @@ package net.joefoxe.hexerei.screen;
 
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.BroomEntity;
 import net.joefoxe.hexerei.container.BroomContainer;
 import net.joefoxe.hexerei.util.HexereiTags;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -31,9 +30,9 @@ import static net.joefoxe.hexerei.container.BroomContainer.OFFSET;
 import static net.joefoxe.hexerei.util.HexereiUtil.moveTo;
 
 public class BroomScreen extends AbstractContainerScreen<BroomContainer> {
-    private final ResourceLocation GUI = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation GUI = HexereiUtil.getResource(
             "textures/gui/broom_gui.png");
-    private final ResourceLocation INVENTORY = new ResourceLocation(Hexerei.MOD_ID,
+    private final ResourceLocation INVENTORY = HexereiUtil.getResource(
             "textures/gui/inventory.png");
 
     public final BroomEntity broomEntity;
@@ -68,7 +67,7 @@ public class BroomScreen extends AbstractContainerScreen<BroomContainer> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
 
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
         this.renderButtonTooltip(guiGraphics, mouseX, mouseY);

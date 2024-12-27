@@ -1,16 +1,25 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.client.renderer.entity.custom.CrowEntity;
-import net.minecraft.network.FriendlyByteBuf;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
 
-import java.util.function.Supplier;
+public class CrowSyncCommandToServer extends AbstractPacket {
 
-public class CrowSyncCommandToServer {
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrowSyncCommandToServer> CODEC  = StreamCodec.ofMember(CrowSyncCommandToServer::encode, CrowSyncCommandToServer::new);
+    public static final Type<CrowSyncCommandToServer> TYPE = new Type<>(HexereiUtil.getResource("crow_sync_command_server"));
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     int sourceId;
     int command;
 
@@ -18,35 +27,19 @@ public class CrowSyncCommandToServer {
         this.sourceId = entity.getId();
         this.command = tag;
     }
-    public CrowSyncCommandToServer(FriendlyByteBuf buf) {
+    public CrowSyncCommandToServer(RegistryFriendlyByteBuf buf) {
         this.sourceId = buf.readInt();
         this.command = buf.readInt();
-
     }
 
-    public static void encode(CrowSyncCommandToServer object, FriendlyByteBuf buffer) {
-        buffer.writeInt(object.sourceId);
-        buffer.writeInt(object.command);
+    public void encode(RegistryFriendlyByteBuf buffer) {
+        buffer.writeInt(sourceId);
+        buffer.writeInt(command);
     }
 
-    public static CrowSyncCommandToServer decode(FriendlyByteBuf buffer) {
-        return new CrowSyncCommandToServer(buffer);
-    }
-
-    public static void consume(CrowSyncCommandToServer packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getEntity(packet.sourceId) instanceof CrowEntity crowEntity)
-                crowEntity.setCommand(packet.command);
-        });
-        ctx.get().setPacketHandled(true);
+    @Override
+    public void onServerReceived(MinecraftServer server, ServerPlayer player) {
+        if(player.level().getEntity(sourceId) instanceof CrowEntity crowEntity)
+            crowEntity.setCommand(command);
     }
 }

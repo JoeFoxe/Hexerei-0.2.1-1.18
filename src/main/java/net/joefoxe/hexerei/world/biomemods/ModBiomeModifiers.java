@@ -1,17 +1,16 @@
 package net.joefoxe.hexerei.world.biomemods;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.joefoxe.hexerei.Hexerei;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraftforge.common.world.BiomeModifier;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.world.BiomeModifier;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class ModBiomeModifiers {
 //    public static final ResourceKey<BiomeModifier> ADD_SAPPHIRE_ORE = registerKey("add_sapphire_ore");
@@ -42,24 +41,24 @@ public class ModBiomeModifiers {
 //    private static ResourceKey<BiomeModifier> registerKey(String name) {
 //        return ResourceKey.create(ForgeRegistries.Keys.BIOME_MODIFIERS, new ResourceLocation(TutorialMod.MOD_ID, name));
 //    }
-    public static final DeferredRegister<Codec<? extends BiomeModifier>> BIOME_MODIFIERS =
-            DeferredRegister.create(ForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, Hexerei.MOD_ID);
+    public static final DeferredRegister<MapCodec<? extends BiomeModifier>> BIOME_MODIFIERS =
+            DeferredRegister.create(NeoForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, Hexerei.MOD_ID);
 
 
-    public static RegistryObject<Codec<ModVegetalBiomeModifiers>> VEGETAL_MODIFIER = BIOME_MODIFIERS.register("vegetal", () ->
-            RecordCodecBuilder.create(builder -> builder.group(
+    public static DeferredHolder<MapCodec<? extends BiomeModifier>, MapCodec<ModVegetalBiomeModifiers>> VEGETAL_MODIFIER = BIOME_MODIFIERS.register("vegetal", () ->
+            RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Biome.LIST_CODEC.fieldOf("biomes").forGetter(ModVegetalBiomeModifiers::biomes),
                     PlacedFeature.CODEC.fieldOf("feature").forGetter(ModVegetalBiomeModifiers::feature)
             ).apply(builder, ModVegetalBiomeModifiers::new)));
 
-//    public static RegistryObject<Codec<ModOreBiomeModifier>> ORE_MODIFIER = BIOME_MODIFIERS.register("ores", () ->
+//    public static DeferredHolder<Codec<ModOreBiomeModifier>> ORE_MODIFIER = BIOME_MODIFIERS.register("ores", () ->
 //            RecordCodecBuilder.create(builder -> builder.group(
 //                    Biome.LIST_CODEC.fieldOf("biomes").forGetter(ModOreBiomeModifier::biomes),
 //                    PlacedFeature.CODEC.fieldOf("feature").forGetter(ModOreBiomeModifier::feature)
 //            ).apply(builder, ModOreBiomeModifier::new)));
 
-    public static RegistryObject<Codec<ModEntityBiomeModifier>> ENTITY_MODIFIER = BIOME_MODIFIERS.register("entities", () ->
-            RecordCodecBuilder.create(builder -> builder.group(
+    public static DeferredHolder<MapCodec<? extends BiomeModifier>, MapCodec<ModEntityBiomeModifier>> ENTITY_MODIFIER = BIOME_MODIFIERS.register("entities", () ->
+            RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Biome.LIST_CODEC.fieldOf("biomes").forGetter(ModEntityBiomeModifier::biomes),
                     MobSpawnSettings.SpawnerData.CODEC.fieldOf("entity").forGetter(ModEntityBiomeModifier::spawnerData)
             ).apply(builder, ModEntityBiomeModifier::new)));

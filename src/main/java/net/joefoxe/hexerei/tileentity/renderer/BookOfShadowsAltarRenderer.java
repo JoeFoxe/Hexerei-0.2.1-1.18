@@ -6,18 +6,20 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.math.Axis;
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.data.books.HexereiBookItem;
+import net.joefoxe.hexerei.item.ModDataComponents;
+import net.joefoxe.hexerei.item.data_components.BookData;
 import net.joefoxe.hexerei.tileentity.BookOfShadowsAltarTile;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -31,11 +33,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -54,8 +54,11 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
     }
 
 
+    @Override
+    public AABB getRenderBoundingBox(BookOfShadowsAltarTile blockEntity) {
+        return BlockEntityRenderer.super.getRenderBoundingBox(blockEntity).inflate(5, 5, 5);
+    }
 
-    @OnlyIn(Dist.CLIENT)
     @Override
     public void render(BookOfShadowsAltarTile tileEntityIn, float partialTicks, PoseStack matrixStackIn,
                        MultiBufferSource bufferIn, int combinedLightIn, int combinedOverlayIn) {
@@ -190,9 +193,9 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
                 renderBlock(matrixStackIn, buffer, combinedLightIn, ModBlocks.BOOK_OF_SHADOWS_PAGE.get().defaultBlockState());
                 matrixStackIn.popPose();
             }
-            CompoundTag tag = stack.getOrCreateTag();
+            BookData bookData = stack.getOrDefault(ModDataComponents.BOOK, BookData.EMPTY);
 
-            if(tag.getBoolean("opened") || tileEntityIn.degreesFlopped != 90) {
+            if(bookData.isOpened() || tileEntityIn.degreesFlopped != 90) {
                 if(tileEntityIn.degreesFlopped == 0)
                     tileEntityIn.degreesSpunRender = tileEntityIn.drawing.moveToAngle(tileEntityIn.degreesSpun, tileEntityIn.degreesSpunTo, tileEntityIn.degreesSpunSpeed * partialTicks);
                 tileEntityIn.buttonScaleRender = tileEntityIn.drawing.moveToAngle(tileEntityIn.buttonScale, tileEntityIn.buttonScaleTo, tileEntityIn.buttonScaleSpeed * partialTicks);
@@ -214,7 +217,7 @@ public class BookOfShadowsAltarRenderer implements BlockEntityRenderer<BookOfSha
             FlowerPotBlock block = (FlowerPotBlock)Blocks.FLOWER_POT;
             Map<ResourceLocation, Supplier<? extends Block>> map = block.getFullPotsView();
 
-            ResourceLocation loc = ForgeRegistries.ITEMS.getKey(stack.getItem());
+            ResourceLocation loc = BuiltInRegistries.ITEM.getKey(stack.getItem());
             BlockState blockState = map.getOrDefault(loc,() -> Blocks.AIR).get().defaultBlockState();
 
             if(!blockState.isAir()) {

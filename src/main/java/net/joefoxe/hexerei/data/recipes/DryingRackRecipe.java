@@ -2,54 +2,54 @@ package net.joefoxe.hexerei.data.recipes;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.netty.buffer.ByteBuf;
 import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.block.ModBlocks;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DryingRackRecipe implements Recipe<SimpleContainer> {
+public class DryingRackRecipe implements Recipe<CraftingInput> {
 
-    private final ResourceLocation id;
     private final ItemStack output;
-    private final NonNullList<Ingredient> recipeItems;
+    private final Ingredient input;
     private final int dryingTime;
-    protected static final List<Boolean> itemMatchesSlot = new ArrayList<>();
 
     @Override
     public boolean isSpecial() {
         return true;
     }
 
-    public DryingRackRecipe(ResourceLocation id, NonNullList<Ingredient> inputs,
-                            ItemStack output, int dryingTime) {
-        this.id = id;
+    public DryingRackRecipe(Ingredient input, ItemStack output, int dryingTime) {
         this.output = output;
-        this.recipeItems = inputs;
+        this.input = input;
         this.dryingTime = dryingTime;
-
-        for(int i = 0; i < 8; i++) {
-            itemMatchesSlot.add(false);
-        }
-
     }
 
 
     @Override
-    public boolean matches(SimpleContainer inv, Level worldIn) {
-        if(recipeItems.get(0).test(inv.getItem(0) )||
-                recipeItems.get(0).test(inv.getItem(1)) ||
-                        recipeItems.get(0).test(inv.getItem(2)))
+    public boolean matches(CraftingInput inv, Level worldIn) {
+        if(input.test(inv.getItem(0) )||
+                input.test(inv.getItem(1)) ||
+                        input.test(inv.getItem(2)))
             return true;
 
         return false;
@@ -59,11 +59,11 @@ public class DryingRackRecipe implements Recipe<SimpleContainer> {
 
     @Override
     public NonNullList<Ingredient> getIngredients() {
-        return recipeItems;
+        return NonNullList.of(input);
     }
 
     @Override
-    public ItemStack assemble(SimpleContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registryAccess) {
         return output;
     }
 
@@ -73,8 +73,7 @@ public class DryingRackRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
-
+    public ItemStack getResultItem(HolderLookup.Provider registryAccess) {
         return getOutput();
     }
 
@@ -85,11 +84,6 @@ public class DryingRackRecipe implements Recipe<SimpleContainer> {
 
     public ItemStack getToastSymbol() {
         return new ItemStack(ModBlocks.HERB_DRYING_RACK.get());
-    }
-
-    @Override
-    public ResourceLocation getId() {
-        return id;
     }
 
     @Override
@@ -110,46 +104,48 @@ public class DryingRackRecipe implements Recipe<SimpleContainer> {
     }
 
 
-    // for Serializing the recipe into/from a json
     public static class Serializer implements RecipeSerializer<DryingRackRecipe> {
-        public static final DryingRackRecipe.Serializer INSTANCE = new DryingRackRecipe.Serializer();
-        public static final ResourceLocation ID =
-                new ResourceLocation(Hexerei.MOD_ID,"drying_rack");
+        public static final Serializer INSTANCE = new Serializer();
+
+        private static final MapCodec<DryingRackRecipe> CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                                Ingredient.CODEC.fieldOf("input").forGetter(recipe -> recipe.input),
+                                ItemStack.CODEC.fieldOf("output").forGetter(recipe -> recipe.output),
+                                Codec.INT.fieldOf("dryingTime").forGetter(recipe -> recipe.dryingTime)
+                        )
+                        .apply(instance, DryingRackRecipe::new)
+        );
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, DryingRackRecipe> STREAM_CODEC = StreamCodec.of(
+                DryingRackRecipe.Serializer::toNetwork, DryingRackRecipe.Serializer::fromNetwork
+        );
 
         @Override
-        public DryingRackRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-            JsonArray ingredients = GsonHelper.getAsJsonArray(json, "ingredients");
-            NonNullList<Ingredient> inputs = NonNullList.withSize(1, Ingredient.EMPTY);
-            ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
-            int dryingTime = GsonHelper.getAsInt(json, "dryingTimeInTicks");
-
-            inputs.set(0, Ingredient.fromJson(ingredients.get(0)));
-
-            return new DryingRackRecipe(recipeId, inputs,
-                    output, dryingTime);
-        }
-
-        @Nullable
-        @Override
-        public DryingRackRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            NonNullList<Ingredient> inputs = NonNullList.withSize(buffer.readInt(), Ingredient.EMPTY);
-            for (int i = 0; i < inputs.size(); i++) {
-                inputs.set(i, Ingredient.fromNetwork(buffer));
-            }
-
-            ItemStack output = buffer.readItem();
-            return new DryingRackRecipe(recipeId, inputs, output, buffer.readInt());
+        public MapCodec<DryingRackRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public void toNetwork(FriendlyByteBuf buffer, DryingRackRecipe recipe) {
-            buffer.writeInt(recipe.getIngredients().size());
-            for (Ingredient ing : recipe.getIngredients())
-                ing.toNetwork(buffer);
-            buffer.writeItem(recipe.output);
-
-            buffer.writeInt(recipe.getDryingTime());
+        public StreamCodec<RegistryFriendlyByteBuf, DryingRackRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
 
+
+        static <B extends ByteBuf> StreamCodec.CodecOperation<B, Ingredient, NonNullList<Ingredient>> list() {
+            return p_320272_ -> ByteBufCodecs.collection((s) -> NonNullList.withSize(s, Ingredient.EMPTY), p_320272_);
+        }
+
+        private static DryingRackRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            Ingredient input = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
+            ItemStack output = ItemStack.STREAM_CODEC.decode(buffer);
+            int dryingTime = ByteBufCodecs.INT.decode(buffer);
+            return new DryingRackRecipe(input, output, dryingTime);
+        }
+
+        private static void toNetwork(RegistryFriendlyByteBuf buffer, DryingRackRecipe recipe) {
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.input);
+            ItemStack.STREAM_CODEC.encode(buffer, recipe.output);
+            ByteBufCodecs.INT.encode(buffer, recipe.dryingTime);
+        }
     }
 }

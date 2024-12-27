@@ -2,6 +2,7 @@ package net.joefoxe.hexerei.data.candle;
 
 import net.joefoxe.hexerei.block.custom.Candle;
 import net.joefoxe.hexerei.util.HexereiUtil;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -143,10 +144,10 @@ public class CandleData {
         return effects;
     }
 
-    public CompoundTag save(){
-        return save(new CompoundTag(), false);
+    public CompoundTag save(HolderLookup.Provider registries){
+        return save(new CompoundTag(), registries, false);
     }
-    public CompoundTag save(CompoundTag tag, boolean asItem){
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries, boolean asItem){
         if(this.dyeColor != Candle.BASE_COLOR)
             tag.putInt("dyeColor", this.dyeColor);
         if(this.height < 7)
@@ -161,7 +162,7 @@ public class CandleData {
         if(this.effect != null && !this.effect.isEmpty())
             tag.putString("effect", this.effect.getLocationName());
 
-        if(this.effectParticle != null && this.effectParticle.size() > 0) {
+        if(this.effectParticle != null && !this.effectParticle.isEmpty()) {
             CompoundTag compoundTag = new CompoundTag();
             for(int i = 0; i < this.effectParticle.size(); i++){
                 compoundTag.putString("particle" + i, this.effectParticle.get(i));
@@ -181,12 +182,12 @@ public class CandleData {
             tag.put("swirl", this.swirl.save());
         }
         if(this.customName != null)
-            tag.putString("customName", Component.Serializer.toJson(this.customName));
+            tag.putString("customName", Component.Serializer.toJson(this.customName, registries));
 
         return tag;
     }
 
-    public void load(CompoundTag tag, boolean fromItem){
+    public void load(CompoundTag tag, HolderLookup.Provider registries, boolean fromItem){
         if(tag.contains("dyeColor"))
             this.dyeColor = tag.getInt("dyeColor");
         else
@@ -238,39 +239,39 @@ public class CandleData {
             CompoundTag ct = tag.getCompound("base");
             this.base = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
-                    new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
+                    ResourceLocation.parse(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
         } else
             this.base = new CandleLayer();
         if(tag.contains("herb")) {
             CompoundTag ct = tag.getCompound("herb");
             this.herb = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
-                    new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
+                    ResourceLocation.parse(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
         } else
             this.herb = new CandleLayer();
         if(tag.contains("glow")) {
             CompoundTag ct = tag.getCompound("glow");
             this.glow = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
-                    new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
+                    ResourceLocation.parse(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
         } else
             this.glow = new CandleLayer();
         if(tag.contains("swirl")) {
             CompoundTag ct = tag.getCompound("swirl");
             this.swirl = new CandleLayer(ct.getFloat("meltingSpeedMultiplier"),ct.getFloat("radiusMultiplier"),ct.getFloat("effectAmplifierMultiplier"),
                     ct.getFloat("effectCooldownMultiplier"), ct.getFloat("effectDurationMultiplier"),
-                    new ResourceLocation(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
+                    ResourceLocation.parse(ct.getString("layer")), ct.getBoolean("layerFromBlockLocation"));
         } else
             this.swirl = new CandleLayer();
         if(tag.contains("customName"))
-            this.customName = Component.Serializer.fromJson(tag.getString("customName"));
+            this.customName = Component.Serializer.fromJson(tag.getString("customName"), registries);
         else
             this.customName = null;
 
 
     }
-    public void load(CompoundTag tag){
-        load(tag, false);
+    public void load(CompoundTag tag, HolderLookup.Provider registries){
+        load(tag, registries, false);
 
     }
 

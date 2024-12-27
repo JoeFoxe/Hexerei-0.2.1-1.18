@@ -6,6 +6,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.joefoxe.hexerei.Hexerei;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -48,7 +49,7 @@ public class ModRenderTypes extends RenderType {
             true,
             RenderType.CompositeState.builder()
                     .setShaderState(RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER)
-                    .setTextureState(new TextureStateShard(new ResourceLocation(Hexerei.MOD_ID, "textures/gui/moon_phases.png"), false, false))
+                    .setTextureState(new TextureStateShard(HexereiUtil.getResource("textures/gui/moon_phases.png"), false, false))
                     .setCullState(RenderStateShard.NO_CULL)
                     .setLightmapState(RenderStateShard.LIGHTMAP)
                     .setTransparencyState(TRANSLUCENT_TRANSPARENCY)

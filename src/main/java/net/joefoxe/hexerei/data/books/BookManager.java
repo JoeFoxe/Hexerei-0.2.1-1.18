@@ -4,7 +4,8 @@ import net.joefoxe.hexerei.util.HexereiPacketHandler;
 import net.joefoxe.hexerei.util.message.BookEntriesPacket;
 import net.joefoxe.hexerei.util.message.BookPagesPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,11 +37,19 @@ public class  BookManager {
     }
 
     public static void sendBookPagesToClient() {
-        HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new BookPagesPacket(BOOK_PAGES));
+        HexereiPacketHandler.sendToAllPlayers(new BookPagesPacket(BOOK_PAGES), ServerLifecycleHooks.getCurrentServer());
     }
 
     public static void sendBookEntriesToClient() {
-        HexereiPacketHandler.instance.send(PacketDistributor.ALL.noArg(), new BookEntriesPacket(BOOK_ENTRIES));
+        HexereiPacketHandler.sendToAllPlayers(new BookEntriesPacket(BOOK_ENTRIES), ServerLifecycleHooks.getCurrentServer());
+    }
+
+    public static void sendBookPagesToClient(ServerPlayer player) {
+        HexereiPacketHandler.sendToPlayerClient(new BookPagesPacket(BOOK_PAGES), player);
+    }
+
+    public static void sendBookEntriesToClient(ServerPlayer player) {
+        HexereiPacketHandler.sendToPlayerClient(new BookEntriesPacket(BOOK_ENTRIES), player);
     }
 
     public static BookPage getBookPages(ResourceLocation loc){

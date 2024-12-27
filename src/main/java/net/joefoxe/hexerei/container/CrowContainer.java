@@ -11,10 +11,10 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import static net.joefoxe.hexerei.container.CofferContainer.OFFSET;
 
@@ -35,10 +35,10 @@ public class CrowContainer extends AbstractContainerMenu {
 
         //add slots for crow
         if(crowEntity != null) {
-            crowEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(h -> {
+            IItemHandler itemHandler = crowEntity.getCapability(Capabilities.ItemHandler.ENTITY);
 
 
-                addSlot(new SlotItemHandler(h, 0, 86, 50 - OFFSET) {
+                addSlot(new SlotItemHandler(itemHandler, 0, 86, 50 - OFFSET) {
 
                     @Override
                     public int getMaxStackSize() {
@@ -60,7 +60,7 @@ public class CrowContainer extends AbstractContainerMenu {
                 });
 
                 //satchel slot
-                addSlot(new SlotItemHandler(h, 1, 37, 50 - OFFSET) {
+                addSlot(new SlotItemHandler(itemHandler, 1, 37, 50 - OFFSET) {
 
                     @Override
                     public int getMaxStackSize() {
@@ -73,7 +73,7 @@ public class CrowContainer extends AbstractContainerMenu {
                     }
 
                 });
-                addSlot(new SlotItemHandler(h, 2, 134, 50 - OFFSET){
+                addSlot(new SlotItemHandler(itemHandler, 2, 134, 50 - OFFSET){
 
                     @Override
                     public int getMaxStackSize() {
@@ -100,7 +100,6 @@ public class CrowContainer extends AbstractContainerMenu {
 //                    this.slots.get(27 + k).y = 106 + 58;
 
 
-            });
         }
 
         addDataSlot(new DataSlot() {
@@ -126,7 +125,7 @@ public class CrowContainer extends AbstractContainerMenu {
     }
 
     public void playSound() {
-        this.crowEntity.level().playSound(null, this.crowEntity.blockPosition(), SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        this.crowEntity.level().playSound(null, this.crowEntity.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public int getCommand() {

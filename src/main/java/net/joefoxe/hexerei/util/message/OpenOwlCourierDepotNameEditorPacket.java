@@ -1,28 +1,34 @@
 package net.joefoxe.hexerei.util.message;
 
-import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.tileentity.OwlCourierDepotTile;
+import net.joefoxe.hexerei.util.AbstractPacket;
+import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.function.Supplier;
+public class OpenOwlCourierDepotNameEditorPacket extends AbstractPacket {
 
-public class OpenOwlCourierDepotNameEditorPacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf, OpenOwlCourierDepotNameEditorPacket> CODEC  = StreamCodec.ofMember(OpenOwlCourierDepotNameEditorPacket::encode, OpenOwlCourierDepotNameEditorPacket::new);
+    public static final CustomPacketPayload.Type<OpenOwlCourierDepotNameEditorPacket> TYPE = new CustomPacketPayload.Type<>(HexereiUtil.getResource("owl_courier_depot_name"));
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     BlockPos pos;
 
     public OpenOwlCourierDepotNameEditorPacket(BlockPos pos) {
         this.pos = pos;
 
     }
-    public OpenOwlCourierDepotNameEditorPacket(FriendlyByteBuf buf) {
+    public OpenOwlCourierDepotNameEditorPacket(RegistryFriendlyByteBuf buf) {
         this.pos = buf.readBlockPos();
     }
 
@@ -30,33 +36,11 @@ public class OpenOwlCourierDepotNameEditorPacket {
         buffer.writeBlockPos(object.pos);
     }
 
-    public static OpenOwlCourierDepotNameEditorPacket decode(FriendlyByteBuf buffer) {
-        return new OpenOwlCourierDepotNameEditorPacket(buffer);
-    }
+    @Override
+    public void onClientReceived(Minecraft minecraft, Player player) {
 
-    public static void consume(OpenOwlCourierDepotNameEditorPacket packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Level world;
-            if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-                world = Hexerei.proxy.getLevel();
-            }
-            else {
-                if (ctx.get().getSender() == null) return;
-                world = ctx.get().getSender().level();
-            }
-
-            if(world.getBlockEntity(packet.pos) instanceof OwlCourierDepotTile depot) {
-                DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-                    setScreen(depot);
-                });
-            }
-        });
-        ctx.get().setPacketHandled(true);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void setScreen(OwlCourierDepotTile depot) {
-        Minecraft.getInstance().setScreen(new net.joefoxe.hexerei.screen.OwlCourierDepotNameScreen(depot, Component.translatable("hexerei.owl_courier_depot_name.edit")));
-
+        if(player.level().getBlockEntity(pos) instanceof OwlCourierDepotTile depot) {
+            minecraft.setScreen(new net.joefoxe.hexerei.screen.OwlCourierDepotNameScreen(depot, Component.translatable("hexerei.owl_courier_depot_name.edit")));
+        }
     }
 }

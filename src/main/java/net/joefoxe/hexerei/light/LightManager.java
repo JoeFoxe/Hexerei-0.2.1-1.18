@@ -10,13 +10,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.component.CustomData;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,8 +75,9 @@ public class LightManager {
         }
         if (broom.getModule(BroomEntity.BroomSlot.MISC).getItem() instanceof KeychainItem keychainItem) {
             NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
-            if (broom.getModule(BroomEntity.BroomSlot.MISC).hasTag())
-                ContainerHelper.loadAllItems(broom.getModule(BroomEntity.BroomSlot.MISC).getOrCreateTag(), items);
+            CompoundTag tag = broom.getModule(BroomEntity.BroomSlot.MISC).getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+            if (!tag.isEmpty())
+                ContainerHelper.loadAllItems(tag, items, broom.level().registryAccess());
             return DynamicLightUtil.fromItemLike(items.get(0).getItem());
         }
         return 0;
@@ -109,7 +113,7 @@ public class LightManager {
     }
 
     public static boolean containsEntity(EntityType<? extends Entity> type){
-        return LIGHT_REGISTRY.containsKey(type) || HexConfig.ENTITY_LIGHT_MAP.containsKey(ForgeRegistries.ENTITY_TYPES.getKey(type));
+        return LIGHT_REGISTRY.containsKey(type) || HexConfig.ENTITY_LIGHT_MAP.containsKey(BuiltInRegistries.ENTITY_TYPE.getKey(type));
     }
 
     /**

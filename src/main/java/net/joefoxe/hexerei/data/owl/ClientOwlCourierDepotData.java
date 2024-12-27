@@ -1,5 +1,6 @@
 package net.joefoxe.hexerei.data.owl;
 
+import net.joefoxe.hexerei.Hexerei;
 import net.joefoxe.hexerei.util.message.ClientboundOwlCourierDepotDataInventoryPacket;
 import net.joefoxe.hexerei.util.message.ClientboundOwlCourierDepotDataPacket;
 import net.minecraft.core.BlockPos;
@@ -36,7 +37,7 @@ public class ClientOwlCourierDepotData {
         Optional<GlobalPos> pos = GlobalPos.CODEC.parse(NbtOps.INSTANCE, pCompoundTag.get("Pos")).result();
 
         NonNullList<ItemStack> stacks = NonNullList.withSize(8, ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(pCompoundTag, stacks);
+        ContainerHelper.loadAllItems(pCompoundTag, stacks, Hexerei.proxy.getLevel().registryAccess());
 
         pos.ifPresent(globalPos -> getDepots().get(globalPos).items = stacks);
     }
@@ -53,7 +54,7 @@ public class ClientOwlCourierDepotData {
                 Optional<GlobalPos> pos = GlobalPos.CODEC.parse(NbtOps.INSTANCE, depotTag.get("Pos")).result();
 
                 OwlCourierDepotData depotData = new OwlCourierDepotData(depotName);
-                ContainerHelper.loadAllItems(depotTag, depotData.items);
+                ContainerHelper.loadAllItems(depotTag, depotData.items, Hexerei.proxy.getLevel().registryAccess());
 
                 pos.ifPresent(globalPos -> depots.put(globalPos, depotData));
             }

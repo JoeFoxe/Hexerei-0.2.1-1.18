@@ -16,7 +16,7 @@ import java.util.Random;
 
 public class BottleLavaItem extends HexBottleItem {
 
-    public static FoodProperties FOOD = new FoodProperties.Builder().saturationMod(0).nutrition(0).alwaysEat().build();
+    public static FoodProperties FOOD = new FoodProperties.Builder().saturationModifier(0).nutrition(0).alwaysEdible().build();
 
     public BottleLavaItem(Properties properties) {
         super(properties.food(FOOD));
@@ -25,7 +25,7 @@ public class BottleLavaItem extends HexBottleItem {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity entityLiving) {
         if (!world.isClientSide && entityLiving instanceof ServerPlayer player) {
-            entityLiving.setSecondsOnFire(10);
+            entityLiving.setRemainingFireTicks(entityLiving.getRemainingFireTicks() + 10);
         }
 
         return super.finishUsingItem(stack, world, entityLiving);
@@ -38,7 +38,7 @@ public class BottleLavaItem extends HexBottleItem {
         super.inventoryTick(stack, world, entity, itemSlot, isSelected);
 
         if (rand.nextDouble() > 0.5d) {
-            stack.hurtAndBreak(1, (Player) entity, player -> player.broadcastBreakEvent(InteractionHand.MAIN_HAND));
+            stack.hurtAndBreak(1, (Player) entity, LivingEntity.getSlotForHand(InteractionHand.MAIN_HAND));
         }
     }
 
