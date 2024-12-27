@@ -71,7 +71,7 @@ public class NatureCovenLegProcessor extends StructureProcessor {
     }
 
     protected StructureProcessorType<?> getType() {
-        return Hexerei.NATURE_COVEN_LEG_PROCESSOR;
+        return ModStructureProcessors.NATURE_COVEN_LEG_PROCESSOR.get();
     }
     private static StructureTemplate.StructureBlockInfo getReturnBlock(BlockPos worldPos, BlockState originalReplacementState) {
         return originalReplacementState == null || originalReplacementState.is(Blocks.STRUCTURE_VOID) ?

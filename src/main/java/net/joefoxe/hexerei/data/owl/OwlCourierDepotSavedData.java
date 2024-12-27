@@ -20,7 +20,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
-@EventBusSubscriber(modid = Hexerei.MOD_ID)
+//@EventBusSubscriber(modid = Hexerei.MOD_ID)
 public class OwlCourierDepotSavedData extends SavedData {
     protected static final String DATA_NAME = Hexerei.MOD_ID + "_owl_courier_depot";
 

@@ -2,7 +2,12 @@ package net.joefoxe.hexerei.client.renderer.color;
 
 import net.joefoxe.hexerei.block.ModBlocks;
 import net.joefoxe.hexerei.item.ModItems;
-import net.joefoxe.hexerei.item.custom.*;
+import net.joefoxe.hexerei.item.custom.BroomSeatItem;
+import net.joefoxe.hexerei.item.custom.CandleItem;
+import net.joefoxe.hexerei.item.custom.CofferItem;
+import net.joefoxe.hexerei.item.custom.MixingCauldronItem;
+import net.joefoxe.hexerei.item.custom.SatchelItem;
+import net.joefoxe.hexerei.item.custom.WitchArmorItem;
 import net.joefoxe.hexerei.util.HexereiUtil;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.GrassColor;
@@ -11,22 +16,23 @@ import net.minecraft.world.level.block.WaterlilyBlock;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 
-@EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD)
 public class ModItemColors {
     private ModItemColors() {}
     // FORGE: Use RegistryDelegates as non-Vanilla item crowList are not constant
 
     @SubscribeEvent
     public static void initItemColors(RegisterColorHandlersEvent.Item event) {
-        event.getItemColors().register((stack, color) -> {
+        event.register((stack, color) -> {
             DyeColor col = HexereiUtil.getDyeColorNamed(stack.getHoverName().getString());
             return color == 0 ? -1 : ((WitchArmorItem)stack.getItem()).getColor(stack);
         }, ModItems.WITCH_HELMET.get(), ModItems.WITCH_CHESTPLATE.get(), ModItems.WITCH_BOOTS.get());
 
-        event.getItemColors().register((stack, color) -> {
+        event.register((stack, color) -> {
             Block block = Block.byItem(stack.getItem());
             if(block instanceof WaterlilyBlock) {
                 return GrassColor.get(0.0D, 0.5D);

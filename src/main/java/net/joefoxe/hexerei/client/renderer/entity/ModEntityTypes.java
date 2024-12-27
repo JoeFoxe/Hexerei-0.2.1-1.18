@@ -13,11 +13,12 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-@EventBusSubscriber(modid = Hexerei.MOD_ID)
+@EventBusSubscriber(modid = Hexerei.MOD_ID, bus = Bus.MOD)
 public class ModEntityTypes {
     public static DeferredRegister<EntityType<?>> ENTITY_TYPES
             = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, Hexerei.MOD_ID);

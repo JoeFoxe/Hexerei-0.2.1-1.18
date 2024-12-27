@@ -70,7 +70,7 @@ public class CrowRenderer extends MobRenderer<CrowEntity, CrowModel<CrowEntity>>
     private final HumanoidModel defaultBipedModel;
     public static Map<Item, ResourceLocation> TRINKET_LOCATION = Util.make(() ->{
         Map<Item, ResourceLocation> map = new HashMap<>();
-        map.put(ModItems.CROW_ANKH_AMULET.get(), ResourceLocation.withDefaultNamespace("hexerei:textures/item/crow_ankh_amulet_trinket.png"));
+        map.put(ModItems.CROW_ANKH_AMULET.get(), ResourceLocation.tryParse("hexerei:textures/item/crow_ankh_amulet_trinket.png"));
         return map;
     });
 

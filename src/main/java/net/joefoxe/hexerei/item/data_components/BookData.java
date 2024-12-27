@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class BookData {
+public class BookData {//TODO: make immutable! as datacomponents should be immutable
 
     public static final BookData EMPTY = new BookData(0, 0, false, new Bookmarks(IntStream.range(0, 20) .mapToObj(index -> new Bookmarks.Slot("", DyeColor.WHITE, index)).collect(Collectors.toList())));
 
